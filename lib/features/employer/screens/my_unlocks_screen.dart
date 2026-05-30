@@ -98,7 +98,7 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _unlocks.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final unlock = _unlocks[index];
           final c = unlock['candidates'] as Map<String, dynamic>?;

@@ -20,7 +20,7 @@ class BrowseSkeletonGrid extends StatelessWidget {
           childAspectRatio: 0.46,
         ),
         itemCount: 6,
-        itemBuilder: (_, __) => Container(
+        itemBuilder: (_, _) => Container(
           decoration: BoxDecoration(
             color: AppColors.divider,
             borderRadius: BorderRadius.circular(12),

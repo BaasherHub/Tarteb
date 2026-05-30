@@ -57,6 +57,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
     );
     if (ok && mounted) {
       await _refreshCandidate();
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     }
     if (mounted) setState(() => _loading = false);
