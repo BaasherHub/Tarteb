@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/l10n/locale_service.dart';
+import 'package:tarteb/core/utils/error_message.dart';
 import 'package:tarteb/features/employer/models/browse_filters.dart';
 import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
 import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
 import 'package:tarteb/features/employer/screens/filter_screen.dart';
 import 'package:tarteb/features/employer/services/candidate_browse_repository.dart';
 import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/shared/screens/settings_screen.dart';
+import 'package:tarteb/features/shared/widgets/browse_skeleton_grid.dart';
+import 'package:tarteb/features/shared/widgets/empty_state_widget.dart';
 import 'package:tarteb/features/shared/widgets/error_widget.dart';
-import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -52,6 +57,14 @@ class BrowseScreenState extends State<BrowseScreen> {
       MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
     );
     await _loadCredits();
+  }
+
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => const SettingsScreen(isCandidate: false),
+      ),
+    );
   }
 
   void _onCandidateUnlocked() {
@@ -110,7 +123,7 @@ class BrowseScreenState extends State<BrowseScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ErrorMessage.from(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -138,69 +151,91 @@ class BrowseScreenState extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Browse candidates'),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: InkWell(
-                onTap: _openBuyCredits,
-                borderRadius: BorderRadius.circular(8),
+    return ListenableBuilder(
+      listenable: LocaleService.instance,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(AppStrings.browseCandidates),
+            actions: [
+              Center(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  child: Text(
-                    'Credits: $_creditsBalance',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: _openBuyCredits,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Text(
+                        AppStrings.creditsCount(_creditsBalance),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-          if (_filters.hasActiveFilters)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Filtered',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+              if (_filters.hasActiveFilters)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        AppStrings.filtered,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: _openFilters,
               ),
-            ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _openFilters,
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: _openSettings,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _buildBody(),
+          body: _buildBody(),
+        );
+      },
     );
   }
 
   Widget _buildBody() {
-    if (_initialLoading) return const LoadingWidget();
+    if (_initialLoading) return const BrowseSkeletonGrid();
     if (_error != null) {
-      return TartebErrorWidget(message: _error!, onRetry: () => _load(refresh: true));
+      return TartebErrorWidget(
+        message: _error!,
+        onRetry: () => _load(refresh: true),
+      );
     }
     if (_candidates.isEmpty) {
-      return _EmptyBrowseState(onReset: resetFilters);
+      return EmptyStateWidget(
+        icon: Icons.person_search_outlined,
+        title: AppStrings.noCandidatesMatchFilters,
+        subtitle: AppStrings.tryAdjustingFilters,
+        actionLabel: AppStrings.resetFilters,
+        onAction: resetFilters,
+      );
     }
 
     return RefreshIndicator(
@@ -239,48 +274,6 @@ class BrowseScreenState extends State<BrowseScreen> {
             ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyBrowseState extends StatelessWidget {
-  const _EmptyBrowseState({required this.onReset});
-
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_search_outlined,
-              size: 64,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No candidates found',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your filters or check back later.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onReset,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Reset filters'),
-            ),
-          ],
-        ),
       ),
     );
   }
