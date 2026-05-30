@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/features/candidate/constants/candidate_profile_constants.dart';
 
 /// Experience, languages, UAE badge — visible before unlock on browse cards.
@@ -69,9 +70,9 @@ class CandidateConfidenceDetails extends StatelessWidget {
                 color: AppColors.secondary.withValues(alpha: 0.35),
               ),
             ),
-            child: const Text(
-              'UAE Experience ✓',
-              style: TextStyle(
+            child: Text(
+              AppStrings.uaeExperienceBadge,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondary,
@@ -82,7 +83,7 @@ class CandidateConfidenceDetails extends StatelessWidget {
         if (previousEmployer != null && previousEmployer.trim().isNotEmpty) ...[
           SizedBox(height: compact ? 4 : 6),
           Text(
-            'Previously at ${previousEmployer.trim()}',
+            AppStrings.previouslyAt(previousEmployer.trim()),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                   fontSize: compact ? 11 : 12,

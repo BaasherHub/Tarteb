@@ -44,7 +44,15 @@ class TartebApp extends StatelessWidget {
             ),
           ),
           builder: (context, child) {
-            return ConnectivityBanner(child: child ?? const SizedBox.shrink());
+            final textDirection = LocaleService.instance.isArabic
+                ? TextDirection.rtl
+                : TextDirection.ltr;
+            return Directionality(
+              textDirection: textDirection,
+              child: ConnectivityBanner(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
           },
           home: const SplashScreen(),
         );

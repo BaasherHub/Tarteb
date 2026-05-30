@@ -84,10 +84,26 @@ abstract final class AppStrings {
         'مرات فتح أصحاب العمل لبيانات تواصلك',
       );
   static String get profileLiveMessage => _t(
-        'Your profile is live — employers can find you',
-        'ملفك نشط — أصحاب العمل يمكنهم العثور عليك',
+        'Your profile is live — employers can find you 👋',
+        'ملفك نشط — أصحاب العمل يمكنهم العثور عليك 👋',
       );
   static String get zeroProfileViews => profileLiveMessage;
+
+  // Candidate profile (browse cards & onboarding)
+  static String get noExperience => _t('No experience', 'بدون خبرة');
+  static String get oneYear => _t('1 year', 'سنة واحدة');
+  static String get twoThreeYears => _t('2-3 years', '٢-٣ سنوات');
+  static String get fourFiveYears => _t('4-5 years', '٤-٥ سنوات');
+  static String get fivePlusYears => _t('5+ years', '٥+ سنوات');
+  static String get oneYearExperience =>
+      _t('1 year experience', 'سنة واحدة خبرة');
+  static String yearsExperience(int years) =>
+      _t('$years years experience', '$years سنوات خبرة');
+  static String get uaeExperienceBadge =>
+      _t('UAE Experience ✓', 'خبرة في الإمارات ✓');
+  static String previouslyAt(String company) =>
+      _t('Previously at $company', 'سبق وعمل في $company');
+  static String get languages => _t('Languages', 'اللغات');
 
   // Settings
   static String get settings => _t('Settings', 'الإعدادات');
