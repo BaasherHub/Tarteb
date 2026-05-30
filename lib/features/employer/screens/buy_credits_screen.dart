@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
-import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
-/// Credits purchased via Stripe (integrate later).
-/// 1 credit = 1 unlock = AED 50.
+/// Manual credit purchase — contact WhatsApp (no payment gateway yet).
 class BuyCreditsScreen extends StatefulWidget {
   const BuyCreditsScreen({super.key});
 
@@ -14,28 +15,30 @@ class BuyCreditsScreen extends StatefulWidget {
 
 class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
   int _balance = 0;
+  String _email = '';
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadBalance();
+    _load();
   }
 
-  Future<void> _loadBalance() async {
+  Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final userId = TartebSupabase.auth.currentUser!.id;
-      final data = await TartebSupabase.client
-          .from('employers')
-          .select('credits_balance')
-          .eq('user_id', userId)
-          .single();
-      setState(() => _balance = data['credits_balance'] as int? ?? 0);
+      final account = await EmployerCreditsService.fetchAccount();
+      setState(() {
+        _balance = account.creditsBalance;
+        _email = account.email;
+      });
     } catch (_) {
-      setState(() => _balance = 0);
+      setState(() {
+        _balance = 0;
+        _email = '';
+      });
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -45,54 +48,64 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
       appBar: AppBar(title: const Text('Buy credits')),
       body: _loading
           ? const LoadingWidget()
-          : Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                padding: const EdgeInsets.all(24),
                 children: [
                   Text(
-                    'Balance: $_balance credits',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    'Current balance: $_balance credits',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Each credit unlocks one candidate (AED ${AppStrings.unlockCostAed}).',
-                  ),
-                  const SizedBox(height: 32),
-                  _CreditPack(
+                  const SizedBox(height: 24),
+                  const _CreditPackageCard(
                     credits: 1,
                     priceAed: 50,
-                    onBuy: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Stripe integration coming soon'),
-                        ),
-                      );
-                    },
                   ),
                   const SizedBox(height: 12),
-                  _CreditPack(
+                  const _CreditPackageCard(
                     credits: 5,
-                    priceAed: 225,
-                    onBuy: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Stripe integration coming soon'),
-                        ),
-                      );
-                    },
+                    priceAed: 200,
+                    savings: 'Save AED 50',
                   ),
                   const SizedBox(height: 12),
-                  _CreditPack(
+                  const _CreditPackageCard(
                     credits: 10,
-                    priceAed: 400,
-                    onBuy: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Stripe integration coming soon'),
+                    priceAed: 350,
+                    savings: 'Save AED 150',
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'To purchase credits, contact us on WhatsApp',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _email.isEmpty
+                        ? null
+                        : () => WhatsAppSupportService.openBuyCredits(
+                              employerEmail: _email,
+                            ),
+                    icon: const Icon(Icons.chat, size: 28),
+                    label: const Text(
+                      'Contact on WhatsApp',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Credits are added manually within 1 hour',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
                         ),
-                      );
-                    },
                   ),
                 ],
               ),
@@ -101,24 +114,68 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
   }
 }
 
-class _CreditPack extends StatelessWidget {
-  const _CreditPack({
+class _CreditPackageCard extends StatelessWidget {
+  const _CreditPackageCard({
     required this.credits,
     required this.priceAed,
-    required this.onBuy,
+    this.savings,
   });
 
   final int credits;
   final int priceAed;
-  final VoidCallback onBuy;
+  final String? savings;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: ListTile(
-        title: Text('$credits credit${credits > 1 ? 's' : ''}'),
-        subtitle: Text('AED $priceAed'),
-        trailing: FilledButton(onPressed: onBuy, child: const Text('Buy')),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.divider),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$credits credit${credits > 1 ? 's' : ''}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('AED $priceAed'),
+                  if (savings != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      savings!,
+                      style: const TextStyle(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.textSecondary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Coming soon',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
