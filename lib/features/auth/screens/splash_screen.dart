@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    await Future<void>.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
     final session = TartebSupabase.auth.currentSession;
@@ -37,25 +37,44 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              AppStrings.appName,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              AppStrings.splashTagline,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 32),
-            const CircularProgressIndicator(color: AppColors.primary),
-          ],
+      backgroundColor: AppColors.primary,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.work_outline,
+                size: 88,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppStrings.appName,
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 40,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  AppStrings.splashTaglineBilingual,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.95),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            ],
+          ),
         ),
       ),
     );
