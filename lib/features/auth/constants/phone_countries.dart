@@ -28,9 +28,10 @@ abstract final class PhoneCountries {
   static const PhoneCountry defaultCountry =
       PhoneCountry(name: 'UAE', dialCode: '+971', iso: 'AE');
 
-  /// Builds E.164 phone (e.g. +971501234567).
+  /// E.164 format: +[country][number], no spaces or dashes (e.g. +971501551480).
   static String toE164(PhoneCountry country, String localInput) {
-    var digits = localInput.replaceAll(RegExp(r'\D'), '');
+    final stripped = localInput.replaceAll(RegExp(r'[\s\-\(\)\.]'), '');
+    var digits = stripped.replaceAll(RegExp(r'\D'), '');
     if (digits.startsWith('0')) {
       digits = digits.substring(1);
     }
@@ -38,6 +39,6 @@ abstract final class PhoneCountries {
     if (digits.startsWith(codeDigits)) {
       return '+$digits';
     }
-    return '${country.dialCode}$digits';
+    return '+$codeDigits$digits';
   }
 }

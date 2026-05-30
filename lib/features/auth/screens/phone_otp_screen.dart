@@ -31,15 +31,21 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
     super.dispose();
   }
 
+  String _buildE164Phone() {
+    final local = _phoneController.text.replaceAll(RegExp(r'\s'), '');
+    final e164 = PhoneCountries.toE164(_country, local);
+    return TwilioVerifyService.normalizeE164(e164);
+  }
+
   Future<void> _sendOtp() async {
-    final local = _phoneController.text.trim();
+    final local = _phoneController.text.replaceAll(RegExp(r'\s'), '');
     if (local.isEmpty) {
       _showError('Enter your phone number');
       return;
     }
 
-    final phone = PhoneCountries.toE164(_country, local);
-    if (phone.length < 10) {
+    final phone = _buildE164Phone();
+    if (phone.length < 11 || !phone.startsWith('+')) {
       _showError('Enter a valid phone number');
       return;
     }
@@ -59,9 +65,11 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
   }
 
   Future<void> _verifyOtp() async {
-    final phone = _e164Phone;
+    final phone = _e164Phone != null
+        ? TwilioVerifyService.normalizeE164(_e164Phone!)
+        : _buildE164Phone();
     final token = _otpController.text.trim();
-    if (phone == null || token.length != 6) {
+    if (phone.isEmpty || token.length != 6) {
       _showError('Enter the 6-digit code');
       return;
     }
@@ -182,6 +190,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                     TextButton(
                       onPressed: () => setState(() {
                         _otpSent = false;
+                        _e164Phone = null;
                         _otpController.clear();
                       }),
                       child: const Text('Change phone number'),
