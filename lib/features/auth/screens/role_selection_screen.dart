@@ -1,21 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
-import 'package:tarteb/features/auth/screens/phone_otp_screen.dart';
+import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/features/candidate/screens/onboarding/step1_photo.dart';
+import 'package:tarteb/features/employer/screens/employer_onboarding_screen.dart';
+import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
-class RoleSelectionScreen extends StatelessWidget {
+class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
 
-  void _selectRole(BuildContext context, String role) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PhoneOtpScreen(selectedRole: role),
-      ),
-    );
+  @override
+  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+}
+
+class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
+  bool _loading = false;
+
+  Future<void> _selectRole(String role) async {
+    setState(() => _loading = true);
+    try {
+      final userId = TartebSupabase.auth.currentUser!.id;
+      await TartebSupabase.client.from('profiles').upsert(
+        {'user_id': userId, 'role': role},
+        onConflict: 'user_id',
+      );
+
+      if (!mounted) return;
+
+      if (role == 'candidate') {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(builder: (_) => const Step1PhotoScreen()),
+          (_) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(
+            builder: (_) => const EmployerOnboardingScreen(),
+          ),
+          (_) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: LoadingWidget());
+
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.selectRole)),
       body: Padding(
@@ -29,7 +68,7 @@ class RoleSelectionScreen extends StatelessWidget {
               subtitle: 'List your profile for free',
               icon: Icons.person,
               color: AppColors.secondary,
-              onTap: () => _selectRole(context, 'candidate'),
+              onTap: () => _selectRole('candidate'),
             ),
             const SizedBox(height: 16),
             _RoleCard(
@@ -37,7 +76,7 @@ class RoleSelectionScreen extends StatelessWidget {
               subtitle: 'Browse and unlock candidates',
               icon: Icons.business,
               color: AppColors.primary,
-              onTap: () => _selectRole(context, 'employer'),
+              onTap: () => _selectRole('employer'),
             ),
           ],
         ),
