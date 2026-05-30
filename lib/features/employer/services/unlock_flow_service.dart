@@ -3,6 +3,7 @@ import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
 import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
+import 'package:tarteb/features/auth/services/auth_contact.dart';
 import 'package:tarteb/features/employer/services/employer_credits_service.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 
@@ -21,7 +22,10 @@ abstract final class UnlockFlowService {
     if (!context.mounted) return false;
 
     if (account.creditsBalance < 1) {
-      await _showNoCreditsSheet(context, employerEmail: account.email);
+      await _showNoCreditsSheet(
+        context,
+        employerContact: AuthContact.supportIdentifier,
+      );
       return false;
     }
 
@@ -38,7 +42,6 @@ abstract final class UnlockFlowService {
     return _executeUnlock(
       context,
       candidateId: candidate['id'] as String,
-      employerEmail: account.email,
       onUnlocked: onUnlocked,
       onCreditsChanged: onCreditsChanged,
     );
@@ -47,7 +50,6 @@ abstract final class UnlockFlowService {
   static Future<bool> _executeUnlock(
     BuildContext context, {
     required String candidateId,
-    required String employerEmail,
     required VoidCallback onUnlocked,
     required VoidCallback onCreditsChanged,
   }) async {
@@ -129,7 +131,7 @@ abstract final class UnlockFlowService {
 
   static Future<void> _showNoCreditsSheet(
     BuildContext context, {
-    required String employerEmail,
+    required String employerContact,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -150,7 +152,9 @@ abstract final class UnlockFlowService {
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
-                WhatsAppSupportService.openTopUp(employerEmail: employerEmail);
+                WhatsAppSupportService.openTopUp(
+                  employerContact: employerContact,
+                );
               },
               icon: const Icon(Icons.chat),
               label: const Text('WhatsApp'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
+import 'package:tarteb/features/auth/services/auth_contact.dart';
 import 'package:tarteb/features/employer/services/employer_credits_service.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
@@ -15,7 +16,7 @@ class BuyCreditsScreen extends StatefulWidget {
 
 class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
   int _balance = 0;
-  String _email = '';
+  String _contact = '';
   bool _loading = true;
 
   @override
@@ -30,12 +31,12 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
       final account = await EmployerCreditsService.fetchAccount();
       setState(() {
         _balance = account.creditsBalance;
-        _email = account.email;
+        _contact = AuthContact.supportIdentifier;
       });
     } catch (_) {
       setState(() {
         _balance = 0;
-        _email = '';
+        _contact = AuthContact.supportIdentifier;
       });
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -85,10 +86,10 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
                       ),
                       const SizedBox(height: 16),
                       FilledButton.icon(
-                        onPressed: _email.isEmpty
+                        onPressed: _contact.isEmpty
                             ? null
                             : () => WhatsAppSupportService.openBuyCredits(
-                                  employerEmail: _email,
+                                  employerContact: _contact,
                                 ),
                         icon: const Icon(Icons.chat, size: 28),
                         label: Text(AppStrings.contactUsOnWhatsApp),

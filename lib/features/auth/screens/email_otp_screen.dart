@@ -5,7 +5,7 @@ import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
-/// MVP auth: email OTP. Switch to phone OTP before production.
+/// Email OTP fallback when phone SMS is unavailable.
 class EmailOtpScreen extends StatefulWidget {
   const EmailOtpScreen({super.key});
 

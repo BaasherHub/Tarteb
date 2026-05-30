@@ -4,7 +4,7 @@ import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/auth/screens/splash_screen.dart';
-import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/auth/services/auth_contact.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -18,25 +18,15 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '—';
-  String _supportEmail = '';
-
   @override
   void initState() {
     super.initState();
     _loadVersion();
-    if (!widget.isCandidate) _loadEmployerEmail();
   }
 
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (mounted) setState(() => _version = info.version);
-  }
-
-  Future<void> _loadEmployerEmail() async {
-    try {
-      final account = await EmployerCreditsService.fetchAccount();
-      if (mounted) setState(() => _supportEmail = account.email);
-    } catch (_) {}
   }
 
   Future<void> _logout() async {
@@ -89,11 +79,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.chat),
                 title: Text(AppStrings.contactSupport),
                 onTap: () {
-                  final email = _supportEmail.isNotEmpty
-                      ? _supportEmail
-                      : TartebSupabase.auth.currentUser?.email ?? '';
+                  final contact = AuthContact.supportIdentifier;
                   WhatsAppSupportService.openBuyCredits(
-                    employerEmail: email.isNotEmpty ? email : 'support',
+                    employerContact:
+                        contact.isNotEmpty ? contact : 'support',
                   );
                 },
               ),

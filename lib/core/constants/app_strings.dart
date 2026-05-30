@@ -24,6 +24,10 @@ abstract final class AppStrings {
   static String get verifyOtp => _t('Verify OTP', 'تحقق من الرمز');
   static String get signInWithEmail =>
       _t('Sign in with email', 'تسجيل الدخول بالبريد');
+  static String get signInWithEmailInstead => _t(
+        'Sign in with email instead',
+        'تسجيل الدخول بالبريد بدلاً من ذلك',
+      );
   static String get sendOtp => _t('Send OTP', 'إرسال الرمز');
   static String get otpCode => _t('OTP code', 'رمز التحقق');
   static String get verify => _t('Verify', 'تحقق');

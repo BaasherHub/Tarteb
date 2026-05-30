@@ -5,15 +5,15 @@ abstract final class WhatsAppSupportService {
   static String get _digits =>
       AppStrings.supportWhatsApp.replaceAll(RegExp(r'\D'), '');
 
-  static Future<void> openBuyCredits({required String employerEmail}) async {
+  static Future<void> openBuyCredits({required String employerContact}) async {
     final message =
-        'Hi, I want to buy credits for Tarteb. My email: $employerEmail';
+        'Hi, I want to buy credits for Tarteb.\nMy number: $employerContact';
     await _open(message);
   }
 
-  static Future<void> openTopUp({required String employerEmail}) async {
+  static Future<void> openTopUp({required String employerContact}) async {
     final message =
-        'Hi, I need to top up credits on Tarteb. My email: $employerEmail';
+        'Hi, I need to top up credits on Tarteb.\nMy number: $employerContact';
     await _open(message);
   }
 

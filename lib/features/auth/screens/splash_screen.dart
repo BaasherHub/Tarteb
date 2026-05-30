@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
-import 'package:tarteb/features/auth/screens/email_otp_screen.dart';
+import 'package:tarteb/features/auth/screens/phone_otp_screen.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final session = TartebSupabase.auth.currentSession;
     if (session == null) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const EmailOtpScreen()),
+        MaterialPageRoute<void>(builder: (_) => const PhoneOtpScreen()),
       );
       return;
     }

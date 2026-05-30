@@ -7,7 +7,7 @@ import 'package:tarteb/features/candidate/screens/onboarding/step1_photo.dart';
 import 'package:tarteb/features/employer/screens/employer_onboarding_screen.dart';
 import 'package:tarteb/features/employer/screens/employer_shell_screen.dart';
 
-/// Routes authenticated users based on [profiles] and role-specific tables.
+/// Routes authenticated users (phone or email OTP session) by [profiles] role.
 abstract final class AuthNavigation {
   static Future<void> routeAuthenticatedUser(BuildContext context) async {
     final userId = TartebSupabase.auth.currentUser?.id;
