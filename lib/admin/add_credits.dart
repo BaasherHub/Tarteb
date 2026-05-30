@@ -20,10 +20,9 @@ List<String> _scriptArgs = [];
 
 void main(List<String> args) async {
   // Admin only - remove before public launch
-  assert(
-    !kReleaseMode,
-    'add_credits.dart must not run in release mode',
-  );
+  assert(() {
+    return !kReleaseMode;
+  }(), 'Admin script must not run in release mode');
   if (kReleaseMode) {
     stderr.writeln('Error: add_credits.dart cannot run in release mode.');
     exit(1);
