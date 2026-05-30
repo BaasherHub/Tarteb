@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/features/employer/models/browse_filters.dart';
+import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
 import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
 import 'package:tarteb/features/employer/screens/filter_screen.dart';
 import 'package:tarteb/features/employer/services/candidate_browse_repository.dart';
+import 'package:tarteb/features/employer/services/employer_credits_service.dart';
 import 'package:tarteb/features/shared/widgets/error_widget.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
@@ -24,11 +26,36 @@ class BrowseScreenState extends State<BrowseScreen> {
   bool _hasMore = true;
   String? _error;
   int _page = 0;
+  int _creditsBalance = 0;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadCredits();
+    _load(refresh: true);
+  }
+
+  Future<void> refreshCredits() => _loadCredits();
+
+  Future<void> _loadCredits() async {
+    try {
+      final balance = await EmployerCreditsService.fetchBalance();
+      if (mounted) setState(() => _creditsBalance = balance);
+    } catch (_) {
+      if (mounted) setState(() => _creditsBalance = 0);
+    }
+  }
+
+  Future<void> _openBuyCredits() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
+    );
+    await _loadCredits();
+  }
+
+  void _onCandidateUnlocked() {
+    _loadCredits();
     _load(refresh: true);
   }
 
@@ -115,6 +142,26 @@ class BrowseScreenState extends State<BrowseScreen> {
       appBar: AppBar(
         title: const Text('Browse candidates'),
         actions: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: InkWell(
+                onTap: _openBuyCredits,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Text(
+                    'Credits: $_creditsBalance',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           if (_filters.hasActiveFilters)
             Center(
               child: Padding(
@@ -175,7 +222,8 @@ class BrowseScreenState extends State<BrowseScreen> {
                 (context, index) {
                   return CandidateCardWidget(
                     candidate: _candidates[index],
-                    onUnlocked: () => _load(refresh: true),
+                    onUnlocked: _onCandidateUnlocked,
+                    onCreditsChanged: _loadCredits,
                   );
                 },
                 childCount: _candidates.length,

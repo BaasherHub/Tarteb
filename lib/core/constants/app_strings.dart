@@ -16,6 +16,9 @@ abstract final class AppStrings {
   static const int unlockCostAed = 50;
   static const int creditPerUnlock = 1;
 
+  /// Replace XXXXXXXXX with your support number before public launch.
+  static const String supportWhatsApp = '971XXXXXXXXX';
+
   // Candidate roles
   static const List<String> candidateRoles = [
     'Cashier',
