@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Supabase CLI local state
+supabase/.temp/
+
 # Environment & secrets
 .env
 *.env
