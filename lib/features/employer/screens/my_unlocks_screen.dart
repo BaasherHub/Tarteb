@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/core/utils/error_message.dart';
 import 'package:tarteb/features/employer/widgets/visa_badge.dart';
+import 'package:tarteb/features/shared/widgets/empty_state_widget.dart';
 import 'package:tarteb/features/shared/widgets/error_widget.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyUnlocksScreen extends StatefulWidget {
-  const MyUnlocksScreen({super.key});
+  const MyUnlocksScreen({super.key, this.onBrowseTap});
+
+  final VoidCallback? onBrowseTap;
 
   @override
   State<MyUnlocksScreen> createState() => _MyUnlocksScreenState();
@@ -40,7 +46,7 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
 
       setState(() => _unlocks = List<Map<String, dynamic>>.from(data));
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = ErrorMessage.from(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -62,9 +68,14 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('My Unlocks')),
-      body: _buildBody(),
+    return ListenableBuilder(
+      listenable: LocaleService.instance,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(title: Text(AppStrings.myUnlocks)),
+          body: _buildBody(),
+        );
+      },
     );
   }
 
@@ -74,25 +85,11 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
       return TartebErrorWidget(message: _error!, onRetry: _load);
     }
     if (_unlocks.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.bookmark_border,
-                size: 64,
-                color: AppColors.textSecondary.withValues(alpha: 0.4),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No unlocked candidates yet',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-        ),
+      return EmptyStateWidget(
+        icon: Icons.bookmark_border,
+        title: AppStrings.noUnlockedYet,
+        actionLabel: AppStrings.browseCandidates,
+        onAction: widget.onBrowseTap,
       );
     }
 
@@ -141,10 +138,10 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
                       children: [
                         Text(
                           name,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
                         Text(role),
@@ -196,7 +193,9 @@ class _MyUnlocksScreenState extends State<MyUnlocksScreen> {
                         ],
                         const SizedBox(height: 8),
                         Text(
-                          'Unlocked on ${_formatUnlockedDate(unlock['unlocked_at'])}',
+                          AppStrings.unlockedOn(
+                            _formatUnlockedDate(unlock['unlocked_at']),
+                          ),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppColors.textSecondary,
                               ),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/features/employer/screens/browse_screen.dart';
 import 'package:tarteb/features/employer/screens/my_unlocks_screen.dart';
 
-/// Employer home with bottom navigation: Browse + My Unlocks.
 class EmployerShellScreen extends StatefulWidget {
   const EmployerShellScreen({super.key});
 
@@ -14,31 +15,38 @@ class _EmployerShellScreenState extends State<EmployerShellScreen> {
   int _tabIndex = 0;
   final _browseKey = GlobalKey<BrowseScreenState>();
 
+  void _goToBrowse() => setState(() => _tabIndex = 0);
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _tabIndex,
-        children: [
-          BrowseScreen(key: _browseKey),
-          const MyUnlocksScreen(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (index) => setState(() => _tabIndex = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Browse',
+    return ListenableBuilder(
+      listenable: LocaleService.instance,
+      builder: (context, _) {
+        return Scaffold(
+          body: IndexedStack(
+            index: _tabIndex,
+            children: [
+              BrowseScreen(key: _browseKey),
+              MyUnlocksScreen(onBrowseTap: _goToBrowse),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_outline),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'My Unlocks',
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _tabIndex,
+            onDestinationSelected: (index) => setState(() => _tabIndex = index),
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.search),
+                label: AppStrings.browse,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.bookmark_outline),
+                selectedIcon: const Icon(Icons.bookmark),
+                label: AppStrings.myUnlocks,
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
