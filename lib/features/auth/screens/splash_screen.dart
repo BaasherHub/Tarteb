@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tarteb/core/constants/app_constants.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
@@ -20,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await Future<void>.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(AppConstants.splashDuration);
     if (!mounted) return;
 
     final session = TartebSupabase.auth.currentSession;
