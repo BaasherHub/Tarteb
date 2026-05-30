@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
-import 'package:tarteb/features/auth/screens/role_selection_screen.dart';
-import 'package:tarteb/features/candidate/screens/candidate_dashboard_screen.dart';
-import 'package:tarteb/features/employer/screens/browse_screen.dart';
+import 'package:tarteb/features/auth/screens/email_otp_screen.dart';
+import 'package:tarteb/features/auth/services/auth_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,48 +16,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _routeUser();
+    _bootstrap();
   }
 
-  Future<void> _routeUser() async {
+  Future<void> _bootstrap() async {
     await Future<void>.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
     final session = TartebSupabase.auth.currentSession;
     if (session == null) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const RoleSelectionScreen()),
+        MaterialPageRoute<void>(builder: (_) => const EmailOtpScreen()),
       );
       return;
     }
 
-    final profile = await TartebSupabase.client
-        .from('profiles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-    if (!mounted) return;
-
-    if (profile == null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const RoleSelectionScreen()),
-      );
-      return;
-    }
-
-    final role = profile['role'] as String;
-    if (role == 'candidate') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => const CandidateDashboardScreen(),
-        ),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const BrowseScreen()),
-      );
-    }
+    await AuthNavigation.routeAuthenticatedUser(context);
   }
 
   @override
