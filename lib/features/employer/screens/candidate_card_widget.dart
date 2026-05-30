@@ -3,7 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
-import 'package:tarteb/features/employer/screens/unlock_screen.dart';
+import 'package:tarteb/features/employer/services/unlock_flow_service.dart';
+import 'package:tarteb/features/employer/widgets/visa_badge.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CandidateCardWidget extends StatelessWidget {
@@ -11,10 +12,12 @@ class CandidateCardWidget extends StatelessWidget {
     super.key,
     required this.candidate,
     this.onUnlocked,
+    this.onCreditsChanged,
   });
 
   final Map<String, dynamic> candidate;
   final VoidCallback? onUnlocked;
+  final VoidCallback? onCreditsChanged;
 
   static String firstName(String? fullName) {
     if (fullName == null || fullName.isEmpty) return 'Unknown';
@@ -31,12 +34,12 @@ class CandidateCardWidget extends StatelessWidget {
   }
 
   Future<void> _openUnlock(BuildContext context) async {
-    final unlocked = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) => UnlockScreen(candidate: candidate),
-      ),
+    await UnlockFlowService.handleUnlockTap(
+      context,
+      candidate: candidate,
+      onUnlocked: () => onUnlocked?.call(),
+      onCreditsChanged: () => onCreditsChanged?.call(),
     );
-    if (unlocked == true) onUnlocked?.call();
   }
 
   Future<void> _launchUri(String uri) async {
@@ -100,7 +103,7 @@ class CandidateCardWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                _VisaBadge(visaStatus: visa),
+                VisaBadge(visaStatus: visa),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -164,35 +167,6 @@ class CandidateCardWidget extends StatelessWidget {
       color: AppColors.primary.withValues(alpha: 0.08),
       child: const Center(
         child: Icon(Icons.person, size: 64, color: AppColors.primary),
-      ),
-    );
-  }
-}
-
-class _VisaBadge extends StatelessWidget {
-  const _VisaBadge({required this.visaStatus});
-
-  final String visaStatus;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = AppColors.visaBadgeColor(visaStatus);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        visaStatus,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
