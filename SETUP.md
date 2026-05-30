@@ -29,6 +29,13 @@ tarteb/
 2. Run the migration:
    - **Dashboard:** SQL Editor → paste `supabase/migrations/20260530000000_initial_schema.sql` → Run
    - **CLI:** `supabase link` then `supabase db push`
+   - **CI:** pushes to `main` that change `supabase/migrations/**` run `.github/workflows/supabase-migrate.yml` (`supabase db push`)
+
+   Add these GitHub secrets (repo → Settings → Secrets and variables → Actions):
+
+   - `SUPABASE_ACCESS_TOKEN` — from [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens)
+   - `SUPABASE_DB_PASSWORD` — your Supabase database password
+
 3. Enable **Phone** auth (Authentication → Providers → Phone) and configure an SMS provider (Twilio, etc.).
 4. Create storage bucket `candidate-photos` if the migration bucket insert did not run (usually handled by migration).
 
