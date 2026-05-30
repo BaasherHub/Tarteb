@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
-import 'package:tarteb/features/employer/screens/browse_screen.dart';
+import 'package:tarteb/features/employer/screens/employer_shell_screen.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
 class EmployerOnboardingScreen extends StatefulWidget {
@@ -13,6 +13,7 @@ class EmployerOnboardingScreen extends StatefulWidget {
 }
 
 class _EmployerOnboardingScreenState extends State<EmployerOnboardingScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _companyController = TextEditingController();
   final _contactController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -30,21 +31,26 @@ class _EmployerOnboardingScreenState extends State<EmployerOnboardingScreen> {
   }
 
   Future<void> _submit() async {
+    if (!_formKey.currentState!.validate() || _location == null) return;
+
     setState(() => _loading = true);
     try {
       final userId = TartebSupabase.auth.currentUser!.id;
-      await TartebSupabase.client.from('employers').upsert({
-        'user_id': userId,
-        'company_name': _companyController.text.trim(),
-        'contact_name': _contactController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'email': _emailController.text.trim(),
-        'location': _location!,
-      });
+      await TartebSupabase.client.from('employers').upsert(
+        {
+          'user_id': userId,
+          'company_name': _companyController.text.trim(),
+          'contact_name': _contactController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'email': _emailController.text.trim(),
+          'location': _location!,
+        },
+        onConflict: 'user_id',
+      );
 
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const BrowseScreen()),
+        MaterialPageRoute<void>(builder: (_) => const EmployerShellScreen()),
         (_) => false,
       );
     } catch (e) {
@@ -64,49 +70,63 @@ class _EmployerOnboardingScreenState extends State<EmployerOnboardingScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Company details')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          TextField(
-            controller: _companyController,
-            decoration: const InputDecoration(labelText: 'Company name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _contactController,
-            decoration: const InputDecoration(labelText: 'Contact name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _phoneController,
-            decoration: const InputDecoration(labelText: 'Phone'),
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          const Text('Location'),
-          ...AppStrings.locations.map(
-            (loc) => RadioListTile<String>(
-              title: Text(loc),
-              value: loc,
-              groupValue: _location,
-              onChanged: (v) => setState(() => _location = v),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            TextFormField(
+              controller: _companyController,
+              decoration: const InputDecoration(labelText: 'Company name'),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Required' : null,
             ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _location == null ||
-                    _companyController.text.trim().isEmpty
-                ? null
-                : _submit,
-            child: const Text('Start browsing'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _contactController,
+              decoration: const InputDecoration(labelText: 'Contact name'),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _phoneController,
+              decoration: const InputDecoration(labelText: 'Phone'),
+              keyboardType: TextInputType.phone,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required';
+                if (!v.contains('@')) return 'Enter a valid email';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _location,
+              decoration: const InputDecoration(labelText: 'Location'),
+              items: AppStrings.locations
+                  .map((loc) => DropdownMenuItem(value: loc, child: Text(loc)))
+                  .toList(),
+              onChanged: (v) => setState(() => _location = v),
+              validator: (v) => v == null ? 'Select a location' : null,
+            ),
+            const SizedBox(height: 32),
+            FilledButton(
+              onPressed: _submit,
+              child: const Text('Start browsing'),
+            ),
+          ],
+        ),
       ),
     );
   }
