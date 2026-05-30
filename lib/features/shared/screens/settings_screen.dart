@@ -4,7 +4,6 @@ import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/auth/screens/splash_screen.dart';
-import 'package:tarteb/features/auth/services/auth_contact.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -78,13 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.chat),
                 title: Text(AppStrings.contactSupport),
-                onTap: () {
-                  final contact = AuthContact.supportIdentifier;
-                  WhatsAppSupportService.openBuyCredits(
-                    employerContact:
-                        contact.isNotEmpty ? contact : 'support',
-                  );
-                },
+                onTap: () => WhatsAppSupportService.openSupport(),
               ),
               ListTile(
                 leading: const Icon(Icons.logout),

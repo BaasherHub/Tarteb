@@ -11,6 +11,10 @@ abstract final class WhatsAppSupportService {
     await _open(message);
   }
 
+  static Future<void> openSupport() async {
+    await _open('Hi, I need support with Tarteb.');
+  }
+
   static Future<void> openTopUp({required String employerContact}) async {
     final message =
         'Hi, I need to top up credits on Tarteb.\nMy number: $employerContact';
