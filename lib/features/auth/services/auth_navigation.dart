@@ -4,8 +4,8 @@ import 'package:tarteb/features/auth/screens/role_selection_screen.dart';
 import 'package:tarteb/features/candidate/models/candidate_onboarding_data.dart';
 import 'package:tarteb/features/candidate/screens/candidate_dashboard_screen.dart';
 import 'package:tarteb/features/candidate/screens/onboarding/step1_photo.dart';
-import 'package:tarteb/features/employer/screens/browse_screen.dart';
 import 'package:tarteb/features/employer/screens/employer_onboarding_screen.dart';
+import 'package:tarteb/features/employer/screens/employer_shell_screen.dart';
 
 /// Routes authenticated users based on [profiles] and role-specific tables.
 abstract final class AuthNavigation {
@@ -87,7 +87,7 @@ abstract final class AuthNavigation {
       );
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const BrowseScreen()),
+        MaterialPageRoute<void>(builder: (_) => const EmployerShellScreen()),
         (_) => false,
       );
     }
