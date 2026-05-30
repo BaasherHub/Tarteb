@@ -7,7 +7,10 @@ abstract final class AppStrings {
   static const String roleCandidate = 'Candidate';
   static const String roleEmployer = 'Employer';
   static const String enterPhone = 'Enter your phone number';
+  static const String enterEmail = 'Email address';
   static const String verifyOtp = 'Verify OTP';
+  static const String profilePausedBanner =
+      'Your profile is paused — employers cannot see you';
 
   // Pricing
   static const int unlockCostAed = 50;
