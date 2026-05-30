@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/features/candidate/models/candidate_onboarding_data.dart';
 import 'package:tarteb/features/candidate/screens/onboarding/step2_role.dart';
 import 'package:tarteb/features/candidate/services/candidate_photo_service.dart';
@@ -25,6 +27,7 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
   String? _localPreviewPath;
   String? _photoUrl;
   bool _uploading = false;
+  String? _uploadError;
 
   @override
   void initState() {
@@ -49,18 +52,15 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
     setState(() {
       _localPreviewPath = file.path;
       _uploading = true;
+      _uploadError = null;
     });
 
     try {
       final url = await CandidatePhotoService.upload(file);
       setState(() => _photoUrl = url);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e')),
-        );
-      }
       setState(() {
+        _uploadError = e.toString();
         _localPreviewPath = null;
         _photoUrl = widget.data.photoUrl;
       });
@@ -69,18 +69,13 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
     }
   }
 
-  void _continue() {
-    if (_photoUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a photo to continue')),
-      );
-      return;
-    }
-
+  void _continue({bool skipPhoto = false}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Step2RoleScreen(
-          data: widget.data.copyWith(photoUrl: _photoUrl),
+          data: widget.data.copyWith(
+            photoUrl: skipPhoto ? null : _photoUrl,
+          ),
         ),
       ),
     );
@@ -88,77 +83,106 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.data.isEditing ? 'Edit profile' : 'Your photo'),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const OnboardingProgressBar(currentStep: 1),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 72,
-                        backgroundColor:
-                            AppColors.primary.withValues(alpha: 0.1),
-                        backgroundImage: _avatarImage,
-                        child: _avatarImage == null
-                            ? const Icon(Icons.person, size: 72)
-                            : null,
-                      ),
-                      if (_uploading)
-                        const Positioned(
-                          child: CircularProgressIndicator(),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Add a clear photo of yourself',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed:
-                              _uploading ? null : () => _pick(ImageSource.camera),
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Camera'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _uploading
-                              ? null
-                              : () => _pick(ImageSource.gallery),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Gallery'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: _uploading ? null : _continue,
-                    child: const Text('Continue'),
-                  ),
-                ],
-              ),
+    return ListenableBuilder(
+      listenable: LocaleService.instance,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              widget.data.isEditing
+                  ? AppStrings.editProfile
+                  : AppStrings.yourPhoto,
             ),
           ),
-        ],
-      ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const OnboardingProgressBar(currentStep: 1),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 72,
+                            backgroundColor:
+                                AppColors.primary.withValues(alpha: 0.1),
+                            backgroundImage: _avatarImage,
+                            child: _avatarImage == null
+                                ? Icon(
+                                    Icons.person,
+                                    size: 72,
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.5),
+                                  )
+                                : null,
+                          ),
+                          if (_uploading)
+                            const Positioned(
+                              child: CircularProgressIndicator(),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        AppStrings.addClearPhoto,
+                        textAlign: TextAlign.center,
+                      ),
+                      if (_uploadError != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _uploadError!,
+                          style: const TextStyle(color: AppColors.error),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _uploading
+                                  ? null
+                                  : () => _pick(ImageSource.camera),
+                              icon: const Icon(Icons.camera_alt),
+                              label: Text(AppStrings.camera),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _uploading
+                                  ? null
+                                  : () => _pick(ImageSource.gallery),
+                              icon: const Icon(Icons.photo_library),
+                              label: Text(AppStrings.gallery),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      if (_photoUrl != null)
+                        FilledButton(
+                          onPressed: _uploading ? null : () => _continue(),
+                          child: Text(AppStrings.continueLabel),
+                        ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _uploading ? null : () => _continue(skipPhoto: true),
+                        child: Text(AppStrings.skipForNow),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
