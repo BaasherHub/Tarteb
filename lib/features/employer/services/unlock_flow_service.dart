@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
@@ -71,15 +72,15 @@ abstract final class UnlockFlowService {
     } catch (e) {
       if (!context.mounted) return false;
 
-      final msg = e.toString();
-      if (msg.contains('Insufficient credits')) {
+      if (e is PostgrestException && e.code == 'P0001') {
+        // Insufficient credits (raise exception from unlock_candidate RPC)
         await Navigator.of(context).push<void>(
           MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
         );
         onCreditsChanged();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg)),
+          SnackBar(content: Text(e.toString())),
         );
       }
       return false;
