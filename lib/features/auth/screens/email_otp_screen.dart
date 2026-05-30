@@ -79,7 +79,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
     if (_loading) return const Scaffold(body: LoadingWidget());
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.verifyOtp)),
+      appBar: AppBar(title: Text(AppStrings.verifyOtp)),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -92,7 +92,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: AppStrings.enterEmail,
                 hintText: 'you@example.com',
                 prefixIcon: Icon(Icons.email_outlined),

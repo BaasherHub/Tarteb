@@ -12,12 +12,23 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:supabase/supabase.dart';
 
 List<String> _scriptArgs = [];
 
 void main(List<String> args) async {
+  // Admin only - remove before public launch
+  assert(
+    !kReleaseMode,
+    'add_credits.dart must not run in release mode',
+  );
+  if (kReleaseMode) {
+    stderr.writeln('Error: add_credits.dart cannot run in release mode.');
+    exit(1);
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
   _scriptArgs = args;
   runApp(const _AdminCreditsApp());

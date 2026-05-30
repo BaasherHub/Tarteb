@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
 
 class TartebErrorWidget extends StatelessWidget {
-  const TartebErrorWidget({
+  TartebErrorWidget({
     super.key,
-    required this.message,
+    String? message,
     this.onRetry,
-  });
+  }) : message = message ?? AppStrings.somethingWentWrong;
 
   final String message;
   final VoidCallback? onRetry;
@@ -30,7 +31,7 @@ class TartebErrorWidget extends StatelessWidget {
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: onRetry,
-                child: const Text('Try again'),
+                child: Text(AppStrings.tryAgain),
               ),
             ],
           ],

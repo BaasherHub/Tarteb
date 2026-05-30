@@ -128,7 +128,7 @@ class CandidateCardWidget extends StatelessWidget {
                 ],
                 const SizedBox(height: 4),
                 Text(
-                  'Available from ${formatAvailableFrom(candidate['available_from'])}',
+                  '${AppStrings.availableFrom} ${formatAvailableFrom(candidate['available_from'])}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 12),
@@ -148,7 +148,7 @@ class CandidateCardWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                       child: Text(
-                        'Unlock for AED ${AppStrings.unlockCostAed}',
+                        AppStrings.unlockForAed50,
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),

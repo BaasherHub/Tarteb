@@ -56,7 +56,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     if (_loading) return const Scaffold(body: LoadingWidget());
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.selectRole)),
+      appBar: AppBar(title: Text(AppStrings.selectRole)),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
