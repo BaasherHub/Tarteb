@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
-/// Email OTP fallback when phone SMS is unavailable.
+/// Email OTP fallback (6-digit code). No magic link — omit [emailRedirectTo].
+/// Supabase email template must include `{{ .Token }}` only.
 class EmailOtpScreen extends StatefulWidget {
   const EmailOtpScreen({super.key});
 
@@ -37,7 +39,10 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
 
     setState(() => _loading = true);
     try {
-      await TartebSupabase.auth.signInWithOtp(email: email);
+      await TartebSupabase.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+      );
       setState(() => _otpSent = true);
     } catch (e) {
       if (mounted) {
@@ -56,9 +61,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       final email = _emailController.text.trim();
       final token = _otpController.text.trim();
       await TartebSupabase.auth.verifyOTP(
-        email: email,
-        token: token,
         type: OtpType.email,
+        token: token,
+        email: email,
       );
 
       if (!mounted) return;
@@ -105,12 +110,15 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _otpController,
-                decoration: const InputDecoration(
-                  labelText: 'OTP code',
-                  prefixIcon: Icon(Icons.lock_outline),
+                decoration: InputDecoration(
+                  labelText: AppStrings.otpCode,
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  hintText: '000000',
                 ),
                 keyboardType: TextInputType.number,
-                maxLength: 8,
+                maxLength: 6,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textAlign: TextAlign.center,
               ),
             ],
             const SizedBox(height: 24),
