@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
@@ -24,7 +25,7 @@ class Step1PhotoScreen extends StatefulWidget {
 
 class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
   final _picker = ImagePicker();
-  String? _localPreviewPath;
+  Uint8List? _localPreviewBytes;
   String? _photoUrl;
   bool _uploading = false;
   String? _uploadError;
@@ -36,7 +37,9 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
   }
 
   ImageProvider? get _avatarImage {
-    if (_localPreviewPath != null) return FileImage(File(_localPreviewPath!));
+    if (_localPreviewBytes != null) {
+      return MemoryImage(_localPreviewBytes!);
+    }
     if (_photoUrl != null) return NetworkImage(_photoUrl!);
     return null;
   }
@@ -49,8 +52,9 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
     );
     if (file == null) return;
 
+    final bytes = await file.readAsBytes();
     setState(() {
-      _localPreviewPath = file.path;
+      _localPreviewBytes = bytes;
       _uploading = true;
       _uploadError = null;
     });
@@ -61,7 +65,7 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
     } catch (e) {
       setState(() {
         _uploadError = e.toString();
-        _localPreviewPath = null;
+        _localPreviewBytes = null;
         _photoUrl = widget.data.photoUrl;
       });
     } finally {
@@ -141,29 +145,41 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
                         ),
                       ],
                       const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _uploading
-                                  ? null
-                                  : () => _pick(ImageSource.camera),
-                              icon: const Icon(Icons.camera_alt),
-                              label: Text(AppStrings.camera),
-                            ),
+                      if (kIsWeb)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _uploading
+                                ? null
+                                : () => _pick(ImageSource.gallery),
+                            icon: const Icon(Icons.photo_library),
+                            label: Text(AppStrings.gallery),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _uploading
-                                  ? null
-                                  : () => _pick(ImageSource.gallery),
-                              icon: const Icon(Icons.photo_library),
-                              label: Text(AppStrings.gallery),
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _uploading
+                                    ? null
+                                    : () => _pick(ImageSource.camera),
+                                icon: const Icon(Icons.camera_alt),
+                                label: Text(AppStrings.camera),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _uploading
+                                    ? null
+                                    : () => _pick(ImageSource.gallery),
+                                icon: const Icon(Icons.photo_library),
+                                label: Text(AppStrings.gallery),
+                              ),
+                            ),
+                          ],
+                        ),
                       const Spacer(),
                       if (_photoUrl != null)
                         FilledButton(
@@ -172,7 +188,8 @@ class _Step1PhotoScreenState extends State<Step1PhotoScreen> {
                         ),
                       const SizedBox(height: 8),
                       TextButton(
-                        onPressed: _uploading ? null : () => _continue(skipPhoto: true),
+                        onPressed:
+                            _uploading ? null : () => _continue(skipPhoto: true),
                         child: Text(AppStrings.skipForNow),
                       ),
                     ],

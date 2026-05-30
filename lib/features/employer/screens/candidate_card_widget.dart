@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/features/employer/services/unlock_flow_service.dart';
+import 'package:tarteb/features/candidate/widgets/candidate_confidence_details.dart';
 import 'package:tarteb/features/employer/widgets/visa_badge.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -104,6 +105,11 @@ class CandidateCardWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 VisaBadge(visaStatus: visa),
+                const SizedBox(height: 8),
+                CandidateConfidenceDetails(
+                  candidate: candidate,
+                  compact: true,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [

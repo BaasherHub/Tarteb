@@ -251,7 +251,7 @@ class BrowseScreenState extends State<BrowseScreen> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                childAspectRatio: 0.52,
+                childAspectRatio: 0.46,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

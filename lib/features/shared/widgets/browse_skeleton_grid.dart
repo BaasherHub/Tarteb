@@ -17,7 +17,7 @@ class BrowseSkeletonGrid extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 0.52,
+          childAspectRatio: 0.46,
         ),
         itemCount: 6,
         itemBuilder: (_, __) => Container(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/features/candidate/models/candidate_onboarding_data.dart';
-import 'package:tarteb/features/candidate/screens/onboarding/step5_availability.dart';
+import 'package:tarteb/features/candidate/screens/onboarding/step4b_experience.dart';
 import 'package:tarteb/features/candidate/widgets/onboarding_progress_bar.dart';
 
 class Step4SalaryLocationScreen extends StatefulWidget {
@@ -113,7 +113,7 @@ class _Step4SalaryLocationScreenState extends State<Step4SalaryLocationScreen> {
                 }
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => Step5AvailabilityScreen(
+                    builder: (_) => Step4bExperienceScreen(
                       data: widget.data.copyWith(
                         salaryExpectation: salary,
                         location: _location,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/features/candidate/widgets/candidate_confidence_details.dart';
 
 /// Profile card shown to employers (browse) and on the candidate dashboard.
 class CandidatePublicCard extends StatelessWidget {
@@ -74,6 +75,8 @@ class CandidatePublicCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
+                  const SizedBox(height: 8),
+                  CandidateConfidenceDetails(candidate: candidate),
                   if (showContact) ...[
                     const SizedBox(height: 8),
                     if (candidate['phone'] != null)

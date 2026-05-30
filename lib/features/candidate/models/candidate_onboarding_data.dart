@@ -1,4 +1,6 @@
-/// In-memory state passed across the 5-step candidate onboarding flow.
+import 'package:tarteb/features/candidate/constants/candidate_profile_constants.dart';
+
+/// In-memory state passed across the 6-step candidate onboarding flow.
 class CandidateOnboardingData {
   const CandidateOnboardingData({
     this.photoUrl,
@@ -12,6 +14,10 @@ class CandidateOnboardingData {
     this.nationality,
     this.name,
     this.candidateId,
+    this.yearsExperience,
+    this.languages = const [],
+    this.uaeExperience = false,
+    this.previousEmployer,
   });
 
   final String? photoUrl;
@@ -25,6 +31,10 @@ class CandidateOnboardingData {
   final String? nationality;
   final String? name;
   final String? candidateId;
+  final int? yearsExperience;
+  final List<String> languages;
+  final bool uaeExperience;
+  final String? previousEmployer;
 
   bool get isEditing => candidateId != null;
 
@@ -40,6 +50,10 @@ class CandidateOnboardingData {
     String? nationality,
     String? name,
     String? candidateId,
+    int? yearsExperience,
+    List<String>? languages,
+    bool? uaeExperience,
+    String? previousEmployer,
   }) {
     return CandidateOnboardingData(
       photoUrl: photoUrl ?? this.photoUrl,
@@ -53,11 +67,16 @@ class CandidateOnboardingData {
       nationality: nationality ?? this.nationality,
       name: name ?? this.name,
       candidateId: candidateId ?? this.candidateId,
+      yearsExperience: yearsExperience ?? this.yearsExperience,
+      languages: languages ?? this.languages,
+      uaeExperience: uaeExperience ?? this.uaeExperience,
+      previousEmployer: previousEmployer ?? this.previousEmployer,
     );
   }
 
   factory CandidateOnboardingData.fromCandidateRow(Map<String, dynamic> row) {
     final availableFrom = row['available_from'];
+    final prev = row['previous_employer'] as String?;
     return CandidateOnboardingData(
       candidateId: row['id'] as String?,
       photoUrl: row['photo_url'] as String?,
@@ -72,6 +91,12 @@ class CandidateOnboardingData {
       availableFrom: availableFrom != null
           ? DateTime.tryParse(availableFrom.toString())
           : null,
+      yearsExperience:
+          CandidateProfileConstants.parseYearsExperience(row['years_experience']),
+      languages: CandidateProfileConstants.parseLanguages(row['languages']),
+      uaeExperience:
+          CandidateProfileConstants.parseUaeExperience(row['uae_experience']),
+      previousEmployer: prev?.trim().isEmpty == true ? null : prev,
     );
   }
 }
