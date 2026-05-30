@@ -47,6 +47,9 @@ app.*.map.json
 # Supabase CLI local state
 supabase/.temp/
 
+# Local run scripts (may contain keys)
+run_web.ps1
+
 # Environment & secrets
 .env
 *.env
