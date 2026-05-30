@@ -17,7 +17,8 @@ serve(async (req) => {
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const verifySid = Deno.env.get('TWILIO_VERIFY_SID');
 
-    const debugPhone = `To=${encodeURIComponent(phone)}&Channel=sms`;
+    const decodedPhone = decodeURIComponent(phone);
+    const debugPhone = `To=${encodeURIComponent(decodedPhone)}&Channel=sms`;
     console.log('Send payload:', debugPhone);
     
     const response = await fetch(
@@ -28,7 +29,7 @@ serve(async (req) => {
           'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `To=${encodeURIComponent(phone)}&Channel=sms`,
+        body: `To=${encodeURIComponent(decodedPhone)}&Channel=sms`,
       }
     );
     
