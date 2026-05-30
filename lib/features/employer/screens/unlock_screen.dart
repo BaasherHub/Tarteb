@@ -110,8 +110,14 @@ class _UnlockScreenState extends State<UnlockScreen> {
               ),
               const SizedBox(height: 24),
               FilledButton(
-                onPressed: _unlock,
-                child: const Text('Unlock for AED 50'),
+                onPressed: _loading ? null : _unlock,
+                child: _loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(AppStrings.unlockForAed50),
               ),
             ],
           ],

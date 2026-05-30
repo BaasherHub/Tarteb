@@ -122,8 +122,8 @@ class _EmployerOnboardingScreenState extends State<EmployerOnboardingScreen> {
             ),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: _submit,
-              child: const Text('Start browsing'),
+              onPressed: _loading ? null : _submit,
+              child: Text(AppStrings.startBrowsing),
             ),
           ],
         ),
