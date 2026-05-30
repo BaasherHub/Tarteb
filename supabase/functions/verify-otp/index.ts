@@ -16,6 +16,9 @@ serve(async (req) => {
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const verifySid = Deno.env.get('TWILIO_VERIFY_SID');
+
+    const debugPhone = `To=${encodeURIComponent(phone)}&Code=${code}`;
+    console.log('Verify payload:', debugPhone);
     
     const response = await fetch(
       `https://verify.twilio.com/v2/Services/${verifySid}/VerificationChecks`,
@@ -33,7 +36,7 @@ serve(async (req) => {
     const approved = data.status === 'approved';
     
     return new Response(
-      JSON.stringify({ approved }),
+      JSON.stringify({ approved, debugPhone }),
       { 
         status: approved ? 200 : 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

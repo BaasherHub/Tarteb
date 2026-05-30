@@ -16,6 +16,9 @@ serve(async (req) => {
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const verifySid = Deno.env.get('TWILIO_VERIFY_SID');
+
+    const debugPhone = `To=${encodeURIComponent(phone)}&Channel=sms`;
+    console.log('Send payload:', debugPhone);
     
     const response = await fetch(
       `https://verify.twilio.com/v2/Services/${verifySid}/Verifications`,
