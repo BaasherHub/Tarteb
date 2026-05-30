@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:tarteb/core/supabase/supabase_client.dart';
-import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
+import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/features/employer/models/browse_filters.dart';
 import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
 import 'package:tarteb/features/employer/screens/filter_screen.dart';
-import 'package:tarteb/features/employer/screens/my_unlocks_screen.dart';
+import 'package:tarteb/features/employer/services/candidate_browse_repository.dart';
 import 'package:tarteb/features/shared/widgets/error_widget.dart';
 import 'package:tarteb/features/shared/widgets/loading_widget.dart';
 
@@ -11,58 +11,102 @@ class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
 
   @override
-  State<BrowseScreen> createState() => _BrowseScreenState();
+  BrowseScreenState createState() => BrowseScreenState();
 }
 
-class _BrowseScreenState extends State<BrowseScreen> {
-  List<Map<String, dynamic>> _candidates = [];
-  bool _loading = true;
+class BrowseScreenState extends State<BrowseScreen> {
+  final List<Map<String, dynamic>> _candidates = [];
+  final ScrollController _scrollController = ScrollController();
+
+  BrowseFilters _filters = BrowseFilters.empty;
+  bool _initialLoading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
   String? _error;
-  String? _filterRole;
-  String? _filterLocation;
+  int _page = 0;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _scrollController.addListener(_onScroll);
+    _load(refresh: true);
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final max = _scrollController.position.maxScrollExtent;
+    final current = _scrollController.position.pixels;
+    if (current >= max - 240 && !_loadingMore && _hasMore && !_initialLoading) {
+      _load();
+    }
+  }
+
+  Future<void> _load({bool refresh = false}) async {
+    if (refresh) {
+      setState(() {
+        _initialLoading = true;
+        _error = null;
+        _page = 0;
+        _hasMore = true;
+        _candidates.clear();
+      });
+    } else {
+      if (_loadingMore || !_hasMore) return;
+      setState(() => _loadingMore = true);
+    }
+
     try {
-      var query = TartebSupabase.client.from('candidate_browse').select();
-      if (_filterRole != null) query = query.eq('role', _filterRole!);
-      if (_filterLocation != null) {
-        query = query.eq('location', _filterLocation!);
-      }
-      final data = await query.order('created_at', ascending: false);
-      setState(() => _candidates = List<Map<String, dynamic>>.from(data));
+      final data = await CandidateBrowseRepository.fetchPage(
+        filters: _filters,
+        page: refresh ? 0 : _page,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        if (refresh) {
+          _candidates
+            ..clear()
+            ..addAll(data);
+          _page = 1;
+        } else {
+          _candidates.addAll(data);
+          _page++;
+        }
+        _hasMore = data.length >= CandidateBrowseRepository.pageSize;
+        _error = null;
+      });
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e.toString());
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _initialLoading = false;
+          _loadingMore = false;
+        });
+      }
     }
   }
 
   Future<void> _openFilters() async {
-    final result = await Navigator.of(context).push<Map<String, String?>>(
-      MaterialPageRoute(
-        builder: (_) => FilterScreen(
-          initialRole: _filterRole,
-          initialLocation: _filterLocation,
-        ),
-      ),
+    final result = await FilterBottomSheet.show(
+      context,
+      initialFilters: _filters,
     );
-    if (result != null) {
-      setState(() {
-        _filterRole = result['role'];
-        _filterLocation = result['location'];
-      });
-      _load();
-    }
+    if (result == null) return;
+    setState(() => _filters = result);
+    await _load(refresh: true);
+  }
+
+  void resetFilters() {
+    setState(() => _filters = BrowseFilters.empty);
+    _load(refresh: true);
   }
 
   @override
@@ -71,42 +115,125 @@ class _BrowseScreenState extends State<BrowseScreen> {
       appBar: AppBar(
         title: const Text('Browse candidates'),
         actions: [
-          IconButton(icon: const Icon(Icons.filter_list), onPressed: _openFilters),
+          if (_filters.hasActiveFilters)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Filtered',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           IconButton(
-            icon: const Icon(Icons.lock_open),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const MyUnlocksScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
-              );
-            },
+            icon: const Icon(Icons.filter_list),
+            onPressed: _openFilters,
           ),
         ],
       ),
-      body: _loading
-          ? const LoadingWidget()
-          : _error != null
-              ? TartebErrorWidget(message: _error!, onRetry: _load)
-              : _candidates.isEmpty
-                  ? const Center(child: Text('No candidates match your filters'))
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        itemCount: _candidates.length,
-                        itemBuilder: (context, index) {
-                          return CandidateCardWidget(
-                            candidate: _candidates[index],
-                          );
-                        },
-                      ),
-                    ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_initialLoading) return const LoadingWidget();
+    if (_error != null) {
+      return TartebErrorWidget(message: _error!, onRetry: () => _load(refresh: true));
+    }
+    if (_candidates.isEmpty) {
+      return _EmptyBrowseState(onReset: resetFilters);
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _load(refresh: true),
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(12),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.52,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return CandidateCardWidget(
+                    candidate: _candidates[index],
+                    onUnlocked: () => _load(refresh: true),
+                  );
+                },
+                childCount: _candidates.length,
+              ),
+            ),
+          ),
+          if (_loadingMore)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyBrowseState extends StatelessWidget {
+  const _EmptyBrowseState({required this.onReset});
+
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_search_outlined,
+              size: 64,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No candidates found',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try adjusting your filters or check back later.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: onReset,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reset filters'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
