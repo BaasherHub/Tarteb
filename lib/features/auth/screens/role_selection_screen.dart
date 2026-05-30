@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/services/twilio_verify_service.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
 import 'package:tarteb/features/candidate/screens/onboarding/step1_photo.dart';
 import 'package:tarteb/features/employer/screens/employer_onboarding_screen.dart';
@@ -20,10 +21,19 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     setState(() => _loading = true);
     try {
       final userId = TartebSupabase.auth.currentUser!.id;
+      final payload = <String, dynamic>{
+        'user_id': userId,
+        'role': role,
+      };
+      final phone = TwilioVerifyService.pendingPhone;
+      if (phone != null) {
+        payload['phone'] = phone;
+      }
       await TartebSupabase.client.from('profiles').upsert(
-        {'user_id': userId, 'role': role},
+        payload,
         onConflict: 'user_id',
       );
+      TwilioVerifyService.pendingPhone = null;
 
       if (!mounted) return;
 

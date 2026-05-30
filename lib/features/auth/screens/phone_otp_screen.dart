@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
-import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/core/services/twilio_verify_service.dart';
 import 'package:tarteb/features/auth/constants/phone_countries.dart';
 import 'package:tarteb/features/auth/screens/email_otp_screen.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
@@ -47,7 +46,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
 
     setState(() => _loading = true);
     try {
-      await TartebSupabase.auth.signInWithOtp(phone: phone);
+      await TwilioVerifyService.sendOTP(phone);
       setState(() {
         _otpSent = true;
         _e164Phone = phone;
@@ -69,11 +68,13 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
 
     setState(() => _loading = true);
     try {
-      await TartebSupabase.auth.verifyOTP(
-        phone: phone,
-        token: token,
-        type: OtpType.sms,
-      );
+      final approved = await TwilioVerifyService.verifyOTP(phone, token);
+      if (!approved) {
+        _showError('Invalid or expired code');
+        return;
+      }
+
+      await TwilioVerifyService.signInWithVerifiedPhone(phone);
 
       if (!mounted) return;
       await AuthNavigation.routeAuthenticatedUser(context);
@@ -144,7 +145,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
-                      onPressed: _sendOtp,
+                      onPressed: _loading ? null : _sendOtp,
                       child: Text(AppStrings.sendOtp),
                     ),
                   ] else ...[
@@ -174,7 +175,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
-                      onPressed: _verifyOtp,
+                      onPressed: _loading ? null : _verifyOtp,
                       child: Text(AppStrings.verify),
                     ),
                     const SizedBox(height: 8),
