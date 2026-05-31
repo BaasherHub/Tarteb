@@ -22,7 +22,7 @@ class FilterBottomSheet extends StatefulWidget {
           bottom: MediaQuery.viewInsetsOf(ctx).bottom,
         ),
         child: SizedBox(
-          height: MediaQuery.of(ctx).size.height * 0.88,
+          height: MediaQuery.of(ctx).size.height * 0.70,
           child: FilterBottomSheet(initialFilters: initialFilters),
         ),
       ),

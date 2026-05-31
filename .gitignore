@@ -55,6 +55,7 @@ run_web.ps1
 *.env
 !.env.example
 
-# Build & generated
-build/
+# Local dev tools
+test_otp/
+.claude/
 *.g.dart

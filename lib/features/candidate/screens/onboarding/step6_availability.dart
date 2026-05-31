@@ -7,7 +7,8 @@ import 'package:tarteb/core/utils/error_message.dart';
 import 'package:tarteb/features/candidate/models/candidate_onboarding_data.dart';
 import 'package:tarteb/features/candidate/screens/candidate_dashboard_screen.dart';
 import 'package:tarteb/features/candidate/widgets/onboarding_progress_bar.dart';
-import 'package:tarteb/features/shared/widgets/loading_widget.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
+import 'package:tarteb/core/widgets/tarteb_primary_button.dart';
 
 class Step6AvailabilityScreen extends StatefulWidget {
   const Step6AvailabilityScreen({super.key, required this.data});
@@ -20,31 +21,26 @@ class Step6AvailabilityScreen extends StatefulWidget {
 
 class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
   final _nameController = TextEditingController();
-  final _nationalityController = TextEditingController();
   DateTime? _availableFrom;
   bool _loading = false;
   String? _nameError;
-  String? _nationalityError;
   String? _dateError;
 
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.data.name ?? '';
-    _nationalityController.text = widget.data.nationality ?? '';
     _availableFrom = widget.data.availableFrom;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _nationalityController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     final name = _nameController.text.trim();
-    final nationality = _nationalityController.text.trim();
     var valid = true;
     if (name.isEmpty) {
       _nameError = AppStrings.requiredField;
@@ -52,14 +48,8 @@ class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
     } else {
       _nameError = null;
     }
-    if (nationality.isEmpty) {
-      _nationalityError = AppStrings.requiredField;
-      valid = false;
-    } else {
-      _nationalityError = null;
-    }
     if (_availableFrom == null) {
-      _dateError = 'Select availability date';
+      _dateError = AppStrings.requiredField;
       valid = false;
     } else {
       _dateError = null;
@@ -76,7 +66,7 @@ class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
         'photo_url': widget.data.photoUrl,
         'role': widget.data.role,
         'visa_status': widget.data.visaStatus,
-        'nationality': nationality,
+        'nationality': widget.data.nationality,
         'salary_expectation': widget.data.salaryExpectation,
         'available_from':
             _availableFrom!.toIso8601String().split('T').first,
@@ -115,31 +105,29 @@ class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: LoadingWidget());
-
     final dateLabel = _availableFrom == null
-        ? 'Select date'
+        ? AppStrings.availableFrom
         : '${_availableFrom!.day}/${_availableFrom!.month}/${_availableFrom!.year}';
 
     return ListenableBuilder(
       listenable: LocaleService.instance,
       builder: (context, _) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Availability')),
+          appBar: AppBar(title: Text(AppStrings.availability)),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const OnboardingProgressBar(currentStep: 6),
+              const OnboardingProgressBar(currentStep: 4),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       TextField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          labelText: 'Full name',
+                          labelText: AppStrings.fullName,
                           prefixIcon: const Icon(Icons.person_outline),
                           errorText: _nameError,
                         ),
@@ -149,21 +137,7 @@ class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
                           }
                         },
                       ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _nationalityController,
-                        decoration: InputDecoration(
-                          labelText: AppStrings.nationality,
-                          prefixIcon: const Icon(Icons.flag_outlined),
-                          errorText: _nationalityError,
-                        ),
-                        onChanged: (_) {
-                          if (_nationalityError != null) {
-                            setState(() => _nationalityError = null);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.xl),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(AppStrings.availableFrom),
@@ -196,13 +170,11 @@ class _Step6AvailabilityScreenState extends State<Step6AvailabilityScreen> {
                           ),
                         ),
                       const Spacer(),
-                      FilledButton(
-                        onPressed: _submit,
-                        child: Text(
-                          widget.data.isEditing
-                              ? 'Save profile'
-                              : 'Submit profile',
-                        ),
+                      TartebPrimaryButton(
+                        label: widget.data.isEditing
+                            ? AppStrings.editProfile
+                            : AppStrings.continueLabel,
+                        onPressed: _loading ? null : _submit,
                       ),
                     ],
                   ),

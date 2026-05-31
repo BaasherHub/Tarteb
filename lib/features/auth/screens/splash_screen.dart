@@ -3,6 +3,8 @@ import 'package:tarteb/core/constants/app_constants.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
+import 'package:tarteb/core/widgets/tarteb_logo.dart';
 import 'package:tarteb/features/auth/screens/phone_otp_screen.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
 
@@ -21,18 +23,20 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await Future<void>.delayed(AppConstants.splashDuration);
-    if (!mounted) return;
-
     final session = TartebSupabase.auth.currentSession;
-    if (session == null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const PhoneOtpScreen()),
-      );
+
+    if (session != null) {
+      if (!mounted) return;
+      await AuthNavigation.routeAuthenticatedUser(context);
       return;
     }
 
-    await AuthNavigation.routeAuthenticatedUser(context);
+    await Future<void>.delayed(AppConstants.splashDuration);
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const PhoneOtpScreen()),
+    );
   }
 
   @override
@@ -44,12 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.work_outline,
-                size: 88,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 24),
+              const TartebLogo(size: 96, tint: Colors.white),
+              const SizedBox(height: AppSpacing.xl),
               Text(
                 AppStrings.appName,
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       fontSize: 40,
                     ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(

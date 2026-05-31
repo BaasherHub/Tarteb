@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
+import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
+import 'package:tarteb/core/widgets/tarteb_primary_button.dart';
+import 'package:tarteb/core/widgets/tarteb_snackbar.dart';
+import 'package:tarteb/core/widgets/tarteb_text_field.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
-import 'package:tarteb/features/shared/widgets/loading_widget.dart';
+import 'package:tarteb/features/auth/widgets/auth_shell.dart';
 
-/// Email OTP fallback (6-digit code). No magic link — omit [emailRedirectTo].
-/// Supabase email template must include `{{ .Token }}` only.
 class EmailOtpScreen extends StatefulWidget {
   const EmailOtpScreen({super.key});
 
@@ -19,7 +22,6 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   bool _otpSent = false;
-  bool _loading = false;
 
   @override
   void dispose() {
@@ -31,32 +33,22 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
   Future<void> _sendOtp() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email address')),
-      );
+      TartebSnackbar.show(context, 'Enter a valid email address');
       return;
     }
 
-    setState(() => _loading = true);
     try {
       await TartebSupabase.auth.signInWithOtp(
         email: email,
         shouldCreateUser: true,
       );
-      setState(() => _otpSent = true);
+      if (mounted) setState(() => _otpSent = true);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) TartebSnackbar.showError(context, e);
     }
   }
 
   Future<void> _verifyOtp() async {
-    setState(() => _loading = true);
     try {
       final email = _emailController.text.trim();
       final token = _otpController.text.trim();
@@ -69,66 +61,63 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       if (!mounted) return;
       await AuthNavigation.routeAuthenticatedUser(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) TartebSnackbar.showError(context, e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: LoadingWidget());
-
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.verifyOtp)),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Sign in with email',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: AppStrings.enterEmail,
-                hintText: 'you@example.com',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              autocorrect: false,
-              enabled: !_otpSent,
-            ),
-            if (_otpSent) ...[
-              const SizedBox(height: 16),
-              TextField(
+    return ListenableBuilder(
+      listenable: LocaleService.instance,
+      builder: (context, _) {
+        return AuthShell(
+          showOtpSection: _otpSent,
+          otpSection: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TartebTextField(
                 controller: _otpController,
-                decoration: InputDecoration(
-                  labelText: AppStrings.otpCode,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  hintText: '000000',
-                ),
+                label: AppStrings.otpCode,
+                hint: '000000',
+                prefixIcon: Icons.lock_outline,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: AppSpacing.lg),
+              TartebPrimaryButton(
+                label: AppStrings.verify,
+                onPressed: _verifyOtp,
+              ),
             ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _otpSent ? _verifyOtp : _sendOtp,
-              child: Text(_otpSent ? 'Verify' : 'Send OTP'),
-            ),
-          ],
-        ),
-      ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!_otpSent) ...[
+                Text(
+                  AppStrings.signInWithEmail,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TartebTextField(
+                  controller: _emailController,
+                  label: AppStrings.enterEmail,
+                  hint: 'you@example.com',
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                TartebPrimaryButton(
+                  label: AppStrings.sendOtp,
+                  onPressed: _sendOtp,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

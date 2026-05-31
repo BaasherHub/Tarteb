@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
 import 'package:tarteb/core/services/twilio_verify_service.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
+import 'package:tarteb/core/widgets/tarteb_phone_field.dart';
+import 'package:tarteb/core/widgets/tarteb_primary_button.dart';
+import 'package:tarteb/core/widgets/tarteb_snackbar.dart';
+import 'package:tarteb/core/widgets/tarteb_text_field.dart';
 import 'package:tarteb/features/auth/constants/phone_countries.dart';
 import 'package:tarteb/features/auth/screens/email_otp_screen.dart';
 import 'package:tarteb/features/auth/services/auth_navigation.dart';
-import 'package:tarteb/features/shared/widgets/loading_widget.dart';
+import 'package:tarteb/features/auth/widgets/auth_shell.dart';
 
 class PhoneOtpScreen extends StatefulWidget {
   const PhoneOtpScreen({super.key});
@@ -21,7 +25,6 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
   final _otpController = TextEditingController();
   PhoneCountry _country = PhoneCountries.defaultCountry;
   bool _otpSent = false;
-  bool _loading = false;
   String? _e164Phone;
 
   @override
@@ -40,27 +43,25 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
   Future<void> _sendOtp() async {
     final local = _phoneController.text.replaceAll(RegExp(r'\s'), '');
     if (local.isEmpty) {
-      _showError('Enter your phone number');
+      TartebSnackbar.show(context, AppStrings.enterPhone);
       return;
     }
 
     final phone = _buildE164Phone();
     if (phone.length < 11 || !phone.startsWith('+')) {
-      _showError('Enter a valid phone number');
+      TartebSnackbar.show(context, 'Enter a valid phone number');
       return;
     }
 
-    setState(() => _loading = true);
     try {
       await TwilioVerifyService.sendOTP(phone);
+      if (!mounted) return;
       setState(() {
         _otpSent = true;
         _e164Phone = phone;
       });
     } catch (e) {
-      _showError(e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) TartebSnackbar.showError(context, e);
     }
   }
 
@@ -70,34 +71,25 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
         : _buildE164Phone();
     final token = _otpController.text.trim();
     if (phone.isEmpty || token.length != 6) {
-      _showError('Enter the 6-digit code');
+      TartebSnackbar.show(context, 'Enter the 6-digit code');
       return;
     }
 
-    setState(() => _loading = true);
     try {
       final approved = await TwilioVerifyService.verifyOTP(phone, token);
       if (!approved) {
-        _showError('Invalid or expired code');
+        if (mounted) TartebSnackbar.show(context, 'Invalid or expired code');
         return;
       }
 
       await TwilioVerifyService.signInWithVerifiedPhone(phone);
 
       if (!mounted) return;
+      TartebSnackbar.show(context, AppStrings.phoneSavedNote);
       await AuthNavigation.routeAuthenticatedUser(context);
     } catch (e) {
-      _showError(e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) TartebSnackbar.showError(context, e);
     }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 
   void _openEmailAuth() {
@@ -106,164 +98,79 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
     );
   }
 
+  void _resetPhone() {
+    setState(() {
+      _otpSent = false;
+      _e164Phone = null;
+      _otpController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: LoadingWidget());
-
     return ListenableBuilder(
       listenable: LocaleService.instance,
       builder: (context, _) {
-        return Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Center(
-                    child: Icon(
-                      Icons.work_outline,
-                      size: 72,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Welcome to ${AppStrings.appName}',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.splashTaglineAr,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                  ),
-                  const SizedBox(height: 32),
-                  if (!_otpSent) ...[
-                    _CountryPhoneInput(
-                      country: _country,
-                      controller: _phoneController,
-                      enabled: true,
-                      onCountryChanged: (c) => setState(() => _country = c),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _loading ? null : _sendOtp,
-                      child: Text(AppStrings.sendOtp),
-                    ),
-                  ] else ...[
-                    Text(
-                      'Code sent to $_e164Phone',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _otpController,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.otpCode,
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        hintText: '000000',
-                      ),
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        letterSpacing: 8,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _loading ? null : _verifyOtp,
-                      child: Text(AppStrings.verify),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _otpSent = false;
-                        _e164Phone = null;
-                        _otpController.clear();
-                      }),
-                      child: const Text('Change phone number'),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  Center(
-                    child: TextButton(
-                      onPressed: _openEmailAuth,
-                      child: Text(AppStrings.signInWithEmailInstead),
-                    ),
-                  ),
-                ],
+        return AuthShell(
+          showOtpSection: _otpSent,
+          otpSection: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '${AppStrings.codeSentTo} $_e164Phone',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
+              const SizedBox(height: AppSpacing.lg),
+              TartebTextField(
+                controller: _otpController,
+                label: AppStrings.otpCode,
+                hint: '000000',
+                prefixIcon: Icons.lock_outline,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 22, letterSpacing: 8),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TartebPrimaryButton(
+                label: AppStrings.verify,
+                onPressed: _verifyOtp,
+              ),
+              TextButton(
+                onPressed: _resetPhone,
+                child: Text(AppStrings.changePhoneNumber),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!_otpSent) ...[
+                Text(
+                  AppStrings.otpHelper,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TartebPhoneField(
+                  country: _country,
+                  controller: _phoneController,
+                  onCountryChanged: (c) => setState(() => _country = c),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                TartebPrimaryButton(
+                  label: AppStrings.sendOtp,
+                  onPressed: _sendOtp,
+                ),
+              ],
+            ],
+          ),
+          footer: TextButton(
+            onPressed: _openEmailAuth,
+            child: Text(AppStrings.signInWithEmailInstead),
           ),
         );
       },
-    );
-  }
-}
-
-class _CountryPhoneInput extends StatelessWidget {
-  const _CountryPhoneInput({
-    required this.country,
-    required this.controller,
-    required this.enabled,
-    required this.onCountryChanged,
-  });
-
-  final PhoneCountry country;
-  final TextEditingController controller;
-  final bool enabled;
-  final ValueChanged<PhoneCountry> onCountryChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        DropdownButtonFormField<PhoneCountry>(
-          initialValue: country,
-          decoration: InputDecoration(
-            labelText: 'Country',
-            prefixIcon: const Icon(Icons.public),
-          ),
-          items: PhoneCountries.all
-              .map(
-                (c) => DropdownMenuItem(
-                  value: c,
-                  child: Text(c.label),
-                ),
-              )
-              .toList(),
-          onChanged: enabled
-              ? (c) {
-                  if (c != null) onCountryChanged(c);
-                }
-              : null,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: controller,
-          enabled: enabled,
-          decoration: InputDecoration(
-            labelText: AppStrings.enterPhone,
-            hintText: '501234567',
-            prefixText: '${country.dialCode} ',
-          ),
-          keyboardType: TextInputType.phone,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        ),
-      ],
     );
   }
 }

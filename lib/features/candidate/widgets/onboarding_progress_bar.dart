@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 
 class OnboardingProgressBar extends StatelessWidget {
   const OnboardingProgressBar({
     super.key,
     required this.currentStep,
-    this.totalSteps = 6,
+    this.totalSteps = 4,
   });
 
   final int currentStep;
@@ -19,7 +20,7 @@ class OnboardingProgressBar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
           child: Text(
-            'Step $currentStep of $totalSteps',
+            AppStrings.stepOf(currentStep, totalSteps),
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: AppColors.textSecondary,
                 ),

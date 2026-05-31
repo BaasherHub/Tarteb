@@ -1,6 +1,6 @@
 import 'package:tarteb/features/candidate/constants/candidate_profile_constants.dart';
 
-/// In-memory state passed across the 6-step candidate onboarding flow.
+/// In-memory state passed across the 4-step candidate onboarding flow.
 class CandidateOnboardingData {
   const CandidateOnboardingData({
     this.photoUrl,

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
+import 'package:tarteb/core/widgets/tarteb_card.dart';
+import 'package:tarteb/core/widgets/tarteb_primary_button.dart';
 import 'package:tarteb/features/auth/services/auth_contact.dart';
 import 'package:tarteb/features/employer/services/employer_credits_service.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
@@ -55,57 +58,65 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(AppSpacing.xl),
                     children: [
                       Text(
                         AppStrings.creditsCount(_balance),
                         style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
                                 ),
                       ),
-                      const SizedBox(height: 24),
-                      const _CreditPackageCard(credits: 1, priceAed: 50),
-                      const SizedBox(height: 12),
-                      const _CreditPackageCard(
-                        credits: 5,
-                        priceAed: 200,
-                        savings: 'Save AED 50',
-                      ),
-                      const SizedBox(height: 12),
-                      const _CreditPackageCard(
-                        credits: 10,
-                        priceAed: 350,
-                        savings: 'Save AED 150',
-                      ),
-                      const SizedBox(height: 32),
-                      Text(
-                        AppStrings.purchaseCreditsWhatsApp,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _contact.isEmpty
-                            ? null
-                            : () => WhatsAppSupportService.openBuyCredits(
-                                  employerContact: _contact,
-                                ),
-                        icon: const Icon(Icons.chat, size: 28),
-                        label: Text(AppStrings.contactUsOnWhatsApp),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                      const SizedBox(height: AppSpacing.xl),
+                      TartebCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              AppStrings.buyCreditsViaWhatsApp,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              AppStrings.buyCreditsSteps,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            TartebPrimaryButton(
+                              label: AppStrings.contactUsOnWhatsApp,
+                              icon: Icons.chat,
+                              onPressed: _contact.isEmpty
+                                  ? null
+                                  : () => WhatsAppSupportService.openBuyCredits(
+                                        employerContact: _contact,
+                                      ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              AppStrings.creditsAddedManually,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.xxl),
                       Text(
-                        AppStrings.creditsAddedManually,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        AppStrings.referencePricing,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                       ),
+                      const SizedBox(height: AppSpacing.md),
+                      const _ReferencePriceRow(credits: 1, priceAed: 50),
+                      const _ReferencePriceRow(credits: 5, priceAed: 200),
+                      const _ReferencePriceRow(credits: 10, priceAed: 350),
                     ],
                   ),
                 ),
@@ -115,65 +126,33 @@ class _BuyCreditsScreenState extends State<BuyCreditsScreen> {
   }
 }
 
-class _CreditPackageCard extends StatelessWidget {
-  const _CreditPackageCard({
+class _ReferencePriceRow extends StatelessWidget {
+  const _ReferencePriceRow({
     required this.credits,
     required this.priceAed,
-    this.savings,
   });
 
   final int credits;
   final int priceAed;
-  final String? savings;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.divider),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$credits credit${credits > 1 ? 's' : ''}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('AED $priceAed'),
-                  if (savings != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      savings!,
-                      style: const TextStyle(
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.textSecondary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(AppStrings.comingSoon),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Text(
+            '$credits ${AppStrings.credits.toLowerCase()}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const Spacer(),
+          Text(
+            'AED $priceAed',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+        ],
       ),
     );
   }

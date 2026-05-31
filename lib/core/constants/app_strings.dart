@@ -15,6 +15,18 @@ abstract final class AppStrings {
       '$splashTaglineAr / $splashTaglineEn';
 
   // Auth
+  static String get welcomeToTarteb =>
+      _t('Welcome to Tarteb', 'مرحباً بك في ترتّب');
+  static String get otpHelper =>
+      _t('We\'ll send a 6-digit code', 'سنرسل رمزاً من 6 أرقام');
+  static String get phoneSavedNote => _t(
+        'Your number is saved to your profile.',
+        'رقمك محفوظ في ملفك.',
+      );
+  static String get country => _t('Country', 'الدولة');
+  static String get changePhoneNumber =>
+      _t('Change phone number', 'تغيير رقم الهاتف');
+  static String get codeSentTo => _t('Code sent to', 'تم إرسال الرمز إلى');
   static String get splashTagline => _t(splashTaglineEn, splashTaglineAr);
   static String get selectRole => _t('I am a...', 'أنا...');
   static String get roleCandidate => _t('Candidate', 'مرشح');
@@ -119,6 +131,14 @@ abstract final class AppStrings {
 
   // Buy credits
   static String get buyCredits => _t('Buy credits', 'شراء رصيد');
+  static String get buyCreditsViaWhatsApp =>
+      _t('Buy credits via WhatsApp', 'شراء الرصيد عبر واتساب');
+  static String get buyCreditsSteps => _t(
+        '1. Tap WhatsApp below\n2. Tell us how many credits\n3. We add them within 1 hour',
+        '١. اضغط واتساب أدناه\n٢. أخبرنا بعدد الرصيد\n٣. نضيفه خلال ساعة',
+      );
+  static String get referencePricing =>
+      _t('Reference pricing', 'أسعار مرجعية');
   static String get creditsAddedManually => _t(
         'Credits are added manually within 1 hour',
         'يُضاف الرصيد يدوياً خلال ساعة',
@@ -161,6 +181,28 @@ abstract final class AppStrings {
   static String get tryAgain => _t('Try again', 'حاول مرة أخرى');
 
   // Onboarding
+  static String stepOf(int current, int total) =>
+      _t('Step $current of $total', 'الخطوة $current من $total');
+  static String get visaStatus => _t('Visa status', 'حالة التأشيرة');
+  static String get jobRole => _t('Job role', 'المهنة');
+  static String get salaryAndContact =>
+      _t('Salary & contact', 'الراتب والتواصل');
+  static String get availability => _t('Availability', 'التوفر');
+  static String get monthlySalaryAed =>
+      _t('Monthly salary expectation (AED)', 'الراتب الشهري المتوقع (درهم)');
+  static String get location => _t('Location', 'الموقع');
+  static String get phoneNumber => _t('Phone number', 'رقم الهاتف');
+  static String get whatsappOptional =>
+      _t('WhatsApp (optional)', 'واتساب (اختياري)');
+  static String get yearsExperienceLabel =>
+      _t('Years of experience', 'سنوات الخبرة');
+  static String get fullName => _t('Full name', 'الاسم الكامل');
+  static String get uaeExperienceQuestion => _t(
+        'Have you worked in UAE before?',
+        'هل عملت في الإمارات من قبل؟',
+      );
+  static String get yes => _t('Yes', 'نعم');
+  static String get no => _t('No', 'لا');
   static String get skipForNow => _t('Skip for now', 'تخطي الآن');
   static String get continueLabel => _t('Continue', 'متابعة');
   static String get yourPhoto => _t('Your photo', 'صورتك');

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/l10n/locale_service.dart';
+import 'package:tarteb/core/theme/app_spacing.dart';
 import 'package:tarteb/core/utils/error_message.dart';
 import 'package:tarteb/features/employer/models/browse_filters.dart';
 import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
-import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
+import 'package:tarteb/features/employer/screens/candidate_detail_screen.dart';
 import 'package:tarteb/features/employer/screens/filter_screen.dart';
 import 'package:tarteb/features/employer/services/candidate_browse_repository.dart';
 import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/employer/widgets/candidate_list_tile.dart';
 import 'package:tarteb/features/shared/screens/settings_screen.dart';
-import 'package:tarteb/features/shared/widgets/browse_skeleton_grid.dart';
+import 'package:tarteb/features/shared/widgets/browse_skeleton_list.dart';
 import 'package:tarteb/features/shared/widgets/empty_state_widget.dart';
 import 'package:tarteb/features/shared/widgets/error_widget.dart';
 
@@ -65,6 +67,21 @@ class BrowseScreenState extends State<BrowseScreen> {
         builder: (_) => const SettingsScreen(isCandidate: false),
       ),
     );
+  }
+
+  Future<void> _openDetail(Map<String, dynamic> candidate) async {
+    final refreshed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => CandidateDetailScreen(
+          candidate: candidate,
+          onUnlocked: _onCandidateUnlocked,
+          onCreditsChanged: _loadCredits,
+        ),
+      ),
+    );
+    if (refreshed == true) {
+      await _load(refresh: true);
+    }
   }
 
   void _onCandidateUnlocked() {
@@ -156,34 +173,19 @@ class BrowseScreenState extends State<BrowseScreen> {
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(AppStrings.browseCandidates),
+            title: Text(AppStrings.browse),
             actions: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    onTap: _openBuyCredits,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        AppStrings.creditsCount(_creditsBalance),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: _CreditsPill(
+                  balance: _creditsBalance,
+                  onTap: _openBuyCredits,
                 ),
               ),
               if (_filters.hasActiveFilters)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -196,7 +198,7 @@ class BrowseScreenState extends State<BrowseScreen> {
                       child: Text(
                         AppStrings.filtered,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -214,14 +216,19 @@ class BrowseScreenState extends State<BrowseScreen> {
               ),
             ],
           ),
-          body: _buildBody(),
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: _buildBody(),
+            ),
+          ),
         );
       },
     );
   }
 
   Widget _buildBody() {
-    if (_initialLoading) return const BrowseSkeletonGrid();
+    if (_initialLoading) return const BrowseSkeletonList();
     if (_error != null) {
       return TartebErrorWidget(
         message: _error!,
@@ -240,40 +247,64 @@ class BrowseScreenState extends State<BrowseScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _load(refresh: true),
-      child: CustomScrollView(
+      child: ListView.separated(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(12),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.46,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return CandidateCardWidget(
-                    candidate: _candidates[index],
-                    onUnlocked: _onCandidateUnlocked,
-                    onCreditsChanged: _loadCredits,
-                  );
-                },
-                childCount: _candidates.length,
-              ),
-            ),
+        itemCount: _candidates.length + (_loadingMore ? 1 : 0),
+        separatorBuilder: (_, _) => const Divider(height: 1, indent: 84),
+        itemBuilder: (context, index) {
+          if (index >= _candidates.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final candidate = _candidates[index];
+          return CandidateListTile(
+            candidate: candidate,
+            onTap: () => _openDetail(candidate),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CreditsPill extends StatelessWidget {
+  const _CreditsPill({required this.balance, required this.onTap});
+
+  final int balance;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primary.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
-          if (_loadingMore)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.account_balance_wallet_outlined,
+                  size: 18, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Text(
+                '$balance',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
               ),
-            ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
