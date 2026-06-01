@@ -3,6 +3,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -95,6 +96,9 @@ export function PhoneOtpScreen({ navigation }: Props) {
               />
             </View>
             <PrimaryButton label={t.sendOtp} onPress={onSend} loading={loading} />
+            <Pressable onPress={() => navigation.navigate('EmailOtp')}>
+              <Text style={styles.emailLink}>{t.signInWithEmail}</Text>
+            </Pressable>
           </View>
         ) : (
           <View style={styles.card}>
@@ -157,4 +161,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   otp: { textAlign: 'center', letterSpacing: 8, fontSize: 22 },
+  emailLink: {
+    textAlign: 'center',
+    color: colors.primary,
+    fontWeight: '600',
+    marginTop: 4,
+  },
 });

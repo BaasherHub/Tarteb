@@ -40,6 +40,39 @@ export interface Strings {
   contactName: string;
   startBrowsing: string;
   stepOf: (c: number, t: number) => string;
+  yourPhoto: string;
+  camera: string;
+  gallery: string;
+  skipForNow: string;
+  jobRole: string;
+  visaStatus: string;
+  nationality: string;
+  location: string;
+  monthlySalary: string;
+  phoneNumber: string;
+  whatsappOptional: string;
+  yearsExperience: string;
+  languages: string;
+  uaeExperience: string;
+  yes: string;
+  no: string;
+  previousEmployer: string;
+  fullName: string;
+  availableFrom: string;
+  submitProfile: string;
+  saveProfile: string;
+  required: string;
+  profilePaused: string;
+  profileViews: string;
+  profileLive: string;
+  profileActive: string;
+  editProfile: string;
+  filters: string;
+  apply: string;
+  reset: string;
+  filtered: string;
+  availableNow: string;
+  enterEmail: string;
 }
 
 const en: Strings = {
@@ -82,6 +115,39 @@ const en: Strings = {
   contactName: 'Contact name',
   startBrowsing: 'Start browsing',
   stepOf: (c, t) => `Step ${c} of ${t}`,
+  yourPhoto: 'Your photo',
+  camera: 'Camera',
+  gallery: 'Gallery',
+  skipForNow: 'Skip for now',
+  jobRole: 'Job role',
+  visaStatus: 'Visa status',
+  nationality: 'Nationality',
+  location: 'Location',
+  monthlySalary: 'Monthly salary (AED)',
+  phoneNumber: 'Phone number',
+  whatsappOptional: 'WhatsApp (optional)',
+  yearsExperience: 'Years of experience',
+  languages: 'Languages',
+  uaeExperience: 'Worked in UAE before?',
+  yes: 'Yes',
+  no: 'No',
+  previousEmployer: 'Previous company (optional)',
+  fullName: 'Full name',
+  availableFrom: 'Available from',
+  submitProfile: 'Submit profile',
+  saveProfile: 'Save profile',
+  required: 'Please fill all required fields',
+  profilePaused: 'Your profile is paused — employers cannot see you',
+  profileViews: 'Profile views',
+  profileLive: 'Your profile is live — employers can find you',
+  profileActive: 'Profile active',
+  editProfile: 'Edit profile',
+  filters: 'Filters',
+  apply: 'Apply',
+  reset: 'Reset',
+  filtered: 'Filtered',
+  availableNow: 'Available now',
+  enterEmail: 'Email address',
 };
 
 const ar: Strings = {
@@ -124,6 +190,39 @@ const ar: Strings = {
   contactName: 'اسم جهة الاتصال',
   startBrowsing: 'ابدأ التصفح',
   stepOf: (c, t) => `الخطوة ${c} من ${t}`,
+  yourPhoto: 'صورتك',
+  camera: 'الكاميرا',
+  gallery: 'المعرض',
+  skipForNow: 'تخطي الآن',
+  jobRole: 'المهنة',
+  visaStatus: 'حالة التأشيرة',
+  nationality: 'الجنسية',
+  location: 'الموقع',
+  monthlySalary: 'الراتب الشهري (درهم)',
+  phoneNumber: 'رقم الهاتف',
+  whatsappOptional: 'واتساب (اختياري)',
+  yearsExperience: 'سنوات الخبرة',
+  languages: 'اللغات',
+  uaeExperience: 'هل عملت في الإمارات؟',
+  yes: 'نعم',
+  no: 'لا',
+  previousEmployer: 'شركة سابقة (اختياري)',
+  fullName: 'الاسم الكامل',
+  availableFrom: 'متاح من',
+  submitProfile: 'إرسال الملف',
+  saveProfile: 'حفظ الملف',
+  required: 'يرجى تعبئة الحقول المطلوبة',
+  profilePaused: 'ملفك متوقف — أصحاب العمل لا يمكنهم رؤيتك',
+  profileViews: 'مشاهدات الملف',
+  profileLive: 'ملفك نشط — أصحاب العمل يمكنهم العثور عليك',
+  profileActive: 'الملف نشط',
+  editProfile: 'تعديل الملف',
+  filters: 'الفلاتر',
+  apply: 'تطبيق',
+  reset: 'إعادة تعيين',
+  filtered: 'مفلتر',
+  availableNow: 'متاح الآن',
+  enterEmail: 'البريد الإلكتروني',
 };
 
 export function strings(lang: Lang): Strings {

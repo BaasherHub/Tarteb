@@ -31,14 +31,14 @@ tarteb/
 - My unlocks list
 - Bottom tabs (native tab bar)
 
-### Step 4 — Candidate 🚧
-- [ ] 4-step onboarding (photo upload, role, visa, salary, availability)
-- [ ] Dashboard (pause, views, edit profile)
-- [ ] `candidate-photos` storage upload
+### Step 4 — Candidate ✅
+- [x] 4-step onboarding (photo upload, role, visa, salary, availability)
+- [x] Dashboard (pause, views, edit profile)
+- [x] `candidate-photos` storage upload
 
-### Step 5 — Polish 🚧
-- [ ] Filter bottom sheet
-- [ ] Email OTP fallback
+### Step 5 — Polish ✅ (MVP)
+- [x] Filter modal on browse
+- [x] Email OTP fallback (Supabase magic link)
 - [ ] RTL layout pass after language change (may need app restart)
 - [ ] Error copy / offline banner
 - [ ] EAS Build for TestFlight / Play Store

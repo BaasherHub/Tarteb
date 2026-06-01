@@ -23,8 +23,8 @@ React Native rewrite of Tarteb. Shares the same **Supabase** backend as the Flut
 | 1. Scaffold + Supabase + navigation | Done |
 | 2. Auth (splash, phone OTP, role) | Done |
 | 3. Employer browse, detail, unlock, subscription | Done (basic) |
-| 4. Candidate onboarding + dashboard | Placeholder |
-| 5. AR/RTL, filters, polish | Partial (language toggle) |
+| 4. Candidate onboarding + dashboard | Done |
+| 5. AR/RTL, filters, polish | Filters + email OTP done; RTL restart note in MIGRATION_PLAN |
 
 ## Backend
 

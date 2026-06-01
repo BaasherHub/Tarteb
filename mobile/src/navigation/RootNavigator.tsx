@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { SplashScreen } from '../screens/SplashScreen';
 import { PhoneOtpScreen } from '../screens/auth/PhoneOtpScreen';
+import { EmailOtpScreen } from '../screens/auth/EmailOtpScreen';
 import { RoleSelectionScreen } from '../screens/auth/RoleSelectionScreen';
 import { EmployerOnboardingScreen } from '../screens/employer/EmployerOnboardingScreen';
 import { EmployerShellScreen } from '../screens/employer/EmployerShellScreen';
@@ -32,6 +33,11 @@ export function RootNavigator() {
           name="PhoneOtp"
           component={PhoneOtpScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EmailOtp"
+          component={EmailOtpScreen}
+          options={{ title: 'Email' }}
         />
         <Stack.Screen
           name="RoleSelection"

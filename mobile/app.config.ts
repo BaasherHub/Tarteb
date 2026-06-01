@@ -20,6 +20,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/android-icon-monochrome.png',
     },
   },
+  plugins: [
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Allow Tarteb to access your photos for your profile picture.',
+        cameraPermission: 'Allow Tarteb to use the camera for your profile picture.',
+      },
+    ],
+  ],
   extra: {
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
