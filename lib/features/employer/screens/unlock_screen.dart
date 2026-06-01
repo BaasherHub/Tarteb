@@ -53,7 +53,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
         widget.onUnlocked?.call();
         _refreshCandidate();
       },
-      onCreditsChanged: () => widget.onCreditsChanged?.call(),
+      onSubscriptionChanged: () => widget.onCreditsChanged?.call(),
     );
     if (ok && mounted) {
       await _refreshCandidate();
@@ -105,8 +105,8 @@ class _UnlockScreenState extends State<UnlockScreen> {
               ),
             ] else ...[
               Text(
-                'Unlock contact details for AED ${AppStrings.unlockCostAed}. '
-                'Uses 1 credit from your balance.',
+                '${AppStrings.subscriptionRequired} '
+                '(${AppStrings.subscriptionPriceLabel}).',
               ),
               const SizedBox(height: 24),
               FilledButton(
@@ -117,7 +117,7 @@ class _UnlockScreenState extends State<UnlockScreen> {
                         height: 22,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(AppStrings.unlockForAed50),
+                    : Text(AppStrings.unlockContact),
               ),
             ],
           ],

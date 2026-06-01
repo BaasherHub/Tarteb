@@ -5,9 +5,11 @@ abstract final class WhatsAppSupportService {
   static String get _digits =>
       AppStrings.supportWhatsApp.replaceAll(RegExp(r'\D'), '');
 
-  static Future<void> openBuyCredits({required String employerContact}) async {
+  static Future<void> openSubscribe({required String employerContact}) async {
+    final price = AppStrings.subscriptionMonthlyAed;
     final message =
-        'Hi, I want to buy credits for Tarteb.\nMy number: $employerContact';
+        'Hi, I want to subscribe to Tarteb (AED $price/month).\n'
+        'My number: $employerContact';
     await _open(message);
   }
 
@@ -15,10 +17,14 @@ abstract final class WhatsAppSupportService {
     await _open('Hi, I need support with Tarteb.');
   }
 
+  /// Legacy credits top-up message.
   static Future<void> openTopUp({required String employerContact}) async {
-    final message =
-        'Hi, I need to top up credits on Tarteb.\nMy number: $employerContact';
-    await _open(message);
+    await openSubscribe(employerContact: employerContact);
+  }
+
+  /// Legacy alias.
+  static Future<void> openBuyCredits({required String employerContact}) async {
+    await openSubscribe(employerContact: employerContact);
   }
 
   static Future<void> _open(String message) async {

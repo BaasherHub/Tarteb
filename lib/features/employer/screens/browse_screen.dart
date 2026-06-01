@@ -9,7 +9,7 @@ import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
 import 'package:tarteb/features/employer/screens/candidate_detail_screen.dart';
 import 'package:tarteb/features/employer/screens/filter_screen.dart';
 import 'package:tarteb/features/employer/services/candidate_browse_repository.dart';
-import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/employer/services/employer_subscription_service.dart';
 import 'package:tarteb/features/employer/widgets/candidate_list_tile.dart';
 import 'package:tarteb/features/shared/screens/settings_screen.dart';
 import 'package:tarteb/features/shared/widgets/browse_skeleton_list.dart';
@@ -33,32 +33,37 @@ class BrowseScreenState extends State<BrowseScreen> {
   bool _hasMore = true;
   String? _error;
   int _page = 0;
-  int _creditsBalance = 0;
+  bool _subscriptionActive = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadCredits();
+    _loadSubscription();
     _load(refresh: true);
   }
 
-  Future<void> refreshCredits() => _loadCredits();
+  Future<void> refreshSubscription() => _loadSubscription();
 
-  Future<void> _loadCredits() async {
+  /// @deprecated Use [refreshSubscription].
+  Future<void> refreshCredits() => refreshSubscription();
+
+  Future<void> _loadSubscription() async {
     try {
-      final balance = await EmployerCreditsService.fetchBalance();
-      if (mounted) setState(() => _creditsBalance = balance);
+      final account = await EmployerSubscriptionService.fetchAccount();
+      if (mounted) {
+        setState(() => _subscriptionActive = account.hasActiveSubscription);
+      }
     } catch (_) {
-      if (mounted) setState(() => _creditsBalance = 0);
+      if (mounted) setState(() => _subscriptionActive = false);
     }
   }
 
-  Future<void> _openBuyCredits() async {
+  Future<void> _openSubscription() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
     );
-    await _loadCredits();
+    await _loadSubscription();
   }
 
   Future<void> _openSettings() async {
@@ -75,7 +80,7 @@ class BrowseScreenState extends State<BrowseScreen> {
         builder: (_) => CandidateDetailScreen(
           candidate: candidate,
           onUnlocked: _onCandidateUnlocked,
-          onCreditsChanged: _loadCredits,
+          onSubscriptionChanged: _loadSubscription,
         ),
       ),
     );
@@ -85,7 +90,7 @@ class BrowseScreenState extends State<BrowseScreen> {
   }
 
   void _onCandidateUnlocked() {
-    _loadCredits();
+    _loadSubscription();
     _load(refresh: true);
   }
 
@@ -177,9 +182,9 @@ class BrowseScreenState extends State<BrowseScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 4),
-                child: _CreditsPill(
-                  balance: _creditsBalance,
-                  onTap: _openBuyCredits,
+                child: _SubscriptionPill(
+                  isActive: _subscriptionActive,
+                  onTap: _openSubscription,
                 ),
               ),
               if (_filters.hasActiveFilters)
@@ -270,16 +275,17 @@ class BrowseScreenState extends State<BrowseScreen> {
   }
 }
 
-class _CreditsPill extends StatelessWidget {
-  const _CreditsPill({required this.balance, required this.onTap});
+class _SubscriptionPill extends StatelessWidget {
+  const _SubscriptionPill({required this.isActive, required this.onTap});
 
-  final int balance;
+  final bool isActive;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? AppColors.secondary : AppColors.primary;
     return Material(
-      color: AppColors.primary.withValues(alpha: 0.1),
+      color: color.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -292,14 +298,18 @@ class _CreditsPill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.account_balance_wallet_outlined,
-                  size: 18, color: AppColors.primary),
+              Icon(
+                isActive ? Icons.verified_outlined : Icons.workspace_premium_outlined,
+                size: 18,
+                color: color,
+              ),
               const SizedBox(width: 6),
               Text(
-                '$balance',
-                style: const TextStyle(
+                isActive ? AppStrings.planActive : AppStrings.subscribe,
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: color,
+                  fontSize: 13,
                 ),
               ),
             ],

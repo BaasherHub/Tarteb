@@ -16,11 +16,13 @@ class CandidateDetailScreen extends StatefulWidget {
     super.key,
     required this.candidate,
     this.onUnlocked,
-    this.onCreditsChanged,
+    this.onSubscriptionChanged,
+    @Deprecated('Use onSubscriptionChanged') this.onCreditsChanged,
   });
 
   final Map<String, dynamic> candidate;
   final VoidCallback? onUnlocked;
+  final VoidCallback? onSubscriptionChanged;
   final VoidCallback? onCreditsChanged;
 
   @override
@@ -55,7 +57,10 @@ class _CandidateDetailScreenState extends State<CandidateDetailScreen> {
           TartebSnackbar.showSuccess(context, AppStrings.contactUnlocked);
         }
       },
-      onCreditsChanged: () => widget.onCreditsChanged?.call(),
+      onSubscriptionChanged: () {
+        widget.onSubscriptionChanged?.call();
+        widget.onCreditsChanged?.call();
+      },
     );
     if (ok && mounted) {
       setState(() {
@@ -191,7 +196,7 @@ class _CandidateDetailScreenState extends State<CandidateDetailScreen> {
                           ],
                         )
                       : TartebPrimaryButton(
-                          label: AppStrings.unlockForAed50,
+                          label: AppStrings.unlockContact,
                           onPressed: _unlock,
                         ),
                 ),

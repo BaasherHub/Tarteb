@@ -1,35 +1,12 @@
-import 'package:tarteb/core/supabase/supabase_client.dart';
+import 'package:tarteb/features/employer/services/employer_subscription_service.dart';
 
+/// @deprecated Credits replaced by monthly subscription. Use [EmployerSubscriptionService].
 abstract final class EmployerCreditsService {
-  static Future<EmployerAccount> fetchAccount() async {
-    final userId = TartebSupabase.auth.currentUser!.id;
-    final data = await TartebSupabase.client
-        .from('employers')
-        .select('id, credits_balance, email')
-        .eq('user_id', userId)
-        .single();
-
-    return EmployerAccount(
-      id: data['id'] as String,
-      creditsBalance: data['credits_balance'] as int? ?? 0,
-      email: data['email'] as String? ?? '',
-    );
-  }
+  static Future<EmployerAccount> fetchAccount() =>
+      EmployerSubscriptionService.fetchAccount();
 
   static Future<int> fetchBalance() async {
     final account = await fetchAccount();
-    return account.creditsBalance;
+    return account.hasActiveSubscription ? 1 : 0;
   }
-}
-
-class EmployerAccount {
-  const EmployerAccount({
-    required this.id,
-    required this.creditsBalance,
-    required this.email,
-  });
-
-  final String id;
-  final int creditsBalance;
-  final String email;
 }

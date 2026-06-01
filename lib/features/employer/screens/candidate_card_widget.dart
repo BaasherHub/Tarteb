@@ -13,11 +13,13 @@ class CandidateCardWidget extends StatelessWidget {
     super.key,
     required this.candidate,
     this.onUnlocked,
-    this.onCreditsChanged,
+    this.onSubscriptionChanged,
+    @Deprecated('Use onSubscriptionChanged') this.onCreditsChanged,
   });
 
   final Map<String, dynamic> candidate;
   final VoidCallback? onUnlocked;
+  final VoidCallback? onSubscriptionChanged;
   final VoidCallback? onCreditsChanged;
 
   static String firstName(String? fullName) {
@@ -39,7 +41,10 @@ class CandidateCardWidget extends StatelessWidget {
       context,
       candidate: candidate,
       onUnlocked: () => onUnlocked?.call(),
-      onCreditsChanged: () => onCreditsChanged?.call(),
+      onSubscriptionChanged: () {
+        onSubscriptionChanged?.call();
+        onCreditsChanged?.call();
+      },
     );
   }
 
@@ -154,7 +159,7 @@ class CandidateCardWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                       child: Text(
-                        AppStrings.unlockForAed50,
+                        AppStrings.unlockContact,
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),

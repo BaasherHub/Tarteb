@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tarteb/core/constants/app_colors.dart';
+import 'package:tarteb/core/constants/app_strings.dart';
 import 'package:tarteb/core/supabase/supabase_client.dart';
-import 'package:tarteb/features/employer/screens/buy_credits_screen.dart';
 import 'package:tarteb/features/employer/screens/candidate_card_widget.dart';
+import 'package:tarteb/features/employer/screens/subscription_screen.dart';
 import 'package:tarteb/features/auth/services/auth_contact.dart';
-import 'package:tarteb/features/employer/services/employer_credits_service.dart';
+import 'package:tarteb/features/employer/services/employer_subscription_service.dart';
 import 'package:tarteb/features/employer/services/whatsapp_support_service.dart';
 
-/// Handles unlock confirmation sheets and [unlock_candidate] RPC.
+/// Handles unlock confirmation and [unlock_candidate] RPC (subscription-gated).
 abstract final class UnlockFlowService {
   static Future<bool> handleUnlockTap(
     BuildContext context, {
     required Map<String, dynamic> candidate,
     required VoidCallback onUnlocked,
-    required VoidCallback onCreditsChanged,
+    VoidCallback? onSubscriptionChanged,
   }) async {
     if (candidate['phone'] != null) return false;
 
-    final account = await EmployerCreditsService.fetchAccount();
+    final account = await EmployerSubscriptionService.fetchAccount();
 
     if (!context.mounted) return false;
 
-    if (account.creditsBalance < 1) {
-      await _showNoCreditsSheet(
+    if (!account.hasActiveSubscription) {
+      await _showNoSubscriptionSheet(
         context,
         employerContact: AuthContact.supportIdentifier,
       );
@@ -32,11 +32,7 @@ abstract final class UnlockFlowService {
 
     final firstName =
         CandidateCardWidget.firstName(candidate['name'] as String?);
-    final confirmed = await _showConfirmSheet(
-      context,
-      firstName: firstName,
-      creditsAfter: account.creditsBalance - 1,
-    );
+    final confirmed = await _showConfirmSheet(context, firstName: firstName);
 
     if (confirmed != true || !context.mounted) return false;
 
@@ -44,7 +40,7 @@ abstract final class UnlockFlowService {
       context,
       candidateId: candidate['id'] as String,
       onUnlocked: onUnlocked,
-      onCreditsChanged: onCreditsChanged,
+      onSubscriptionChanged: onSubscriptionChanged,
     );
   }
 
@@ -52,7 +48,7 @@ abstract final class UnlockFlowService {
     BuildContext context, {
     required String candidateId,
     required VoidCallback onUnlocked,
-    required VoidCallback onCreditsChanged,
+    VoidCallback? onSubscriptionChanged,
   }) async {
     try {
       await TartebSupabase.client.rpc(
@@ -63,21 +59,20 @@ abstract final class UnlockFlowService {
       if (!context.mounted) return false;
 
       onUnlocked();
-      onCreditsChanged();
+      onSubscriptionChanged?.call();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contact unlocked! 🎉')),
+        SnackBar(content: Text(AppStrings.contactUnlocked)),
       );
       return true;
     } catch (e) {
       if (!context.mounted) return false;
 
       if (e is PostgrestException && e.code == 'P0001') {
-        // Insufficient credits (raise exception from unlock_candidate RPC)
         await Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(builder: (_) => const BuyCreditsScreen()),
+          MaterialPageRoute<void>(builder: (_) => const SubscriptionScreen()),
         );
-        onCreditsChanged();
+        onSubscriptionChanged?.call();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -90,7 +85,6 @@ abstract final class UnlockFlowService {
   static Future<bool?> _showConfirmSheet(
     BuildContext context, {
     required String firstName,
-    required int creditsAfter,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -101,28 +95,25 @@ abstract final class UnlockFlowService {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Use 1 credit to unlock $firstName?',
+              AppStrings.confirmUnlockContact(firstName),
               style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: 12),
             Text(
-              'Credits remaining after unlock: $creditsAfter',
+              AppStrings.includedInYourPlan,
               style: Theme.of(ctx).textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: const Text('Confirm'),
+              child: Text(AppStrings.confirm),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppStrings.cancel),
             ),
           ],
         ),
@@ -130,7 +121,7 @@ abstract final class UnlockFlowService {
     );
   }
 
-  static Future<void> _showNoCreditsSheet(
+  static Future<void> _showNoSubscriptionSheet(
     BuildContext context, {
     required String employerContact,
   }) {
@@ -143,31 +134,29 @@ abstract final class UnlockFlowService {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'You have no credits remaining',
+              AppStrings.subscriptionRequired,
               style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: 12),
-            const Text('Contact us on WhatsApp to top up'),
+            Text(
+              '${AppStrings.subscriptionPriceLabel} — ${AppStrings.contactUsToSubscribe}',
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
-                WhatsAppSupportService.openTopUp(
+                WhatsAppSupportService.openSubscribe(
                   employerContact: employerContact,
                 );
               },
               icon: const Icon(Icons.chat),
-              label: const Text('WhatsApp'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
+              label: Text(AppStrings.subscribeViaWhatsApp),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppStrings.cancel),
             ),
           ],
         ),

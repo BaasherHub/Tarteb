@@ -45,8 +45,10 @@ abstract final class AppStrings {
   static String get verify => _t('Verify', 'تحقق');
   static String get roleCandidateSubtitle =>
       _t('List your profile for free', 'أضف ملفك مجاناً');
-  static String get roleEmployerSubtitle =>
-      _t('Browse and unlock candidates', 'تصفح وافتح بيانات المرشحين');
+  static String get roleEmployerSubtitle => _t(
+        'Browse candidates with a monthly plan',
+        'تصفح المرشحين بخطة شهرية',
+      );
 
   // Navigation
   static String get browse => _t('Browse', 'تصفح');
@@ -56,13 +58,37 @@ abstract final class AppStrings {
   static String get credits => _t('Credits', 'رصيد');
   static String creditsCount(int n) => _t('Credits: $n', 'رصيد: $n');
 
-  // Unlock & pricing
-  static const int unlockCostAed = 50;
-  static const int creditPerUnlock = 1;
-  static String get unlockForAed50 =>
-      _t('Unlock for AED 50', 'افتح مقابل 50 درهم');
+  // Subscription & unlock
+  static const double subscriptionMonthlyAed = 39.99;
+  static String get subscriptionPriceLabel =>
+      _t('AED 39.99 / month', '٣٩٫٩٩ درهم / شهر');
+  static String get unlockContact =>
+      _t('Unlock contact', 'افتح بيانات التواصل');
+  static String get subscribe => _t('Subscribe', 'اشترك');
+  static String get subscription => _t('Subscription', 'الاشتراك');
+  static String get planActive => _t('Plan active', 'الخطة نشطة');
+  static String get noActiveSubscription => _t(
+        'No active subscription',
+        'لا يوجد اشتراك نشط',
+      );
+  static String subscriptionValidUntil(String date) => _t(
+        'Valid until $date',
+        'ساري حتى $date',
+      );
+  static String confirmUnlockContact(String name) => _t(
+        'Unlock contact for $name?',
+        'فتح بيانات التواصل لـ $name؟',
+      );
+  static String get includedInYourPlan => _t(
+        'Included in your monthly plan',
+        'مشمول في خطتك الشهرية',
+      );
   static String get contactUnlocked =>
       _t('Contact unlocked! 🎉', 'تم فتح بيانات التواصل! 🎉');
+
+  /// Legacy per-CV pricing (deprecated — kept for admin tooling).
+  @Deprecated('Use subscriptionMonthlyAed')
+  static const int unlockCostAed = 50;
 
   static const String supportWhatsApp = '971501551480';
 
@@ -129,24 +155,38 @@ abstract final class AppStrings {
   static String get appVersion => _t('App version', 'إصدار التطبيق');
   static String versionLabel(String v) => _t('Version $v', 'الإصدار $v');
 
-  // Buy credits
-  static String get buyCredits => _t('Buy credits', 'شراء رصيد');
-  static String get buyCreditsViaWhatsApp =>
-      _t('Buy credits via WhatsApp', 'شراء الرصيد عبر واتساب');
-  static String get buyCreditsSteps => _t(
-        '1. Tap WhatsApp below\n2. Tell us how many credits\n3. We add them within 1 hour',
-        '١. اضغط واتساب أدناه\n٢. أخبرنا بعدد الرصيد\n٣. نضيفه خلال ساعة',
+  // Subscription (manual WhatsApp until Stripe)
+  static String get subscribeTitle => _t('Tarteb Employer Plan', 'خطة ترتّب لأصحاب العمل');
+  static String get subscribeViaWhatsApp =>
+      _t('Subscribe via WhatsApp', 'اشترك عبر واتساب');
+  static String get subscribeSteps => _t(
+        '1. Tap WhatsApp below\n'
+        '2. Send payment (AED 39.99 / month)\n'
+        '3. We activate your plan within 1 hour',
+        '١. اضغط واتساب أدناه\n'
+        '٢. أرسل الدفع (٣٩٫٩٩ درهم / شهر)\n'
+        '٣. نفعّل خطتك خلال ساعة',
       );
-  static String get referencePricing =>
-      _t('Reference pricing', 'أسعار مرجعية');
-  static String get creditsAddedManually => _t(
-        'Credits are added manually within 1 hour',
-        'يُضاف الرصيد يدوياً خلال ساعة',
+  static String get subscriptionActivatedManually => _t(
+        'Your plan is activated manually after payment confirmation',
+        'تُفعَّل خطتك يدوياً بعد تأكيد الدفع',
       );
-  static String get purchaseCreditsWhatsApp => _t(
-        'To purchase credits, contact us on WhatsApp',
-        'لشراء الرصيد، تواصل معنا على واتساب',
+  static String get subscriptionBenefit => _t(
+        'Unlimited contact unlocks while your plan is active',
+        'فتح بيانات التواصل بدون حد أثناء نشاط خطتك',
       );
+  static String get subscriptionRequired => _t(
+        'Subscribe to unlock candidate contacts',
+        'اشترك لفتح بيانات تواصل المرشحين',
+      );
+  static String get contactUsToSubscribe => _t(
+        'Contact us on WhatsApp to subscribe',
+        'تواصل معنا على واتساب للاشتراك',
+      );
+
+  /// Legacy credits UI (admin only).
+  static String get buyCredits => subscription;
+  static String get creditsAddedManually => subscriptionActivatedManually;
   static String get comingSoon => _t('Coming soon', 'قريباً');
 
   // Empty states
