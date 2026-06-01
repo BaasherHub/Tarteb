@@ -58,4 +58,10 @@ run_web.ps1
 # Local dev tools
 test_otp/
 .claude/
+
+# React Native (Expo)
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/.env
 *.g.dart
