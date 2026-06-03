@@ -12,12 +12,26 @@ serve(async (req) => {
 
   try {
     const { phone } = await req.json();
-    
-    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-    const verifySid = Deno.env.get('TWILIO_VERIFY_SID');
 
-    const decodedPhone = decodeURIComponent(phone);
+    const decodedPhone = decodeURIComponent(phone ?? '');
+    if (!/^\+[1-9]\d{6,14}$/.test(decodedPhone)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid phone number' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (Deno.env.get('OTP_BYPASS_ENABLED') === 'true') {
+      return new Response(
+        JSON.stringify({ success: true, status: 'pending', bypass: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID')?.trim();
+    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN')?.trim();
+    const verifySid = Deno.env.get('TWILIO_VERIFY_SID')?.trim();
+
     const debugPhone = `To=${encodeURIComponent(decodedPhone)}&Channel=sms`;
     console.log('Send payload:', debugPhone);
     
@@ -29,7 +43,7 @@ serve(async (req) => {
           'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `To=${encodeURIComponent(decodedPhone)}&Channel=sms`,
+        body: debugPhone,
       }
     );
     
