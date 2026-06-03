@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,8 +12,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { Screen } from '../../components/Screen';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { SecondaryButton } from '../../components/SecondaryButton';
+import { ContentWidth } from '../../components/ContentWidth';
+import { AppBrand } from '../../components/AppBrand';
+import { InfoBanner } from '../../components/InfoBanner';
+import { FieldError } from '../../components/FieldError';
 import { useLocale } from '../../i18n/LocaleContext';
 import {
+  isOtpBypassEnabled,
   normalizeE164,
   sendOtp,
   signInWithVerifiedPhone,
@@ -33,20 +38,31 @@ export function PhoneOtpScreen({ navigation }: Props) {
   const [otp, setOtp] = useState('');
   const [sentPhone, setSentPhone] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | undefined>();
+  const [otpError, setOtpError] = useState<string | undefined>();
+  const [formError, setFormError] = useState<string | undefined>();
 
   const fullPhone = normalizeE164(`${DEFAULT_DIAL}${localNumber.replace(/\D/g, '')}`);
+  const otpBypass = isOtpBypassEnabled();
 
   const onSend = async () => {
     if (!localNumber.trim()) {
-      Alert.alert(t.enterPhone);
+      setPhoneError(t.enterPhone);
       return;
     }
+    setPhoneError(undefined);
+    setFormError(undefined);
     setLoading(true);
     try {
+      if (otpBypass) {
+        await signInWithVerifiedPhone(fullPhone);
+        await routeAuthenticatedUser(navigation);
+        return;
+      }
       await sendOtp(fullPhone);
       setSentPhone(fullPhone);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : t.errorGeneric);
+      setFormError(e instanceof Error ? e.message : t.errorGeneric);
     } finally {
       setLoading(false);
     }
@@ -54,20 +70,22 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   const onVerify = async () => {
     if (!sentPhone || otp.trim().length !== 6) {
-      Alert.alert(t.otpCode, 'Enter the 6-digit code');
+      setOtpError(t.otpCode);
       return;
     }
+    setOtpError(undefined);
+    setFormError(undefined);
     setLoading(true);
     try {
       const ok = await verifyOtp(sentPhone, otp);
       if (!ok) {
-        Alert.alert('Error', 'Invalid or expired code');
+        setOtpError(t.errorGeneric);
         return;
       }
       await signInWithVerifiedPhone(sentPhone);
       await routeAuthenticatedUser(navigation);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : t.errorGeneric);
+      setFormError(e instanceof Error ? e.message : t.errorGeneric);
     } finally {
       setLoading(false);
     }
@@ -75,27 +93,47 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   return (
     <Screen>
+      <ContentWidth>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        <Text style={styles.title}>{t.welcomeToTarteb}</Text>
-        <Text style={styles.sub}>{t.splashTagline}</Text>
+        <AppBrand />
 
-        {!sentPhone ? (
+        <InfoBanner message={t.accountNotice} />
+
+        {otpBypass && (
+          <View style={styles.devBanner}>
+            <Text style={styles.devBannerText}>{t.devOtpBanner}</Text>
+          </View>
+        )}
+
+        {formError ? <InfoBanner message={formError} variant="warning" /> : null}
+
+        {!sentPhone || otpBypass ? (
           <View style={styles.card}>
             <Text style={styles.helper}>{t.otpHelper}</Text>
             <View style={styles.phoneRow}>
               <Text style={styles.dial}>{DEFAULT_DIAL}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, phoneError ? styles.inputError : null]}
                 keyboardType="phone-pad"
-                placeholder="501234567"
+                placeholder={t.phonePlaceholder}
+                placeholderTextColor={colors.placeholder}
                 value={localNumber}
-                onChangeText={setLocalNumber}
+                onChangeText={(v) => {
+                  setLocalNumber(v);
+                  setPhoneError(undefined);
+                }}
+                accessibilityLabel={t.enterPhone}
               />
             </View>
-            <PrimaryButton label={t.sendOtp} onPress={onSend} loading={loading} />
+            <FieldError message={phoneError} />
+            <PrimaryButton
+              label={otpBypass ? t.continueWithoutOtp : t.sendOtp}
+              onPress={onSend}
+              loading={loading}
+            />
             <Pressable onPress={() => navigation.navigate('EmailOtp')}>
               <Text style={styles.emailLink}>{t.signInWithEmail}</Text>
             </Pressable>
@@ -106,15 +144,21 @@ export function PhoneOtpScreen({ navigation }: Props) {
               {t.codeSentTo} {sentPhone}
             </Text>
             <TextInput
-              style={[styles.input, styles.otp]}
+              style={[styles.input, styles.otp, otpError ? styles.inputError : null]}
               keyboardType="number-pad"
               maxLength={6}
-              placeholder="000000"
+              placeholder={t.otpPlaceholder}
+              placeholderTextColor={colors.placeholder}
               value={otp}
-              onChangeText={setOtp}
+              onChangeText={(v) => {
+                setOtp(v);
+                setOtpError(undefined);
+              }}
+              accessibilityLabel={t.otpCode}
             />
+            <FieldError message={otpError} />
             <PrimaryButton label={t.verify} onPress={onVerify} loading={loading} />
-            <PrimaryButton
+            <SecondaryButton
               label={t.changePhone}
               onPress={() => {
                 setSentPhone(null);
@@ -125,6 +169,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
           </View>
         )}
       </KeyboardAvoidingView>
+      </ContentWidth>
     </Screen>
   );
 }
@@ -159,12 +204,26 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: colors.surface,
+    minHeight: 48,
   },
+  inputError: { borderColor: colors.error },
   otp: { textAlign: 'center', letterSpacing: 8, fontSize: 22 },
   emailLink: {
     textAlign: 'center',
     color: colors.primary,
     fontWeight: '600',
     marginTop: 4,
+  },
+  devBanner: {
+    backgroundColor: '#F57C00',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  devBannerText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 13,
   },
 });
