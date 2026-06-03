@@ -7,9 +7,9 @@ import { useCandidateOnboarding } from '../../context/CandidateOnboardingContext
 import { Step1PhotoRole } from './onboarding/Step1PhotoRole';
 import { Step2Visa } from './onboarding/Step2Visa';
 import { Step3Salary } from './onboarding/Step3Salary';
+import { Step4Experience } from './onboarding/Step4Experience';
 import { Step4Availability } from './onboarding/Step4Availability';
 import { colors } from '../../constants/colors';
-import { onboardingFromRow } from '../../types/candidateOnboarding';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateOnboarding'>;
 
@@ -20,7 +20,8 @@ function OnboardingSteps(props: Props) {
       {step === 1 && <Step1PhotoRole />}
       {step === 2 && <Step2Visa />}
       {step === 3 && <Step3Salary />}
-      {step === 4 && <Step4Availability {...props} />}
+      {step === 4 && <Step4Experience />}
+      {step === 5 && <Step4Availability {...props} />}
     </View>
   );
 }

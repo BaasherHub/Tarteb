@@ -1,105 +1,123 @@
-import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { PrimaryButton } from '../../../components/PrimaryButton';
-import { OnboardingProgress } from '../../../components/OnboardingProgress';
+import React, { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { CandidateOnboardingStep } from '../../../components/CandidateOnboardingStep';
+import { VisaChip } from '../../../components/VisaChip';
+import { AutocompleteField } from '../../../components/AutocompleteField';
+import { LocationPicker } from '../../../components/LocationPicker';
+import { FieldError } from '../../../components/FieldError';
 import { useCandidateOnboarding } from '../../../context/CandidateOnboardingContext';
 import { useLocale } from '../../../i18n/LocaleContext';
-import { LOCATIONS, VISA_STATUSES } from '../../../constants/candidate';
+import { filterNationalities, resolveNationality } from '../../../constants/nationalities';
+import { VISA_STATUSES } from '../../../constants/candidate';
+import { visaChipColor } from '../../../utils/visa';
 import { colors } from '../../../constants/colors';
+import { typography } from '../../../constants/typography';
+
+type Errors = { visa?: string; nationality?: string; location?: string };
 
 export function Step2Visa() {
   const { t } = useLocale();
-  const { data, update, setStep, step, totalSteps } = useCandidateOnboarding();
+  const { data, update, setStep } = useCandidateOnboarding();
+  const [errors, setErrors] = useState<Errors>({});
+  const [nationalityQuery, setNationalityQuery] = useState(data.nationality ?? '');
+
+  const nationalityOptions = useMemo(
+    () => filterNationalities(nationalityQuery),
+    [nationalityQuery],
+  );
 
   const next = () => {
-    if (!data.visaStatus || !data.location || !data.nationality?.trim()) {
-      Alert.alert(t.required);
-      return;
-    }
+    const nextErrors: Errors = {};
+    if (!data.visaStatus) nextErrors.visa = t.errVisa;
+    const resolved = resolveNationality(nationalityQuery);
+    if (!resolved) nextErrors.nationality = t.errNationalityPick;
+    if (!data.location) nextErrors.location = t.errLocation;
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    update({ nationality: resolved! });
     setStep(3);
   };
 
   return (
-    <View style={styles.flex}>
-      <OnboardingProgress step={step} totalSteps={totalSteps} />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>{t.visaStatus}</Text>
+    <CandidateOnboardingStep
+      primaryLabel={t.continue}
+      onPrimary={next}
+      backLabel={t.back}
+      onBack={() => setStep(1)}
+    >
+      <Text style={styles.title}>{t.visaStatus}</Text>
+      <FieldError message={errors.visa} />
+      <View style={styles.visaGrid}>
         {VISA_STATUSES.map((status) => {
           const selected = data.visaStatus === status;
+          const accent = visaChipColor(status);
           return (
-            <Text
+            <Pressable
               key={status}
-              onPress={() => update({ visaStatus: status })}
-              style={[styles.visaBtn, selected && styles.visaBtnOn]}
+              onPress={() => {
+                update({ visaStatus: status });
+                setErrors((e) => ({ ...e, visa: undefined }));
+              }}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              style={[
+                styles.visaBtn,
+                selected && { borderColor: accent, backgroundColor: `${accent}18` },
+              ]}
             >
-              {status}
-            </Text>
+              <VisaChip label={status} />
+            </Pressable>
           );
         })}
-        <Text style={styles.label}>{t.nationality}</Text>
-        <TextInput
-          style={styles.input}
-          value={data.nationality ?? ''}
-          onChangeText={(nationality) => update({ nationality })}
-        />
-        <Text style={styles.label}>{t.location}</Text>
-        <View style={styles.locRow}>
-          {LOCATIONS.map((loc) => {
-            const selected = data.location === loc;
-            return (
-              <Text
-                key={loc}
-                onPress={() => update({ location: loc })}
-                style={[styles.locChip, selected && styles.locChipOn]}
-              >
-                {loc}
-              </Text>
-            );
-          })}
-        </View>
-      </ScrollView>
-      <View style={styles.footer}>
-        <PrimaryButton label={t.continue} onPress={next} />
       </View>
-    </View>
+      <AutocompleteField
+        label={t.nationality}
+        hint={t.nationalityHint}
+        value={nationalityQuery}
+        onChangeText={(q) => {
+          setNationalityQuery(q);
+          setErrors((e) => ({ ...e, nationality: undefined }));
+        }}
+        onSelect={(n) => {
+          setNationalityQuery(n);
+          update({ nationality: n });
+          setErrors((e) => ({ ...e, nationality: undefined }));
+        }}
+        options={nationalityOptions}
+        placeholder={t.nationalityPlaceholder}
+        emptyHint={t.errNationalityPick}
+        error={errors.nationality}
+      />
+      <LocationPicker
+        value={data.location ?? ''}
+        onChange={(location) => {
+          update({ location });
+          setErrors((e) => ({ ...e, location: undefined }));
+        }}
+        error={errors.location}
+      />
+    </CandidateOnboardingStep>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { padding: 20 },
-  title: { fontSize: 20, fontWeight: '600', marginBottom: 16 },
+  title: { ...typography.h2, marginBottom: 8 },
+  visaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 8,
+  },
   visaBtn: {
-    padding: 16,
-    marginBottom: 10,
+    flexBasis: '47%',
+    flexGrow: 1,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.divider,
     backgroundColor: colors.surface,
-    overflow: 'hidden',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  visaBtnOn: {
-    backgroundColor: colors.primary,
-    color: '#fff',
-    borderColor: colors.primary,
-    fontWeight: '600',
-  },
-  label: { marginTop: 16, marginBottom: 6, color: colors.textSecondary },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: colors.surface,
-  },
-  locRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  locChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  locChipOn: { borderColor: colors.primary, backgroundColor: `${colors.primary}15` },
-  footer: { padding: 20, borderTopWidth: 1, borderTopColor: colors.divider },
 });

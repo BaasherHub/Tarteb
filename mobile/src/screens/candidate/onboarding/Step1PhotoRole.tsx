@@ -1,38 +1,40 @@
-import React, { useState } from 'react';
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { PrimaryButton } from '../../../components/PrimaryButton';
-import { OnboardingProgress } from '../../../components/OnboardingProgress';
+import { CandidateOnboardingStep } from '../../../components/CandidateOnboardingStep';
+import { PhotoAvatarPicker } from '../../../components/PhotoAvatarPicker';
+import { JobRoleGrid } from '../../../components/JobRoleGrid';
+import { FieldError } from '../../../components/FieldError';
 import { useCandidateOnboarding } from '../../../context/CandidateOnboardingContext';
 import { useLocale } from '../../../i18n/LocaleContext';
-import { CANDIDATE_ROLES } from '../../../constants/candidate';
 import { uploadCandidatePhoto } from '../../../services/candidatePhoto';
+import { InfoBanner } from '../../../components/InfoBanner';
+import { typography } from '../../../constants/typography';
 import { colors } from '../../../constants/colors';
 
 export function Step1PhotoRole() {
-  const { t } = useLocale();
-  const { data, update, setStep, totalSteps, step } = useCandidateOnboarding();
+  const { t, isRtl } = useLocale();
+  const { data, update, setStep } = useCandidateOnboarding();
+  const scrollRef = useRef<ScrollView>(null);
+  const roleSectionY = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ role?: string; photo?: string }>({});
+  const [permissionError, setPermissionError] = useState<string | undefined>();
 
   const pickImage = async (useCamera: boolean) => {
     const perm = useCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission required');
+      setPermissionError(t.permissionRequired);
       return;
     }
+    setPermissionError(undefined);
     const result = useCamera
       ? await ImagePicker.launchCameraAsync({ quality: 0.85 })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.85 });
+
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
@@ -45,96 +47,99 @@ export function Step1PhotoRole() {
         asset.mimeType ?? 'image/jpeg',
       );
       update({ photoUrl: url });
+      setErrors((e) => ({ ...e, photo: undefined }));
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : t.errorGeneric);
+      setPermissionError(e instanceof Error ? e.message : t.errorGeneric);
       setLocalUri(null);
     } finally {
       setUploading(false);
     }
   };
 
-  const continueNext = (skipPhoto = false) => {
+  const scrollToRole = () => {
+    scrollRef.current?.scrollTo({ y: roleSectionY.current, animated: true });
+  };
+
+  const goToStep2 = (skipPhoto: boolean) => {
     if (!data.role) {
-      Alert.alert(t.jobRole);
+      setErrors({ role: t.errRole });
+      scrollToRole();
       return;
     }
-    if (!skipPhoto && !data.photoUrl) {
-      Alert.alert(t.yourPhoto);
+    if (!skipPhoto && !data.photoUrl && !localUri) {
+      setErrors({ role: undefined, photo: t.errPhotoRequired });
       return;
     }
-    if (skipPhoto) update({ photoUrl: null });
+    setErrors({});
+    if (skipPhoto) {
+      setLocalUri(null);
+      update({ photoUrl: null });
+    }
     setStep(2);
   };
 
   const imageUri = localUri ?? data.photoUrl ?? undefined;
 
   return (
-    <View style={styles.flex}>
-      <OnboardingProgress step={step} totalSteps={totalSteps} />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>{t.yourPhoto}</Text>
-        <View style={styles.avatarWrap}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.placeholder]} />
-          )}
-        </View>
-        <View style={styles.row}>
-          <PrimaryButton label={t.camera} onPress={() => pickImage(true)} disabled={uploading} />
-          <PrimaryButton label={t.gallery} onPress={() => pickImage(false)} disabled={uploading} />
-        </View>
-        <Text style={styles.section}>{t.jobRole}</Text>
-        <View style={styles.roleGrid}>
-          {CANDIDATE_ROLES.map((role) => {
-            const selected = data.role === role;
-            return (
-              <Text
-                key={role}
-                onPress={() => update({ role })}
-                style={[styles.roleChip, selected && styles.roleChipOn]}
-              >
-                {role}
-              </Text>
-            );
-          })}
-        </View>
-      </ScrollView>
-      <View style={styles.footer}>
-        <PrimaryButton
-          label={t.continue}
-          onPress={() => continueNext(false)}
-          loading={uploading}
+    <CandidateOnboardingStep
+      scrollRef={scrollRef}
+      primaryLabel={t.continue}
+      onPrimary={() => goToStep2(false)}
+      primaryLoading={uploading}
+      secondaryLabel={t.skipPhotoForNow}
+      onSecondary={() => goToStep2(true)}
+      secondaryDisabled={uploading}
+    >
+      <View
+        onLayout={(e) => {
+          roleSectionY.current = e.nativeEvent.layout.y;
+        }}
+      >
+        <Text style={[styles.section, isRtl && styles.rtlText]}>{t.candidatePickRole}</Text>
+        <Text style={[styles.roleHint, isRtl && styles.rtlText]}>{t.candidatePickRoleHint}</Text>
+        <JobRoleGrid
+          selectedRole={data.role}
+          onSelectRole={(role) => {
+            update({ role });
+            setErrors((e) => ({ ...e, role: undefined }));
+          }}
         />
-        <PrimaryButton label={t.skipForNow} onPress={() => continueNext(true)} disabled={uploading} />
+        {data.role ? (
+          <Text style={[styles.selectedRole, isRtl && styles.rtlText]}>
+            {t.roleSelected}: {data.role}
+          </Text>
+        ) : null}
+        <FieldError message={errors.role} />
       </View>
-    </View>
+
+      <Text style={[styles.title, { marginTop: 24 }]}>{t.yourPhoto}</Text>
+      <Text style={styles.hint}>{t.photoHint}</Text>
+      <Text style={styles.skipHint}>{t.skipPhotoForNowHint}</Text>
+      {permissionError ? (
+        <InfoBanner message={permissionError} variant="warning" />
+      ) : null}
+      <FieldError message={errors.photo} />
+      <PhotoAvatarPicker
+        imageUri={imageUri}
+        initial={data.role?.charAt(0) ?? '?'}
+        onPressCamera={() => pickImage(true)}
+        onPressGallery={() => pickImage(false)}
+      />
+    </CandidateOnboardingStep>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 100 },
-  title: { fontSize: 20, fontWeight: '600', marginBottom: 16 },
-  avatarWrap: { alignItems: 'center', marginBottom: 16 },
-  avatar: { width: 144, height: 144, borderRadius: 72 },
-  placeholder: { backgroundColor: `${colors.primary}15` },
-  row: { gap: 8, marginBottom: 24 },
-  section: { fontWeight: '600', marginBottom: 12 },
-  roleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  roleChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.surface,
-  },
-  roleChipOn: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}15`,
-    color: colors.primary,
+  title: { ...typography.h2, marginBottom: 8 },
+  hint: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 4 },
+  skipHint: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 8 },
+  section: { ...typography.h3, marginBottom: 6 },
+  roleHint: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 14 },
+  selectedRole: {
+    marginTop: 12,
+    fontSize: 14,
     fontWeight: '600',
+    color: colors.primary,
   },
-  footer: { padding: 20, gap: 8, borderTopWidth: 1, borderTopColor: colors.divider },
+  rtlText: { writingDirection: 'rtl' },
 });
