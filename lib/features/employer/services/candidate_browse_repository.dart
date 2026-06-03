@@ -10,6 +10,18 @@ abstract final class CandidateBrowseRepository {
   ) {
     var query = TartebSupabase.client.from('candidate_browse').select();
 
+    // Free-text search using OR on multiple columns
+    final search = filters.searchQuery.trim();
+    if (search.isNotEmpty) {
+      // Use ilike for case-insensitive partial matching across multiple fields
+      // This searches name, role, and previous_employer
+      query = query.or(
+        'name.ilike.%$search%,'
+        'role.ilike.%$search%,'
+        'previous_employer.ilike.%$search%',
+      );
+    }
+
     if (filters.roles.isNotEmpty) {
       query = query.inFilter('role', filters.roles.toList());
     }

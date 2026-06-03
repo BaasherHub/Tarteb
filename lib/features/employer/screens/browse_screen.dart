@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:tarteb/core/constants/app_colors.dart';
 import 'package:tarteb/core/constants/app_strings.dart';
@@ -26,6 +27,8 @@ class BrowseScreen extends StatefulWidget {
 class BrowseScreenState extends State<BrowseScreen> {
   final List<Map<String, dynamic>> _candidates = [];
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
 
   BrowseFilters _filters = BrowseFilters.empty;
   bool _initialLoading = true;
@@ -39,6 +42,7 @@ class BrowseScreenState extends State<BrowseScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _searchController.addListener(_onSearchChanged);
     _loadSubscription();
     _load(refresh: true);
   }
@@ -57,6 +61,23 @@ class BrowseScreenState extends State<BrowseScreen> {
     } catch (_) {
       if (mounted) setState(() => _subscriptionActive = false);
     }
+  }
+
+  void _onSearchChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      final query = _searchController.text;
+      if (query != _filters.searchQuery) {
+        setState(() => _filters = _filters.copyWith(searchQuery: query));
+        _load(refresh: true);
+      }
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _filters = _filters.copyWith(searchQuery: ''));
+    _load(refresh: true);
   }
 
   Future<void> _openSubscription() async {
@@ -97,6 +118,8 @@ class BrowseScreenState extends State<BrowseScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -162,17 +185,20 @@ class BrowseScreenState extends State<BrowseScreen> {
       initialFilters: _filters,
     );
     if (result == null) return;
-    setState(() => _filters = result);
+    setState(() => _filters = result.copyWith(searchQuery: _filters.searchQuery));
     await _load(refresh: true);
   }
 
   void resetFilters() {
+    _searchController.clear();
     setState(() => _filters = BrowseFilters.empty);
     _load(refresh: true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ListenableBuilder(
       listenable: LocaleService.instance,
       builder: (context, _) {
@@ -224,7 +250,16 @@ class BrowseScreenState extends State<BrowseScreen> {
           body: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: _buildBody(),
+              child: Column(
+                children: [
+                  _SearchBar(
+                    controller: _searchController,
+                    onClear: _clearSearch,
+                    isDark: isDark,
+                  ),
+                  Expanded(child: _buildBody()),
+                ],
+              ),
             ),
           ),
         );
@@ -270,6 +305,61 @@ class BrowseScreenState extends State<BrowseScreen> {
             onTap: () => _openDetail(candidate),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({
+    required this.controller,
+    required this.onClear,
+    required this.isDark,
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onClear;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: AppStrings.searchCandidates,
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: onClear,
+                  tooltip: AppStrings.clearSearch,
+                )
+              : null,
+          filled: true,
+          fillColor: isDark ? AppColors.surfaceDark : AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isDark ? AppColors.dividerDark : AppColors.divider,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isDark ? AppColors.dividerDark : AppColors.divider,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+        ),
+        textInputAction: TextInputAction.search,
       ),
     );
   }

@@ -1,6 +1,7 @@
 /// Filters applied to the [candidate_browse] query.
 class BrowseFilters {
   const BrowseFilters({
+    this.searchQuery = '',
     this.roles = const {},
     this.visaStatuses = const {},
     this.locations = const {},
@@ -10,6 +11,8 @@ class BrowseFilters {
     this.nationalitySearch = '',
   });
 
+  /// Free-text search across name, role, previous employer, etc.
+  final String searchQuery;
   final Set<String> roles;
   final Set<String> visaStatuses;
   final Set<String> locations;
@@ -21,6 +24,7 @@ class BrowseFilters {
   static const BrowseFilters empty = BrowseFilters();
 
   bool get hasActiveFilters =>
+      searchQuery.trim().isNotEmpty ||
       roles.isNotEmpty ||
       visaStatuses.isNotEmpty ||
       locations.isNotEmpty ||
@@ -30,6 +34,7 @@ class BrowseFilters {
       nationalitySearch.trim().isNotEmpty;
 
   BrowseFilters copyWith({
+    String? searchQuery,
     Set<String>? roles,
     Set<String>? visaStatuses,
     Set<String>? locations,
@@ -39,6 +44,7 @@ class BrowseFilters {
     String? nationalitySearch,
   }) {
     return BrowseFilters(
+      searchQuery: searchQuery ?? this.searchQuery,
       roles: roles ?? this.roles,
       visaStatuses: visaStatuses ?? this.visaStatuses,
       locations: locations ?? this.locations,

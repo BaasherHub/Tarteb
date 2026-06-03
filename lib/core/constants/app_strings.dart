@@ -55,6 +55,7 @@ abstract final class AppStrings {
   static String get browseCandidates =>
       _t('Browse candidates', 'تصفح المرشحين');
   static String get myUnlocks => _t('My Unlocks', 'المرشحون المفتوحون');
+  static String get favorites => _t('Favorites', 'المفضلة');
   static String get credits => _t('Credits', 'رصيد');
   static String creditsCount(int n) => _t('Credits: $n', 'رصيد: $n');
 
@@ -103,6 +104,10 @@ abstract final class AppStrings {
   static String get nationality => _t('Nationality', 'الجنسية');
   static String get searchNationality =>
       _t('Search nationality...', 'ابحث عن الجنسية...');
+  static String get searchCandidates =>
+      _t('Search candidates...', 'ابحث عن المرشحين...');
+  static String get search => _t('Search', 'بحث');
+  static String get clearSearch => _t('Clear search', 'مسح البحث');
 
   // Profile
   static String get editProfile => _t('Edit Profile', 'تعديل الملف');
@@ -148,6 +153,23 @@ abstract final class AppStrings {
   static String get language => _t('Language', 'اللغة');
   static String get english => _t('English', 'English');
   static String get arabic => _t('Arabic', 'العربية');
+  static String get theme => _t('Theme', 'المظهر');
+  static String get themeLight => _t('Light', 'فاتح');
+  static String get themeDark => _t('Dark', 'داكن');
+  static String get themeSystem => _t('System', 'تلقائي');
+  static String get notifications => _t('Notifications', 'الإشعارات');
+  static String get notificationsEnabled =>
+      _t('Push notifications', 'الإشعارات الفورية');
+  static String get notifyProfileViews =>
+      _t('Profile views', 'مشاهدات الملف');
+  static String get notifyProfileViewsDesc =>
+      _t('When an employer views your profile', 'عندما يشاهد صاحب عمل ملفك');
+  static String get notifyNewMessages =>
+      _t('New messages', 'رسائل جديدة');
+  static String get notifySubscription =>
+      _t('Subscription updates', 'تحديثات الاشتراك');
+  static String get notifySubscriptionDesc =>
+      _t('Reminders before your plan expires', 'تذكيرات قبل انتهاء خطتك');
   static String get logout => _t('Logout', 'تسجيل الخروج');
   static String get contactSupport => _t('Contact support', 'تواصل مع الدعم');
   static String get contactUsOnWhatsApp =>
@@ -210,6 +232,23 @@ abstract final class AppStrings {
       );
   static String unlockedOn(String date) =>
       _t('Unlocked on $date', 'فُتح في $date');
+  
+  // Favorites
+  static String get noFavoritesYet => _t(
+        'No favorites yet',
+        'لا توجد مفضلات بعد',
+      );
+  static String get noFavoritesSubtitle => _t(
+        'Tap the heart icon on any candidate to save them here.',
+        'اضغط على أيقونة القلب على أي مرشح لحفظه هنا.',
+      );
+  static String get addToFavorites => _t('Add to favorites', 'أضف إلى المفضلة');
+  static String get removeFromFavorites =>
+      _t('Remove from favorites', 'إزالة من المفضلة');
+  static String get addedToFavorites =>
+      _t('Added to favorites', 'تمت الإضافة إلى المفضلة');
+  static String get removedFromFavorites =>
+      _t('Removed from favorites', 'تمت الإزالة من المفضلة');
 
   // Errors & connectivity
   static String get somethingWentWrong => _t(
