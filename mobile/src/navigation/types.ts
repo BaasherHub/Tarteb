@@ -9,7 +9,8 @@ export type RootStackParamList = {
   EmployerShell: undefined;
   CandidateOnboarding: { initial?: CandidateOnboardingData };
   CandidateDashboard: undefined;
-  CandidateDetail: { candidate: Record<string, unknown> };
+  CandidateShell: undefined;
+  CandidateDetail: { candidateId: string };
   Subscription: undefined;
-  Settings: { isCandidate: boolean };
+  Settings: undefined;
 };

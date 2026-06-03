@@ -12,18 +12,18 @@ import { CandidateDetailScreen } from '../screens/employer/CandidateDetailScreen
 import { SubscriptionScreen } from '../screens/employer/SubscriptionScreen';
 import { CandidateOnboardingScreen } from '../screens/candidate/CandidateOnboardingScreen';
 import { CandidateDashboardScreen } from '../screens/candidate/CandidateDashboardScreen';
+import { CandidateShellScreen } from '../screens/candidate/CandidateShellScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { useLocale } from '../i18n/LocaleContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
+  const { t } = useLocale();
+
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShadowVisible: false,
-        }}
-      >
+      <Stack.Navigator screenOptions={{ headerShadowVisible: false }}>
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
@@ -37,17 +37,17 @@ export function RootNavigator() {
         <Stack.Screen
           name="EmailOtp"
           component={EmailOtpScreen}
-          options={{ title: 'Email' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="RoleSelection"
           component={RoleSelectionScreen}
-          options={{ title: 'Tarteb' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="EmployerOnboarding"
           component={EmployerOnboardingScreen}
-          options={{ title: 'Company' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="EmployerShell"
@@ -57,24 +57,33 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateDetail"
           component={CandidateDetailScreen}
-          options={{ title: 'Candidate' }}
+          options={{ title: t.browse }}
         />
         <Stack.Screen
           name="Subscription"
           component={SubscriptionScreen}
-          options={{ title: 'Subscription' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="CandidateOnboarding"
           component={CandidateOnboardingScreen}
-          options={{ title: 'Your profile' }}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CandidateShell"
+          component={CandidateShellScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="CandidateDashboard"
           component={CandidateDashboardScreen}
-          options={{ title: 'Dashboard' }}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
