@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../constants/colors';
 
@@ -19,5 +19,8 @@ export function Screen({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.scaffold },
-  inner: { flex: 1, paddingHorizontal: 20 },
+  inner: {
+    flex: 1,
+    paddingHorizontal: Platform.OS === 'web' ? 16 : 20,
+  },
 });

@@ -1,11 +1,17 @@
 import { Linking } from 'react-native';
+import { markSubscriptionPending } from '../services/subscriptionPending';
 
 const SUPPORT = '971501551480';
 
-export async function openWhatsAppSubscribe(contact: string): Promise<void> {
+export async function openWhatsAppSubscribe(
+  contact: string,
+  tier = 'starter',
+  price = 'AED 79.9 / mo',
+): Promise<void> {
   const message =
-    `Hi, I want to subscribe to Tarteb (AED 39.99/month).\nMy number: ${contact}`;
+    `Hi, I want to subscribe to Tarteb — ${tier.charAt(0).toUpperCase() + tier.slice(1)} plan (${price}).\nMy number: ${contact}`;
   const url = `https://wa.me/${SUPPORT}?text=${encodeURIComponent(message)}`;
+  await markSubscriptionPending();
   await Linking.openURL(url);
 }
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { colors } from '../constants/colors';
-import { useLocale } from '../i18n/LocaleContext';
 
 export function OnboardingProgress({
   step,
@@ -10,10 +9,8 @@ export function OnboardingProgress({
   step: number;
   totalSteps: number;
 }) {
-  const { t } = useLocale();
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{t.stepOf(step, totalSteps)}</Text>
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${(step / totalSteps) * 100}%` }]} />
       </View>
@@ -22,13 +19,12 @@ export function OnboardingProgress({
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: 20, paddingTop: 8 },
-  label: { color: colors.textSecondary, marginBottom: 8, fontWeight: '500' },
+  wrap: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 },
   track: {
-    height: 6,
+    height: 4,
     backgroundColor: colors.divider,
     borderRadius: 4,
     overflow: 'hidden',
   },
-  fill: { height: '100%', backgroundColor: colors.primary },
+  fill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
 });

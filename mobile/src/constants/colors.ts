@@ -1,14 +1,55 @@
+/**
+ * Tarteb color system
+ *
+ * Primary brand blue:  #1A6FFF (icon gradient start)
+ * Secondary green:     #00C853 (active / hired / success)
+ * All neutrals and semantic colors derived from these two anchors.
+ */
 export const colors = {
-  primary: '#1565D8',
-  secondary: '#34A853',
-  scaffold: '#F6F8FB',
+  // ── Brand ──────────────────────────────────────────────
+  /** Main interactive color — buttons, links, active states */
+  primary: '#1A6FFF',
+  /** Darker shade for gradients, hover/pressed states */
+  primaryDark: '#0038CC',
+  /** Light tint for backgrounds, selected chips */
+  primaryTint: '#E8F0FF',
+
+  /** Success / hired / active / green dot */
+  secondary: '#00C853',
+  secondaryDark: '#009624',
+  secondaryTint: '#E6F9EE',
+
+  // ── Neutrals ────────────────────────────────────────────
+  /** App background */
+  scaffold: '#F5F7FB',
+  /** Card / surface background */
   surface: '#FFFFFF',
-  textPrimary: '#212121',
-  textSecondary: '#757575',
-  error: '#D93025',
-  divider: '#E0E0E0',
-  visaEmployment: '#1A73E8',
-  visaVisit: '#34A853',
-  visaOwn: '#9C27B0',
-  visaCancelled: '#FF9800',
+  /** Elevated surface (modals, sheets) */
+  surfaceElevated: '#FFFFFF',
+
+  /** Primary text */
+  textPrimary: '#111827',
+  /** Secondary / caption text */
+  textSecondary: '#6B7280',
+  /** Disabled / placeholder text */
+  placeholder: '#9CA3AF',
+
+  /** Dividers, borders */
+  divider: '#E5E7EB',
+  /** Input border */
+  inputBorder: '#D1D5DB',
+
+  // ── Semantic ────────────────────────────────────────────
+  error: '#EF4444',
+  errorTint: '#FEF2F2',
+  warning: '#F59E0B',
+  warningTint: '#FFFBEB',
+
+  // ── Visa status ─────────────────────────────────────────
+  visaEmployment: '#1A6FFF',
+  visaVisit: '#00C853',
+  visaOwn: '#7C3AED',
+  visaCancelled: '#F59E0B',
 } as const;
+
+export type ColorKey = keyof typeof colors;
