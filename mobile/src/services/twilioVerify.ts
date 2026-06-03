@@ -1,7 +1,12 @@
+import { env } from '../config/env';
 import { supabase } from '../lib/supabase';
 
 let otpSessionPhoneE164: string | null = null;
 
+/** TESTING ONLY — when true, no Twilio SMS (see TESTING_OTP_BYPASS.md). */
+export function isOtpBypassEnabled(): boolean {
+  return env.skipOtpVerification;
+}
 export function normalizeE164(phone: string): string {
   const compact = phone.replace(/[\s\-().]/g, '');
   let digits = compact.replace(/\D/g, '');
@@ -18,6 +23,8 @@ export async function sendOtp(phone: string): Promise<void> {
   }
   otpSessionPhoneE164 = e164;
 
+  if (isOtpBypassEnabled()) return;
+
   const { data, error } = await supabase.functions.invoke('send-otp', {
     body: { phone: e164 },
   });
@@ -32,12 +39,23 @@ export async function verifyOtp(phone: string, code: string): Promise<boolean> {
   const e164 = otpSessionPhoneE164 ?? normalizeE164(phone);
   if (!e164) throw new Error('No OTP session — send code first');
 
+  if (isOtpBypassEnabled()) return true;
+
   const { data, error } = await supabase.functions.invoke('verify-otp', {
     body: { phone: e164, code: code.trim() },
   });
   if (error) throw error;
-  const body = data as { approved?: boolean };
-  return body?.approved === true;
+  const body = data as {
+    approved?: boolean;
+    twilioError?: string | { message?: string };
+  };
+  if (body?.approved === true) return true;
+  const twilioMsg =
+    typeof body?.twilioError === 'string'
+      ? body.twilioError
+      : body?.twilioError?.message;
+  if (twilioMsg) throw new Error(twilioMsg);
+  return false;
 }
 
 export async function signInWithVerifiedPhone(phone: string): Promise<void> {

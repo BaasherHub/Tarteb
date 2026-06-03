@@ -9,25 +9,34 @@ type Nav = {
 };
 
 export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) return;
+  try {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) {
+      navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+      return;
+    }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('user_id', userId)
-    .maybeSingle();
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle();
 
-  if (!profile) {
-    navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
-    return;
-  }
+    if (error) throw error;
 
-  const role = profile.role as string;
-  if (role === 'candidate') {
-    await routeCandidate(navigation, userId);
-  } else {
-    await routeEmployer(navigation, userId);
+    if (!profile) {
+      navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
+      return;
+    }
+
+    const role = profile.role as string;
+    if (role === 'candidate') {
+      await routeCandidate(navigation, userId);
+    } else {
+      await routeEmployer(navigation, userId);
+    }
+  } catch {
+    navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
   }
 }
 
@@ -42,7 +51,7 @@ async function routeCandidate(navigation: Nav, userId: string): Promise<void> {
     index: 0,
     routes: [
       {
-        name: candidate ? 'CandidateDashboard' : 'CandidateOnboarding',
+        name: candidate ? 'CandidateShell' : 'CandidateOnboarding',
       },
     ],
   });
