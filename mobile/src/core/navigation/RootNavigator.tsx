@@ -1,21 +1,34 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { linking } from '@/core/navigation/linking';
+import { flushPendingDeepLink } from '@/core/navigation/deepLink';
+import { navigationRef } from '@/core/navigation/navigationRef';
 import { RootStackParamList } from './types';
 import { useLocale } from '@/core/i18n/LocaleContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { t } = useLocale();
+  const { t, isRtl } = useLocale();
+  const stackAnimation = isRtl ? 'slide_from_left' : 'slide_from_right';
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShadowVisible: false }}>
+    <NavigationContainer
+      ref={navigationRef}
+      linking={linking}
+      onReady={() => flushPendingDeepLink(navigationRef)}
+    >
+      <Stack.Navigator
+        screenOptions={{
+          headerShadowVisible: false,
+          animation: stackAnimation,
+        }}
+      >
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, animation: 'fade' }}
         />
         <Stack.Screen
           name="PhoneOtp"
@@ -40,7 +53,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="EmployerShell"
           component={EmployerShellScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, animation: 'fade' }}
         />
         <Stack.Screen
           name="CandidateDetail"
@@ -50,7 +63,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="Subscription"
           component={SubscriptionScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, presentation: 'modal' }}
         />
         <Stack.Screen
           name="CandidateOnboarding"
@@ -60,7 +73,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateShell"
           component={CandidateShellScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, animation: 'fade' }}
         />
         <Stack.Screen
           name="CandidateDashboard"
@@ -81,12 +94,11 @@ import { SplashScreen } from '@/features/app/presentation/screens/SplashScreen';
 import { PhoneOtpScreen } from '@/features/auth/presentation/screens/PhoneOtpScreen';
 import { EmailOtpScreen } from '@/features/auth/presentation/screens/EmailOtpScreen';
 import { RoleSelectionScreen } from '@/features/auth/presentation/screens/RoleSelectionScreen';
-import { CandidateOnboardingScreen } from '@/features/candidate/presentation/screens/CandidateOnboardingScreen';
-import { CandidateDashboardScreen } from '@/features/candidate/presentation/screens/CandidateDashboardScreen';
-import { CandidateShellScreen } from '@/features/candidate/presentation/screens/CandidateShellScreen';
-import { SettingsScreen } from '@/features/settings/presentation/screens/SettingsScreen';
-import { CandidateDetailScreen } from '@/features/employer/presentation/screens/CandidateDetailScreen';
-import { SubscriptionScreen } from '@/features/employer/presentation/screens/SubscriptionScreen';
 import { EmployerOnboardingScreen } from '@/features/employer/presentation/screens/EmployerOnboardingScreen';
 import { EmployerShellScreen } from '@/features/employer/presentation/screens/EmployerShellScreen';
-
+import { CandidateDetailScreen } from '@/features/employer/presentation/screens/CandidateDetailScreen';
+import { SubscriptionScreen } from '@/features/employer/presentation/screens/SubscriptionScreen';
+import { CandidateOnboardingScreen } from '@/features/candidate/presentation/screens/CandidateOnboardingScreen';
+import { CandidateShellScreen } from '@/features/candidate/presentation/screens/CandidateShellScreen';
+import { CandidateDashboardScreen } from '@/features/candidate/presentation/screens/CandidateDashboardScreen';
+import { SettingsScreen } from '@/features/settings/presentation/screens/SettingsScreen';

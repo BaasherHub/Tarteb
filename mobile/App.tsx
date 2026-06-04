@@ -1,15 +1,38 @@
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { validateProductionConfig } from '@/core/config/env';
 import { LocaleProvider } from '@/core/i18n/LocaleContext';
+import { AppErrorBoundary } from '@/core/providers/AppErrorBoundary';
 import { AuthProvider } from '@/core/providers/AuthProvider';
+import { PushNotificationsProvider } from '@/core/providers/PushNotificationsProvider';
+import { ToastProvider } from '@/core/providers/ToastProvider';
+import { NotificationToastBridge } from '@/core/providers/NotificationToastBridge';
 import { RootNavigator } from '@/core/navigation/RootNavigator';
 
 export default function App() {
+  useEffect(() => {
+    const issues = validateProductionConfig();
+    if (issues.length > 0) {
+      console.warn('[Tarteb] Production config issues:\n', issues.join('\n'));
+    }
+  }, []);
+
   return (
-    <LocaleProvider>
-      <AuthProvider>
-        <RootNavigator />
-        <StatusBar style="auto" />
-      </AuthProvider>
-    </LocaleProvider>
+    <SafeAreaProvider>
+      <LocaleProvider>
+        <AppErrorBoundary>
+          <AuthProvider>
+            <ToastProvider>
+              <NotificationToastBridge />
+              <PushNotificationsProvider>
+                <RootNavigator />
+                <StatusBar style="auto" />
+              </PushNotificationsProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </AppErrorBoundary>
+      </LocaleProvider>
+    </SafeAreaProvider>
   );
 }

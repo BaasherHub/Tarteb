@@ -1,10 +1,11 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { useLocale } from '@/core/i18n/LocaleContext';
-
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 
 type Props = {
   title: string;
@@ -13,11 +14,14 @@ type Props = {
 };
 
 export function ScreenHeader({ title, onSettings, right }: Props) {
-  const { t, isRtl } = useLocale();
+  const { t } = useLocale();
+  const rtl = useRtlStyles();
   return (
-    <View style={[styles.row, isRtl && styles.rowRtl]}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={[styles.right, isRtl && styles.rowRtl]}>
+    <View style={[styles.row, rtl.rowBetween]}>
+      <Text style={[styles.title, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+        {title}
+      </Text>
+      <View style={[styles.right, rtl.row]}>
         {right}
         {onSettings ? (
           <Pressable
@@ -36,14 +40,16 @@ export function ScreenHeader({ title, onSettings, right }: Props) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
+    minHeight: 48,
   },
-  rowRtl: { flexDirection: 'row-reverse' },
-  title: { ...typography.h1, color: colors.textPrimary },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: {
+    ...typography.h1,
+    color: colors.textPrimary,
+    flex: 1,
+    flexShrink: 1,
+  },
+  right: { alignItems: 'center', gap: spacing.sm, flexShrink: 0 },
   iconBtn: {
     minWidth: 44,
     minHeight: 44,

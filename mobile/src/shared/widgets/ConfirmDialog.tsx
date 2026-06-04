@@ -7,8 +7,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
@@ -36,19 +37,59 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const { isRtl } = useLocale();
+  const rtl = useRtlStyles();
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.overlay} onPress={onCancel}>
-        <Pressable style={styles.dialog} onPress={(e) => e.stopPropagation()}>
-          <Text style={[styles.title, isRtl && styles.rtlText]}>{title}</Text>
-          <Text style={[styles.message, isRtl && styles.rtlText]}>{message}</Text>
-          <View style={styles.highlightBox}>
-            <Text style={styles.highlight}>{highlight}</Text>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+      accessibilityViewIsModal
+    >
+      <Pressable
+        style={styles.overlay}
+        onPress={onCancel}
+        accessibilityRole="button"
+        accessibilityLabel={cancelLabel}
+      >
+        <Pressable
+          style={styles.dialog}
+          onPress={(e) => e.stopPropagation()}
+          accessibilityRole="none"
+        >
+          <Text
+            style={[
+              styles.title,
+              { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
+            ]}
+            numberOfLines={3}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={1.3}
+          >
+            {title}
+          </Text>
+          <Text
+            style={[
+              styles.message,
+              { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
+            ]}
+            numberOfLines={6}
+            maxFontSizeMultiplier={1.3}
+          >
+            {message}
+          </Text>
+          <View style={styles.highlightBox} accessibilityRole="text">
+            <Text style={styles.highlight} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+              {highlight}
+            </Text>
           </View>
           {loading ? (
-            <ActivityIndicator color={colors.primary} style={styles.loader} />
+            <ActivityIndicator
+              color={colors.primary}
+              style={styles.loader}
+              accessibilityRole="progressbar"
+            />
           ) : (
             <View style={styles.actions}>
               <PrimaryButton label={confirmLabel} onPress={onConfirm} />
@@ -67,30 +108,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: spacing.xxl,
   },
   dialog: {
     width: '100%',
     maxWidth: 400,
     backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: spacing.lg,
+    padding: spacing.xxl,
     borderWidth: 1,
     borderColor: colors.divider,
+    gap: spacing.md,
   },
-  title: { ...typography.h2, marginBottom: 12, textAlign: 'center' },
+  title: { ...typography.h2, color: colors.textPrimary },
   message: {
+    ...typography.body,
     color: colors.textSecondary,
-    lineHeight: 22,
-    textAlign: 'center',
-    marginBottom: 16,
   },
-  rtlText: { writingDirection: 'rtl' },
   highlightBox: {
-    backgroundColor: `${colors.primary}10`,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
+    backgroundColor: colors.primaryTint,
+    borderRadius: spacing.md,
+    padding: spacing.lg,
     borderWidth: 1,
     borderColor: `${colors.primary}30`,
   },
@@ -99,8 +137,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
     textAlign: 'center',
+    lineHeight: 24,
   },
-  actions: { gap: 10 },
-  loader: { marginVertical: 12 },
+  actions: { gap: spacing.md },
+  loader: { marginVertical: spacing.md },
 });
-

@@ -18,11 +18,14 @@ import {
 } from '@/features/auth/data/services/authNavigation';
 import { colors } from '@/core/theme/colors';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { fieldA11yLabel } from '@/shared/utils/a11y';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmailOtp'>;
 
 export function EmailOtpScreen({ navigation }: Props) {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [sent, setSent] = useState(false);
@@ -82,15 +85,24 @@ export function EmailOtpScreen({ navigation }: Props) {
             <View style={styles.card}>
               <Text style={styles.label}>{t.enterEmail}</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
+                ]}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholder={t.emailPlaceholder}
+                accessibilityLabel={fieldA11yLabel(t.enterEmail)}
               />
               <PrimaryButton label={t.sendOtp} onPress={send} loading={loading} />
-              <Pressable onPress={() => navigation.navigate('PhoneOtp')}>
+              <Pressable
+                onPress={() => navigation.navigate('PhoneOtp')}
+                accessibilityRole="link"
+                accessibilityLabel={t.signInWithPhone}
+                accessibilityHint={t.a11yBackHint}
+              >
                 <Text style={styles.link}>{t.signInWithPhone}</Text>
               </Pressable>
             </View>
@@ -100,12 +112,15 @@ export function EmailOtpScreen({ navigation }: Props) {
                 {t.codeSentTo} {email.trim()}
               </Text>
               <TextInput
-                style={[styles.input, styles.otp]}
+                style={[styles.input, styles.otp, { writingDirection: 'ltr' }]}
                 value={otp}
                 onChangeText={setOtp}
                 keyboardType="number-pad"
                 maxLength={6}
                 placeholder="000000"
+                accessibilityLabel={fieldA11yLabel(t.otpCode)}
+                textContentType="oneTimeCode"
+                autoComplete="sms-otp"
               />
               <PrimaryButton label={t.verify} onPress={verify} loading={loading} />
               <SecondaryButton

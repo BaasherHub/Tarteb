@@ -1,33 +1,44 @@
 # Tarteb
 
-UAE blue-collar job marketplace.
+**Tarteb** (رتّب) is a job marketplace for the UAE blue-collar sector — employers discover candidates by role, unlock verified contact details, and candidates build profiles employers can trust.
 
-## Active app
+## Repository
 
-The client is **Expo React Native (TypeScript)** in [`mobile/`](mobile/).
+| Path | Description |
+|------|-------------|
+| [`mobile/`](mobile/) | **Primary app** — Expo React Native (TypeScript), iOS & Android |
+| [`supabase/`](supabase/) | Postgres schema, RLS, Edge Functions (OTP, notifications) |
+| [`docs/`](docs/) | Privacy policy draft and store assets |
+| [`archive/flutter/`](archive/flutter/) | Legacy Flutter scaffold (not maintained) |
+
+## Get started
 
 ```bash
 cd mobile
 npm install
-cp .env.example .env   # Supabase URL and anon key
-npx expo start
+cp .env.example .env
+npm run start:dev
 ```
 
-- App docs: [`mobile/README.md`](mobile/README.md)
-- Backend: [`supabase/`](supabase/) (migrations and Edge Functions)
+Full mobile docs: **[mobile/README.md](mobile/README.md)**  
+Store launch steps: **[mobile/LAUNCH_CHECKLIST.md](mobile/LAUNCH_CHECKLIST.md)**
+
+## Highlights
+
+- Bilingual **English / Arabic** with RTL
+- **Supabase** backend shared across platforms
+- **Expo** push notifications and `tarteb://` deep links
+- Employer subscription via WhatsApp activation workflow
 - CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
-## Repository layout
+## Screenshots
 
-```
-tarteb/
-├── mobile/              # Expo app (primary)
-├── supabase/            # Database + Edge Functions
-├── .github/             # GitHub Actions
-├── archive/flutter/     # Legacy Flutter files (archived, not maintained)
-└── README.md
-```
+Add marketing screenshots under `mobile/docs/screenshots/` before App Store / Play submission (see mobile README).
 
-## Legacy Flutter
+## Legal
 
-Old Flutter scaffold and setup docs were moved to [`archive/flutter/`](archive/flutter/) and are not part of day-to-day development.
+Draft privacy policy: [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md) — publish to your domain before release.
+
+## License
+
+Proprietary — Tarteb. All rights reserved.

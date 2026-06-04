@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { OnboardingProgress } from '@/features/candidate/presentation/components/OnboardingProgress';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -92,11 +93,11 @@ export function CandidateOnboardingStep({
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.scaffold },
   scroll: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 24 },
-  body: { flex: 1, padding: 20 },
+  scrollContent: { padding: spacing.xl, paddingBottom: spacing.xxl },
+  body: { flex: 1, padding: spacing.xl },
   footer: {
-    padding: 20,
-    gap: 10,
+    padding: spacing.xl,
+    gap: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
     backgroundColor: colors.scaffold,

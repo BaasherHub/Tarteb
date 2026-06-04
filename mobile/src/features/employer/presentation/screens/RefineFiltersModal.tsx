@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   ScrollView,
@@ -6,7 +6,9 @@ import {
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import {
   BrowseFilters,
   SALARY_FILTER_MAX,
@@ -14,6 +16,8 @@ import {
 } from '@/features/employer/data/services/candidateBrowse';
 import { filterNationalities, resolveNationality } from '@/shared/constants/nationalities';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import { FormField } from '@/shared/widgets/FormField';
 import { LocationFilterSection } from '@/features/employer/presentation/components/LocationFilterSection';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -27,7 +31,6 @@ import {
   VISA_STATUSES,
 } from '@/features/candidate/domain/constants/candidate';
 
-
 type Props = {
   visible: boolean;
   role: string;
@@ -36,7 +39,7 @@ type Props = {
   onApply: (filters: BrowseFilters) => void;
 };
 
-export function RefineFiltersModal({
+function RefineFiltersModalInner({
   visible,
   role,
   initial,
@@ -44,6 +47,7 @@ export function RefineFiltersModal({
   onApply,
 }: Props) {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const [filters, setFilters] = useState(initial);
   const [showAllLanguages, setShowAllLanguages] = useState(false);
   const [nationalityQuery, setNationalityQuery] = useState(initial.nationalitySearch);
@@ -63,40 +67,79 @@ export function RefineFiltersModal({
   const visibleLanguages = showAllLanguages ? LANGUAGE_OPTIONS : POPULAR_LANGUAGES;
   const moreLanguages = LANGUAGE_OPTIONS.filter((l) => !POPULAR_LANGUAGES.includes(l));
 
-  const toggleList = <K extends keyof BrowseFilters>(
-    key: K,
-    value: BrowseFilters[K] extends (infer U)[] ? U : never,
-  ) => {
-    setFilters((f) => {
-      const list = f[key] as unknown[];
-      const set = new Set(list);
-      if (set.has(value)) set.delete(value);
-      else set.add(value);
-      return { ...f, [key]: [...set] as BrowseFilters[K] };
-    });
-  };
+  const toggleList = useCallback(
+    <K extends keyof BrowseFilters>(
+      key: K,
+      value: BrowseFilters[K] extends (infer U)[] ? U : never,
+    ) => {
+      setFilters((f) => {
+        const list = f[key] as unknown[];
+        const set = new Set(list);
+        if (set.has(value)) set.delete(value);
+        else set.add(value);
+        return { ...f, [key]: [...set] as BrowseFilters[K] };
+      });
+    },
+    [],
+  );
 
-  const apply = () => {
+  const apply = useCallback(() => {
     const nationality =
       resolveNationality(nationalityQuery) ?? nationalityQuery.trim();
     onApply({ ...filters, roles: [role], nationalitySearch: nationality });
     onClose();
-  };
+  }, [filters, nationalityQuery, onApply, onClose, role]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     const base = filtersForRole(role);
     setFilters(base);
     setNationalityQuery('');
-  };
+  }, [role]);
+
+  if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={styles.sheet}>
-        <Text style={styles.title}>{t.browseRefine}</Text>
-        <Text style={styles.roleLine}>{t.candidatesForRole(role)}</Text>
-        <Text style={styles.optionalHint}>{t.filterOptionalHint}</Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+      accessibilityViewIsModal
+    >
+      <SafeAreaView
+        style={styles.sheet}
+        edges={['top', 'bottom']}
+        accessibilityLabel={t.a11yFilterModal}
+      >
+        <View style={styles.header} accessibilityRole="header">
+          <Text
+            style={[styles.title, { textAlign: rtl.textAlign }]}
+            numberOfLines={2}
+            accessibilityRole="header"
+            maxFontSizeMultiplier={1.3}
+          >
+            {t.browseRefine}
+          </Text>
+          <Text
+            style={[styles.roleLine, { textAlign: rtl.textAlign }]}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {t.candidatesForRole(role)}
+          </Text>
+          <Text
+            style={[styles.optionalHint, { textAlign: rtl.textAlign }]}
+            numberOfLines={3}
+          >
+            {t.filterOptionalHint}
+          </Text>
+        </View>
 
-        <ScrollView keyboardShouldPersistTaps="handled" style={styles.scroll}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
           <Section title={t.nationality}>
             <AutocompleteField
               label={t.nationality}
@@ -128,7 +171,7 @@ export function RefineFiltersModal({
           </Section>
 
           <Section title={t.filterSalaryRange}>
-            <View style={styles.salaryRow}>
+            <View style={[styles.salaryRow, rtl.row]}>
               <View style={styles.salaryHalf}>
                 <FormField
                   label={t.salaryMinLabel}
@@ -165,7 +208,7 @@ export function RefineFiltersModal({
           </Section>
 
           <Section title={t.filterExperience}>
-            <View style={styles.wrap}>
+            <View style={[styles.chipRow, rtl.row]}>
               {EXPERIENCE_OPTIONS.map((opt) => (
                 <SelectableChip
                   key={opt.years}
@@ -193,7 +236,7 @@ export function RefineFiltersModal({
           </Section>
 
           <Section title={t.filterUaeExp}>
-            <View style={styles.row}>
+            <View style={[styles.chipRow, rtl.row]}>
               <SelectableChip
                 label={t.filterAny}
                 selected={filters.uaeExperience === null}
@@ -224,24 +267,48 @@ export function RefineFiltersModal({
         </ScrollView>
 
         <View style={styles.footer}>
-          <SecondaryButton label={t.reset} onPress={reset} />
-          <PrimaryButton label={t.apply} onPress={apply} />
+          <SecondaryButton
+            label={t.reset}
+            onPress={reset}
+            accessibilityHint={t.a11yResetFilters}
+          />
+          <PrimaryButton
+            label={t.apply}
+            onPress={apply}
+            accessibilityHint={t.a11yApplyFilters}
+          />
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+export const RefineFiltersModal = memo(RefineFiltersModalInner);
+
+const Section = memo(function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  const rtl = useRtlStyles();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text
+        style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}
+        numberOfLines={2}
+        accessibilityRole="header"
+        maxFontSizeMultiplier={1.3}
+      >
+        {title}
+      </Text>
       {children}
     </View>
   );
-}
+});
 
-function ChipRow({
+const ChipRow = memo(function ChipRow({
   options,
   selected,
   onToggle,
@@ -250,8 +317,9 @@ function ChipRow({
   selected: string[];
   onToggle: (v: string) => void;
 }) {
+  const rtl = useRtlStyles();
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.chipRow, rtl.row]}>
       {options.map((opt) => (
         <SelectableChip
           key={opt}
@@ -262,19 +330,39 @@ function ChipRow({
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
-  sheet: { flex: 1, padding: 20, backgroundColor: colors.scaffold },
-  title: { fontSize: 22, fontWeight: '700' },
-  roleLine: { fontSize: 15, color: colors.primary, fontWeight: '600', marginTop: 4 },
-  optionalHint: { fontSize: 13, color: colors.textSecondary, marginTop: 8, marginBottom: 12 },
+  sheet: { flex: 1, backgroundColor: colors.scaffold },
+  header: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  title: { ...typography.h2, color: colors.textPrimary },
+  roleLine: { ...typography.h3, color: colors.primary },
+  optionalHint: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   scroll: { flex: 1 },
-  section: { marginBottom: 18 },
-  sectionTitle: { fontWeight: '600', marginBottom: 8, fontSize: 15 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  salaryRow: { flexDirection: 'row', gap: 12 },
-  salaryHalf: { flex: 1 },
-  footer: { gap: 10, paddingTop: 12 },
+  scrollContent: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  section: { marginBottom: spacing.lg },
+  sectionTitle: { ...typography.h3, marginBottom: spacing.sm },
+  chipRow: { flexWrap: 'wrap', gap: spacing.sm },
+  salaryRow: { gap: spacing.md, alignItems: 'flex-start' },
+  salaryHalf: { flex: 1, minWidth: 0 },
+  footer: {
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    backgroundColor: colors.surface,
+  },
 });

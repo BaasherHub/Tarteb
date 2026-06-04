@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Linking,
@@ -13,13 +12,29 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { supabase } from '@/core/lib/supabase';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { VisaChip } from '@/shared/widgets/VisaChip';
+import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
+import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
+import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
+import {
+  fetchEmployerAccount,
+  hasActiveSubscription,
+} from '@/features/employer/data/services/employerSubscription';
+import { promptForPushNotifications } from '@/core/services/notifications';
+import { useToast } from '@/core/providers/ToastProvider';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateDetail'>;
 
 export function CandidateDetailScreen({ route, navigation }: Props) {
-  const { t, isRtl } = useLocale();
+  const { t } = useLocale();
+  const { showToast } = useToast();
+  const rtl = useRtlStyles();
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -58,8 +73,11 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
       fetchEmployerAccount()
         .then((a) => setSubActive(hasActiveSubscription(a.subscriptionEndsAt)))
         .catch(() => setSubActive(false)),
-    ]).finally(() => setPageLoading(false));
-  }, []);
+    ]).finally(() => {
+      setPageLoading(false);
+      void promptForPushNotifications(t);
+    });
+  }, [route.params.candidateId, t]);
 
   const unlock = async () => {
     const account = await fetchEmployerAccount();
@@ -80,7 +98,13 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         })
         .catch(() => {});
       await fetchCandidate();
-      Alert.alert(t.contactUnlocked);
+      showToast({
+        message: t.toastUnlockSuccess,
+        variant: 'success',
+        actionLabel: t.myUnlocks,
+        onAction: () =>
+          navigation.navigate('EmployerShell', { screen: 'UnlocksTab' }),
+      });
     } catch (e) {
       const msg = getErrorMessage(e, t.errorGeneric);
       if (msg.toLowerCase().includes('subscription')) {
@@ -95,8 +119,8 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
   if (pageLoading) {
     return (
-      <View style={[styles.scroll, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={styles.scroll}>
+        <ScreenLoading message={t.loading} />
       </View>
     );
   }
@@ -118,9 +142,13 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
             </Text>
           </View>
         )}
-        <Text style={styles.name}>{String(candidate.name ?? '')}</Text>
-        <Text style={styles.role}>{String(candidate.role ?? '')}</Text>
-        <View style={[styles.chipRow, isRtl && styles.chipRowRtl]}>
+        <Text style={styles.name} numberOfLines={2}>
+          {String(candidate.name ?? '')}
+        </Text>
+        <Text style={styles.role} numberOfLines={2}>
+          {String(candidate.role ?? '')}
+        </Text>
+        <View style={[styles.chipRow, rtl.row]}>
           {visa ? <VisaChip label={visa} /> : null}
         </View>
 
@@ -134,17 +162,29 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
           ]
             .filter(Boolean)
             .map((row) => (
-              <View key={row!.label} style={styles.metaRow}>
-                <Text style={styles.metaLabel}>{row!.label}</Text>
-                <Text style={styles.metaValue}>{row!.value}</Text>
+              <View key={row!.label} style={[styles.metaRow, rtl.rowBetween]}>
+                <Text style={[styles.metaLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+                  {row!.label}
+                </Text>
+                <Text
+                  style={[styles.metaValue, { textAlign: rtl.textAlignEnd }]}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {row!.value}
+                </Text>
               </View>
             ))}
         </View>
 
         {!unlocked && !subActive && (
           <View style={styles.paywall}>
-            <Text style={styles.paywallTitle}>{t.subscribeToUnlock}</Text>
-            <Text style={styles.paywallBody}>{t.subscriptionRequired}</Text>
+            <Text style={[styles.paywallTitle, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+              {t.subscribeToUnlock}
+            </Text>
+            <Text style={[styles.paywallBody, { textAlign: rtl.textAlign }]} numberOfLines={4}>
+              {t.subscriptionRequired}
+            </Text>
             <SecondaryButton
               label={t.viewSubscription}
               onPress={() => navigation.navigate('Subscription')}
@@ -185,7 +225,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.scaffold },
-  scrollContent: { paddingVertical: 20, alignItems: 'center' },
+  scrollContent: { paddingVertical: spacing.xl, alignItems: 'center', paddingHorizontal: spacing.lg },
   photo: { width: 160, height: 160, borderRadius: 16, alignSelf: 'center' },
   photoPh: {
     backgroundColor: `${colors.primary}15`,
@@ -193,17 +233,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: { fontSize: 48, fontWeight: '700', color: colors.primary },
-  name: { fontSize: 24, fontWeight: '700', marginTop: 16, textAlign: 'center' },
-  role: { fontSize: 18, marginTop: 8, textAlign: 'center' },
+  name: { ...typography.h1, marginTop: spacing.lg, textAlign: 'center' },
+  role: { ...typography.h3, marginTop: spacing.sm, textAlign: 'center', color: colors.textSecondary },
   chipRow: {
-    flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 12,
+    marginTop: spacing.md,
+    gap: spacing.sm,
   },
-  chipRowRtl: { flexDirection: 'row-reverse' },
   metaGrid: {
     width: '100%',
-    marginTop: 16,
+    marginTop: spacing.lg,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.divider,
@@ -211,36 +250,31 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
-  metaLabel: { fontSize: 14, color: colors.textSecondary },
-  metaValue: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, flexShrink: 1, textAlign: 'right' },
+  metaLabel: { ...typography.body, color: colors.textSecondary, flex: 1, flexShrink: 0 },
+  metaValue: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    flex: 1,
+    flexShrink: 1,
+  },
   paywall: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: '#FFF8E1',
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.warningTint,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#FFE082',
-    gap: 10,
+    gap: spacing.md,
     width: '100%',
   },
-  paywallTitle: { fontWeight: '700', fontSize: 16, color: colors.textPrimary },
-  paywallBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
-  actions: { width: '100%', gap: 12, marginTop: 24 },
+  paywallTitle: { ...typography.h3, color: colors.textPrimary },
+  paywallBody: { ...typography.caption, color: colors.textSecondary },
+  actions: { width: '100%', gap: spacing.md, marginTop: spacing.xxl },
 });
-
-import { ContentWidth } from '@/shared/widgets/ContentWidth';
-import { VisaChip } from '@/shared/widgets/VisaChip';
-import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
-import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
-import {
-  fetchEmployerAccount,
-  hasActiveSubscription,
-} from '@/features/employer/data/services/employerSubscription';
 

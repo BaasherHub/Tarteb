@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
+import { FormField } from '@/shared/widgets/FormField';
+import { PhoneNumberField } from '@/shared/widgets/PhoneNumberField';
+import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import {
+  formatUaePhoneInput,
+  isValidUaeMobileE164,
+  normalizeE164,
+  UAE_DIAL_CODE,
+} from '@/shared/utils/phone';
 
-type Errors = { salary?: string; phone?: string };
+type Errors = { salary?: string; phone?: string; whatsapp?: string };
 
 export function Step3Salary() {
   const { t } = useLocale();
@@ -13,10 +22,28 @@ export function Step3Salary() {
     const salary = parseInt(data.salaryExpectation?.toString() ?? '', 10);
     const nextErrors: Errors = {};
     if (!salary) nextErrors.salary = t.errSalary;
-    if (!data.phone?.trim()) nextErrors.phone = t.errPhone;
+
+    const phoneE164 = normalizeE164(data.phone ?? '');
+    if (!data.phone?.trim() || !isValidUaeMobileE164(phoneE164)) {
+      nextErrors.phone = data.phone?.trim() ? t.errPhoneInvalid : t.errPhone;
+    }
+
+    const waRaw = data.whatsapp?.trim();
+    if (waRaw) {
+      const waE164 = normalizeE164(waRaw);
+      if (!isValidUaeMobileE164(waE164)) {
+        nextErrors.whatsapp = t.errPhoneInvalid;
+      }
+    }
+
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    update({ salaryExpectation: salary });
+
+    update({
+      salaryExpectation: salary,
+      phone: phoneE164,
+      whatsapp: waRaw ? normalizeE164(waRaw) : null,
+    });
     setStep(4);
   };
 
@@ -38,28 +65,25 @@ export function Step3Salary() {
         placeholder={t.salaryPlaceholder}
         error={errors.salary}
       />
-      <FormField
-        label={t.phoneNumber}
-        keyboardType="phone-pad"
-        value={data.phone ?? ''}
+      <PhoneNumberField
+        value={data.phone ? formatUaePhoneInput(data.phone) : formatUaePhoneInput(UAE_DIAL_CODE)}
         onChangeText={(phone) => {
-          update({ phone });
+          update({ phone: formatUaePhoneInput(phone) });
           setErrors((e) => ({ ...e, phone: undefined }));
         }}
-        placeholder={t.phonePlaceholder}
         error={errors.phone}
       />
-      <FormField
+      <PhoneNumberField
         label={t.whatsappOptional}
-        keyboardType="phone-pad"
         value={data.whatsapp ?? ''}
-        onChangeText={(whatsapp) => update({ whatsapp: whatsapp || null })}
+        onChangeText={(whatsapp) => {
+          update({ whatsapp: whatsapp.trim() ? formatUaePhoneInput(whatsapp) : null });
+          setErrors((e) => ({ ...e, whatsapp: undefined }));
+        }}
+        hint={t.whatsappOptional}
         placeholder={t.whatsappPlaceholder}
+        error={errors.whatsapp}
       />
     </CandidateOnboardingStep>
   );
 }
-
-import { FormField } from '@/shared/widgets/FormField';
-import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
-

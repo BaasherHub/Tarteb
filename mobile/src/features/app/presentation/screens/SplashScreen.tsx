@@ -13,6 +13,8 @@ import {
   routeAuthenticatedUser,
 } from '@/features/auth/data/services/authNavigation';
 import { useAuth } from '@/core/providers/AuthProvider';
+import { flushPendingDeepLink } from '@/core/navigation/deepLink';
+import { navigationRef } from '@/core/navigation/navigationRef';
 import { supabase } from '@/core/lib/supabase';
 import { colors } from '@/core/theme/colors';
 import { useLocale } from '@/core/i18n/LocaleContext';
@@ -33,6 +35,7 @@ export function SplashScreen({ navigation }: Props) {
 
       if (data.session) {
         await routeAuthenticatedUser(navigation);
+        flushPendingDeepLink(navigationRef);
         return;
       }
       navigation.replace('PhoneOtp');

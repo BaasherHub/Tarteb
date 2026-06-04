@@ -14,7 +14,10 @@ import {
   AuthRoutingError,
   routeAuthenticatedUser,
 } from '@/features/auth/data/services/authNavigation';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { interaction } from '@/core/theme/interaction';
+import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { AppBrand } from '@/shared/widgets/AppBrand';
@@ -28,7 +31,8 @@ import { ContentWidth } from '@/shared/widgets/ContentWidth';
 type Props = NativeStackScreenProps<RootStackParamList, 'RoleSelection'>;
 
 export function RoleSelectionScreen({ navigation }: Props) {
-  const { t, isRtl } = useLocale();
+  const { t } = useLocale();
+  const rtl = useRtlStyles();
   const [loading, setLoading] = useState<'candidate' | 'employer' | null>(null);
   const [pendingRole, setPendingRole] = useState<'candidate' | 'employer' | null>(null);
 
@@ -66,7 +70,12 @@ export function RoleSelectionScreen({ navigation }: Props) {
         <View style={styles.centered}>
           <AppBrand />
           <Text style={styles.title}>{t.selectRole}</Text>
-          <Text style={[styles.subtitle, isRtl && styles.rtlText]}>{t.selectRoleSubtitle}</Text>
+          <Text
+            style={[styles.subtitle, { writingDirection: rtl.writingDirection }]}
+            numberOfLines={4}
+          >
+            {t.selectRoleSubtitle}
+          </Text>
           <View style={styles.gap}>
             <RoleCard
               icon="person"
@@ -74,7 +83,6 @@ export function RoleSelectionScreen({ navigation }: Props) {
               subtitle={t.roleCandidateSubtitle}
               onPress={() => setPendingRole('candidate')}
               disabled={loading !== null}
-              isRtl={isRtl}
             />
             <RoleCard
               icon="business"
@@ -82,7 +90,6 @@ export function RoleSelectionScreen({ navigation }: Props) {
               subtitle={t.roleEmployerSubtitle}
               onPress={() => setPendingRole('employer')}
               disabled={loading !== null}
-              isRtl={isRtl}
             />
           </View>
         </View>
@@ -109,15 +116,14 @@ function RoleCard({
   subtitle,
   onPress,
   disabled,
-  isRtl,
 }: {
   icon: 'person' | 'business';
   title: string;
   subtitle: string;
   onPress: () => void;
   disabled?: boolean;
-  isRtl: boolean;
 }) {
+  const rtl = useRtlStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -126,8 +132,8 @@ function RoleCard({
       accessibilityLabel={title}
       style={({ pressed }) => [
         styles.card,
-        isRtl && styles.cardRtl,
-        pressed && !disabled && { opacity: 0.92 },
+        rtl.row,
+        pressed && !disabled && styles.cardPressed,
         disabled && styles.cardDisabled,
       ]}
     >
@@ -135,11 +141,15 @@ function RoleCard({
         <AppIcon name={icon} size={26} color={colors.primary} />
       </View>
       <View style={styles.cardText}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardSub}>{subtitle}</Text>
+        <Text style={[styles.cardTitle, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+          {title}
+        </Text>
+        <Text style={[styles.cardSub, { textAlign: rtl.textAlign }]} numberOfLines={3}>
+          {subtitle}
+        </Text>
       </View>
       <AppIcon
-        name={isRtl ? 'chevron-back' : 'chevron-forward'}
+        name={rtl.isRtl ? 'chevron-back' : 'chevron-forward'}
         size={22}
         color={colors.textSecondary}
       />
@@ -153,33 +163,36 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 480,
     alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    paddingTop: 8,
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.xxl,
+    paddingTop: spacing.sm,
   },
-  title: { ...typography.h2, marginTop: 8, marginBottom: 8, textAlign: 'center' },
+  title: {
+    ...typography.h2,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
   subtitle: {
+    ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
-    paddingHorizontal: 8,
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.sm,
   },
-  rtlText: { writingDirection: 'rtl' },
-  gap: { gap: 12 },
+  gap: { gap: spacing.md },
   card: {
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 14,
-    padding: 18,
+    padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.divider,
-    gap: 14,
+    gap: spacing.lg,
     minHeight: 84,
   },
-  cardRtl: { flexDirection: 'row-reverse' },
-  cardDisabled: { opacity: 0.7 },
+  cardPressed: { opacity: interaction.cardPressed },
+  cardDisabled: { opacity: interaction.disabled },
   iconCircle: {
     width: 46,
     height: 46,
@@ -188,7 +201,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardText: { flex: 1 },
-  cardTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
-  cardSub: { marginTop: 4, color: colors.textSecondary, lineHeight: 20, fontSize: 14 },
+  cardText: { flex: 1, minWidth: 0 },
+  cardTitle: { ...typography.h3, color: colors.textPrimary },
+  cardSub: { marginTop: spacing.xs, ...typography.caption, color: colors.textSecondary },
 });

@@ -2,7 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { filterNationalities, resolveNationality } from '@/shared/constants/nationalities';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { AutocompleteField } from '@/shared/widgets/AutocompleteField';
 import { LocationPicker } from '@/shared/widgets/LocationPicker';
@@ -18,6 +20,7 @@ type Errors = { visa?: string; nationality?: string; location?: string };
 
 export function Step2Visa() {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const { data, update, setStep } = useCandidateOnboarding();
   const [errors, setErrors] = useState<Errors>({});
   const [nationalityQuery, setNationalityQuery] = useState(data.nationality ?? '');
@@ -46,7 +49,7 @@ export function Step2Visa() {
       backLabel={t.back}
       onBack={() => setStep(1)}
     >
-      <Text style={styles.title}>{t.visaStatus}</Text>
+      <Text style={[styles.title, { textAlign: rtl.textAlign }]}>{t.visaStatus}</Text>
       <FieldError message={errors.visa} />
       <View style={styles.visaGrid}>
         {VISA_STATUSES.map((status) => {
@@ -102,12 +105,12 @@ export function Step2Visa() {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.h2, marginBottom: 8 },
+  title: { ...typography.h2, marginBottom: spacing.sm },
   visaGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 8,
+    gap: spacing.md,
+    marginBottom: spacing.sm,
   },
   visaBtn: {
     flexBasis: '47%',

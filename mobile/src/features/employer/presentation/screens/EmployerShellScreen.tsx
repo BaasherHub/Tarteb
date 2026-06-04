@@ -1,4 +1,4 @@
-import { Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,7 +6,9 @@ import { useLocale } from '@/core/i18n/LocaleContext';
 import { supabase } from '@/core/lib/supabase';
 import { RootStackParamList } from '@/core/navigation/types';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
 import { BrowseScreen } from './BrowseScreen';
 import { MyUnlocksScreen } from './MyUnlocksScreen';
@@ -26,7 +28,7 @@ function EmployerSettingsTab() {
   return (
     <ContentWidth style={styles.settingsTab}>
       <ScrollView contentContainerStyle={styles.settingsScroll}>
-        <Text style={styles.settingsTitle}>{t.settings}</Text>
+        <ScreenHeader title={t.settings} />
         <SettingsPanel onLogout={logout} />
       </ScrollView>
     </ContentWidth>
@@ -46,7 +48,7 @@ export function EmployerShellScreen() {
         tabBarLabelStyle: {
           fontSize: 13,
           fontWeight: '600',
-          marginBottom: Platform.OS === 'ios' ? 0 : 8,
+          marginBottom: Platform.OS === 'ios' ? 0 : spacing.sm,
         },
         tabBarStyle: Platform.select({
           web: {
@@ -65,17 +67,26 @@ export function EmployerShellScreen() {
       <Tab.Screen
         name="BrowseTab"
         component={BrowseScreen}
-        options={{ tabBarLabel: t.browse }}
+        options={{
+          tabBarLabel: t.browse,
+          tabBarAccessibilityLabel: t.browse,
+        }}
       />
       <Tab.Screen
         name="UnlocksTab"
         component={MyUnlocksScreen}
-        options={{ tabBarLabel: t.myUnlocks }}
+        options={{
+          tabBarLabel: t.myUnlocks,
+          tabBarAccessibilityLabel: t.myUnlocks,
+        }}
       />
       <Tab.Screen
         name="SettingsTab"
         component={EmployerSettingsTab}
-        options={{ tabBarLabel: t.settings }}
+        options={{
+          tabBarLabel: t.settings,
+          tabBarAccessibilityLabel: t.settings,
+        }}
       />
     </Tab.Navigator>
   );
@@ -83,7 +94,9 @@ export function EmployerShellScreen() {
 
 const styles = StyleSheet.create({
   settingsTab: { flex: 1, backgroundColor: colors.scaffold },
-  settingsScroll: { padding: 24, paddingBottom: 48 },
-  settingsTitle: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
+  settingsScroll: {
+    padding: spacing.xxl,
+    paddingBottom: spacing.xxxl,
+    gap: spacing.md,
+  },
 });
-

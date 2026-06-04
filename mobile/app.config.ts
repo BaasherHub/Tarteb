@@ -1,5 +1,7 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+const BRAND_PRIMARY = '#1A6FFF';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Tarteb',
@@ -9,6 +11,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: 'light',
   scheme: 'tarteb',
   icon: './assets/icon.png',
+  description:
+    'Tarteb connects UAE employers with blue-collar job seekers — browse candidates, unlock contacts, and hire faster.',
+  primaryColor: BRAND_PRIMARY,
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.tarteb.app',
@@ -16,13 +21,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       CFBundleAllowMixedLocalizations: true,
       UIBackgroundModes: ['remote-notification'],
+      NSPhotoLibraryUsageDescription:
+        'Tarteb uses your photo library so you can add a profile picture.',
+      NSCameraUsageDescription:
+        'Tarteb uses the camera so you can take a profile picture.',
+    },
+    config: {
+      usesNonExemptEncryption: false,
     },
   },
   android: {
     package: 'com.tarteb.app',
     versionCode: 1,
+    softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
-      backgroundColor: '#1565D8',
+      backgroundColor: BRAND_PRIMARY,
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',
@@ -41,6 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ar: './locales/ar.json',
   },
   plugins: [
+    '@sentry/react-native',
     'expo-dev-client',
     'expo-font',
     [
@@ -48,7 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/splash.png',
         resizeMode: 'contain',
-        backgroundColor: '#1565D8',
+        backgroundColor: BRAND_PRIMARY,
       },
     ],
     [
@@ -73,7 +87,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/android-icon-monochrome.png',
-        color: '#1565D8',
+        color: BRAND_PRIMARY,
       },
     ],
   ],
@@ -81,6 +95,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
     supportsRTL: true,
+    privacyPolicyUrl:
+      process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL ?? 'https://tarteb.app/privacy',
     eas: {
       projectId:
         process.env.EAS_PROJECT_ID ?? '626b8ae5-2553-487f-bddf-76ce3015191c',

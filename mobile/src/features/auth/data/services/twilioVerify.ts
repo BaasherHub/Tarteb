@@ -1,6 +1,8 @@
 import { env } from '@/core/config/env';
 import { supabase } from '@/core/lib/supabase';
+import { isValidUaeMobileE164, normalizeE164 } from '@/shared/utils/phone';
 
+export { normalizeE164, isValidUaeMobileE164 } from '@/shared/utils/phone';
 
 let otpSessionPhoneE164: string | null = null;
 
@@ -8,18 +10,10 @@ let otpSessionPhoneE164: string | null = null;
 export function isOtpBypassEnabled(): boolean {
   return env.skipOtpVerification;
 }
-export function normalizeE164(phone: string): string {
-  const compact = phone.replace(/[\s\-().]/g, '');
-  let digits = compact.replace(/\D/g, '');
-  while (digits.startsWith('00')) {
-    digits = digits.slice(1);
-  }
-  return digits ? `+${digits}` : '';
-}
 
 export async function sendOtp(phone: string): Promise<void> {
   const e164 = normalizeE164(phone);
-  if (e164.length < 11 || !e164.startsWith('+')) {
+  if (!isValidUaeMobileE164(e164)) {
     throw new Error('Invalid phone number format');
   }
   otpSessionPhoneE164 = e164;

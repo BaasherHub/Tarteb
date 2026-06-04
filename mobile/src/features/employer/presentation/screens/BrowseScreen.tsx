@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,10 +12,19 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { colors } from '@/core/theme/colors';
+import { interaction } from '@/core/theme/interaction';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
+import { browseItemLayout, FLAT_LIST_PERF } from '@/shared/constants/listPerf';
+import { BrowseListSkeleton } from '@/shared/widgets/BrowseListSkeleton';
 import { EmptyState } from '@/shared/widgets/EmptyState';
+import { ErrorState } from '@/shared/widgets/ErrorState';
+import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { getErrorMessage, isLikelyNetworkError } from '@/shared/utils/errors';
 import {
   BrowseFilters,
   fetchCandidatesPage,
@@ -23,6 +32,10 @@ import {
   hasRefineFilters,
   PAGE_SIZE,
 } from '@/features/employer/data/services/candidateBrowse';
+import {
+  readBrowseCache,
+  writeBrowseCache,
+} from '@/features/employer/data/services/browseCache';
 import {
   fetchEmployerAccount,
   hasActiveSubscription,
@@ -32,27 +45,40 @@ import {
   getSubscriptionPendingAt,
   isSubscriptionPending,
 } from '@/features/employer/data/services/subscriptionPending';
-import { CandidateBrowseCard } from '@/features/employer/presentation/components/CandidateBrowseCard';
+import { BrowseListRow } from '@/features/employer/presentation/components/BrowseListRow';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { RefineFiltersModal } from './RefineFiltersModal';
 import { RolePickerView } from './RolePickerView';
 
-
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+const ListSeparator = () => <View style={listStyles.sep} />;
+
+const listStyles = StyleSheet.create({
+  sep: { height: 1, backgroundColor: colors.divider },
+});
 
 export function BrowseScreen() {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const navigation = useNavigation<Nav>();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [filters, setFilters] = useState<BrowseFilters | null>(null);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
-  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [showingCache, setShowingCache] = useState(false);
   const [subActive, setSubActive] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
+
+  const pageRef = useRef(0);
+  const loadingMoreRef = useRef(false);
+  const filtersRef = useRef<BrowseFilters | null>(null);
+  filtersRef.current = filters;
 
   const refined = filters ? hasRefineFilters(filters) : false;
 
@@ -72,147 +98,271 @@ export function BrowseScreen() {
 
   const loadPage = useCallback(
     async (activeFilters: BrowseFilters, refresh: boolean) => {
-      const nextPage = refresh ? 0 : page;
+      if (!refresh && loadingMoreRef.current) return;
+
+      const nextPage = refresh ? 0 : pageRef.current;
+      if (refresh) {
+        setLoadError(null);
+        setShowingCache(false);
+      } else {
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+      }
+
       try {
         const data = await fetchCandidatesPage(activeFilters, nextPage);
-        setItems((prev) => (refresh ? data : [...prev, ...data]));
-        setPage(refresh ? 1 : nextPage + 1);
+        if (refresh) {
+          setItems(data);
+          pageRef.current = 1;
+          void writeBrowseCache(activeFilters, data);
+        } else {
+          setItems((prev) => [...prev, ...data]);
+          pageRef.current = nextPage + 1;
+        }
         setHasMore(data.length >= PAGE_SIZE);
-      } catch {
-        if (refresh) setItems([]);
+        setLoadError(null);
+        setShowingCache(false);
+      } catch (e) {
+        const message = getErrorMessage(e, t.errorLoadList);
+        if (refresh) {
+          const cached = await readBrowseCache(activeFilters);
+          if (cached?.length) {
+            setItems(cached);
+            pageRef.current = 1;
+            setHasMore(false);
+            setShowingCache(true);
+            setLoadError(null);
+          } else {
+            setItems([]);
+            setLoadError(
+              isLikelyNetworkError(e) ? t.errorLoadList : message,
+            );
+          }
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (refresh) {
+          setLoading(false);
+          setRefreshing(false);
+        } else {
+          loadingMoreRef.current = false;
+          setLoadingMore(false);
+        }
       }
     },
-    [page],
+    [t.errorLoadList],
   );
 
   useEffect(() => {
     loadSubscription();
   }, [loadSubscription]);
 
-  const selectRole = (role: string) => {
+  const selectRole = useCallback((role: string) => {
     const next = filtersForRole(role);
     setSelectedRole(role);
     setFilters(next);
     setLoading(true);
-    setPage(0);
+    setLoadError(null);
+    pageRef.current = 0;
+    setHasMore(true);
     void loadPage(next, true);
-  };
+  }, [loadPage]);
 
-  const backToRoles = () => {
+  const backToRoles = useCallback(() => {
     setSelectedRole(null);
     setFilters(null);
     setItems([]);
-    setPage(0);
+    pageRef.current = 0;
     setHasMore(true);
     setLoading(false);
-  };
+    setLoadError(null);
+    setShowingCache(false);
+  }, []);
 
-  const onRefresh = () => {
-    if (!filters) return;
+  const onRefresh = useCallback(() => {
+    const f = filtersRef.current;
+    if (!f) return;
     setRefreshing(true);
     loadSubscription();
-    void loadPage(filters, true);
-  };
+    void loadPage(f, true);
+  }, [loadPage, loadSubscription]);
 
-  const applyRefine = (next: BrowseFilters) => {
+  const applyRefine = useCallback((next: BrowseFilters) => {
     setFilters(next);
     setLoading(true);
-    setPage(0);
+    setLoadError(null);
+    pageRef.current = 0;
     void loadPage(next, true);
-  };
+  }, [loadPage]);
 
-  const resetRefine = () => {
+  const resetRefine = useCallback(() => {
     if (!selectedRole) return;
     const next = filtersForRole(selectedRole);
     setFilters(next);
     setLoading(true);
+    setLoadError(null);
+    pageRef.current = 0;
     void loadPage(next, true);
-  };
+  }, [loadPage, selectedRole]);
+
+  const retryLoad = useCallback(() => {
+    const f = filtersRef.current;
+    if (!f) return;
+    setLoading(true);
+    setLoadError(null);
+    pageRef.current = 0;
+    void loadPage(f, true);
+  }, [loadPage]);
+
+  const openCandidate = useCallback(
+    (candidateId: string) => {
+      navigation.navigate('CandidateDetail', { candidateId });
+    },
+    [navigation],
+  );
+
+  const navigateSubscription = useCallback(
+    () => navigation.navigate('Subscription'),
+    [navigation],
+  );
+
+  const keyExtractor = useCallback(
+    (item: Record<string, unknown>) => String(item.id),
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Record<string, unknown> }) => (
+      <BrowseListRow item={item} onOpen={openCandidate} />
+    ),
+    [openCandidate],
+  );
+
+  const onEndReached = useCallback(() => {
+    const f = filtersRef.current;
+    if (!f || !hasMore || loadingMoreRef.current || loading) return;
+    void loadPage(f, false);
+  }, [hasMore, loadPage, loading]);
+
+  const listFooter = useMemo(() => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator color={colors.primary} accessibilityLabel={t.loadingMore} />
+      </View>
+    );
+  }, [loadingMore, t.loadingMore]);
+
+  const listEmpty = useMemo(() => {
+    if (loadError) {
+      return (
+        <ErrorState
+          title={t.errorTitle}
+          message={loadError}
+          actionLabel={t.retry}
+          onAction={retryLoad}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        title={t.noCandidates}
+        message={t.noCandidatesHint}
+        icon="👥"
+        actionLabel={refined ? t.resetFilters : t.browseRefine}
+        onAction={refined ? resetRefine : () => setRefineOpen(true)}
+      />
+    );
+  }, [loadError, refined, resetRefine, retryLoad, t]);
+
+  const planPill = useMemo(
+    () => (
+      <Pressable
+        style={({ pressed }) => [
+          styles.pill,
+          subActive && styles.pillActive,
+          subPending && styles.pillPending,
+          pressed && styles.pillPressed,
+        ]}
+        onPress={navigateSubscription}
+        accessibilityRole="button"
+        accessibilityLabel={
+          subActive ? t.planActive : subPending ? t.subscriptionPending : t.managePlan
+        }
+        accessibilityHint={t.a11yManagePlanHint}
+        accessibilityState={{ selected: subActive, busy: subPending }}
+      >
+        <Text
+          style={[
+            styles.pillText,
+            subActive && styles.pillTextActive,
+            subPending && styles.pillTextPending,
+          ]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {subActive ? t.planActive : subPending ? t.subscriptionPending : t.managePlan}
+        </Text>
+      </Pressable>
+    ),
+    [navigateSubscription, subActive, subPending, t],
+  );
 
   if (!selectedRole) {
     return (
       <ContentWidth style={styles.container}>
         <View style={styles.headerPad}>
-          <ScreenHeader
-            title={t.browse}
-            right={
-              <Pressable
-                style={[styles.pill, subActive && styles.pillActive, subPending && styles.pillPending]}
-                onPress={() => navigation.navigate('Subscription')}
-              >
-                <Text
-                  style={[
-                    styles.pillText,
-                    subActive && styles.pillTextActive,
-                    subPending && styles.pillTextPending,
-                  ]}
-                >
-                  {subActive
-                    ? t.planActive
-                    : subPending
-                      ? t.subscriptionPending
-                      : t.managePlan}
-                </Text>
-              </Pressable>
-            }
-          />
+          <ScreenHeader title={t.browse} right={planPill} />
         </View>
         <RolePickerView onSelectRole={selectRole} />
       </ContentWidth>
     );
   }
 
+  const showSkeleton = loading && items.length === 0 && !loadError;
+
   return (
     <ContentWidth style={styles.container}>
       <View style={styles.headerPad}>
         <Pressable
           onPress={backToRoles}
-          style={styles.backBtn}
+          style={({ pressed }) => [styles.backBtn, rtl.row, pressed && styles.pillPressed]}
           accessibilityRole="button"
           accessibilityLabel={t.browseBackToRoles}
+          accessibilityHint={t.a11yBackHint}
         >
-          <AppIcon name="chevron-back" size={22} color={colors.primary} />
-          <Text style={styles.backText}>{t.browseBackToRoles}</Text>
+          <AppIcon
+            name={rtl.isRtl ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={colors.primary}
+          />
+          <Text style={styles.backText} numberOfLines={1}>
+            {t.browseBackToRoles}
+          </Text>
         </Pressable>
         <ScreenHeader
           title={t.candidatesForRole(selectedRole)}
           right={
-            <View style={styles.headerActions}>
+            <View style={[styles.headerActions, rtl.row]}>
               <Pressable
-                style={[styles.pill, refined && styles.pillFiltered]}
+                style={({ pressed }) => [
+                  styles.pill,
+                  refined && styles.pillFiltered,
+                  pressed && styles.pillPressed,
+                ]}
                 onPress={() => setRefineOpen(true)}
                 accessibilityRole="button"
-                accessibilityLabel={t.browseRefine}
+                accessibilityLabel={refined ? t.filtered : t.browseRefine}
+                accessibilityHint={t.a11yRefineHint}
+                accessibilityState={{ selected: refined }}
               >
-                <Text style={[styles.pillText, refined && styles.pillTextFiltered]}>
+                <Text
+                  style={[styles.pillText, refined && styles.pillTextFiltered]}
+                  numberOfLines={1}
+                >
                   {refined ? t.filtered : t.browseRefine}
                 </Text>
               </Pressable>
-              <Pressable
-                style={[
-                  styles.pill,
-                  subActive && styles.pillActive,
-                  subPending && styles.pillPending,
-                ]}
-                onPress={() => navigation.navigate('Subscription')}
-              >
-                <Text
-                  style={[
-                    styles.pillText,
-                    subActive && styles.pillTextActive,
-                    subPending && styles.pillTextPending,
-                  ]}
-                >
-                  {subActive
-                    ? t.planActive
-                    : subPending
-                      ? t.subscriptionPending
-                      : t.managePlan}
-                </Text>
-              </Pressable>
+              {planPill}
             </View>
           }
         />
@@ -228,36 +378,30 @@ export function BrowseScreen() {
         />
       ) : null}
 
-      {loading ? (
-        <ActivityIndicator style={styles.center} color={colors.primary} />
+      {showingCache ? (
+        <View style={styles.cacheBanner}>
+          <InfoBanner message={t.offlineCachedHint} variant="warning" />
+        </View>
+      ) : null}
+
+      {showSkeleton ? (
+        <BrowseListSkeleton />
       ) : (
         <FlatList
           style={styles.list}
           data={items}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <CandidateBrowseCard
-              item={item}
-              onPress={() =>
-                navigation.navigate('CandidateDetail', { candidateId: String(item.id) })
-              }
-            />
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          getItemLayout={browseItemLayout}
+          {...FLAT_LIST_PERF}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          onEndReached={() => {
-            if (hasMore && filters) void loadPage(filters, false);
-          }}
-          ListEmptyComponent={
-            <EmptyState
-              title={t.noCandidates}
-              message={t.noCandidatesHint}
-              actionLabel={refined ? t.resetFilters : t.browseRefine}
-              onAction={refined ? resetRefine : () => setRefineOpen(true)}
-            />
-          }
-          ItemSeparatorComponent={() => <View style={styles.sep} />}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.35}
+          ListFooterComponent={listFooter}
+          ListEmptyComponent={listEmpty}
+          ItemSeparatorComponent={ListSeparator}
         />
       )}
     </ContentWidth>
@@ -266,35 +410,43 @@ export function BrowseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.scaffold },
-  headerPad: { paddingHorizontal: 16 },
+  headerPad: { paddingHorizontal: spacing.lg },
   list: { flex: 1 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  backText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
+  cacheBanner: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  footerLoader: { paddingVertical: spacing.lg, alignItems: 'center' },
+  backBtn: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+    minHeight: 44,
+    alignSelf: 'flex-start',
+  },
+  backText: { ...typography.label, color: colors.primary },
   headerActions: {
-    flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
     flexShrink: 1,
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
+    maxWidth: '100%',
   },
   pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: 20,
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: colors.primaryTint,
     borderWidth: 1,
     borderColor: `${colors.primary}40`,
+    maxWidth: 140,
   },
   pillActive: {
     backgroundColor: `${colors.secondary}20`,
     borderColor: `${colors.secondary}50`,
   },
-  pillPending: { backgroundColor: '#FFF3E0' },
-  pillTextPending: { color: '#E65100' },
+  pillPending: { backgroundColor: colors.warningTint },
+  pillTextPending: { color: '#B45309' },
   pillFiltered: { backgroundColor: `${colors.primary}30` },
-  pillText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
+  pillText: { ...typography.label, color: colors.primary },
   pillTextActive: { color: colors.secondary },
   pillTextFiltered: { color: colors.primary },
-  sep: { height: 1, backgroundColor: colors.divider },
-  center: { marginTop: 40 },
+  pillPressed: { opacity: interaction.pressed },
 });

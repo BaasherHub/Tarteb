@@ -12,15 +12,19 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '@/core/lib/supabase';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { VisaChip } from '@/shared/widgets/VisaChip';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { DashboardSkeleton } from '@/shared/widgets/DashboardSkeleton';
 import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
-import { registerPushToken } from '@/core/services/notifications';
+import { registerPushTokenIfGranted } from '@/core/services/notifications';
 import { getErrorMessage } from '@/shared/utils/errors';
 
 
@@ -28,6 +32,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function CandidateDashboardScreen() {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const navigation = useNavigation<Nav>();
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
   const [unlocks, setUnlocks] = useState(0);
@@ -69,7 +74,7 @@ export function CandidateDashboardScreen() {
         .eq('user_id', userId);
 
       // Register push token silently — no-op if permission denied.
-      registerPushToken().catch(() => {});
+      registerPushTokenIfGranted().catch(() => {});
     } catch (e) {
       Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     } finally {
@@ -119,9 +124,12 @@ export function CandidateDashboardScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <Text>{t.loading}</Text>
-      </View>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent}>
+        <ContentWidth grow={false}>
+          <ScreenHeader title={t.home} />
+          <DashboardSkeleton />
+        </ContentWidth>
+      </ScrollView>
     );
   }
 
@@ -179,14 +187,20 @@ export function CandidateDashboardScreen() {
               </Text>
             </View>
           )}
-          <Text style={styles.name}>{String(candidate.name ?? '')}</Text>
-          <Text style={styles.role}>{String(candidate.role ?? '')}</Text>
+          <Text style={styles.name} numberOfLines={2}>
+            {String(candidate.name ?? '')}
+          </Text>
+          <Text style={styles.role} numberOfLines={2}>
+            {String(candidate.role ?? '')}
+          </Text>
           {visa ? (
             <View style={styles.chipWrap}>
               <VisaChip label={visa} />
             </View>
           ) : null}
-          <Text style={styles.meta}>{String(candidate.location ?? '')}</Text>
+          <Text style={[styles.meta, { textAlign: rtl.textAlignCenter }]} numberOfLines={2}>
+            {String(candidate.location ?? '')}
+          </Text>
           {salary != null ? (
             <Text style={styles.salary}>
               {t.salaryPerMonth(String(salary))}
@@ -205,8 +219,10 @@ export function CandidateDashboardScreen() {
           )}
         </View>
 
-        <View style={[styles.card, styles.row]}>
-          <Text style={styles.activeLabel}>{t.profileActive}</Text>
+        <View style={[styles.card, styles.row, rtl.rowBetween]}>
+          <Text style={[styles.activeLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+            {t.profileActive}
+          </Text>
           <Switch
             value={isActive}
             onValueChange={toggleActive}
@@ -216,13 +232,15 @@ export function CandidateDashboardScreen() {
         </View>
 
         {isActive && !isHired && (
-          <View style={styles.hiredWrap}>
+          <View style={[styles.hiredWrap, rtl.row]}>
             <Switch
               value={false}
               onValueChange={markHired}
               accessibilityLabel="Mark as hired"
             />
-            <Text style={styles.hiredLabel}>I got hired — hide my profile</Text>
+            <Text style={[styles.hiredLabel, { textAlign: rtl.textAlign }]} numberOfLines={3}>
+              I got hired — hide my profile
+            </Text>
           </View>
         )}
 
@@ -243,24 +261,22 @@ export function CandidateDashboardScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.scaffold },
-  scrollContent: { paddingBottom: 32, paddingHorizontal: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  chipWrap: { marginTop: 8 },
+  scrollContent: { paddingBottom: spacing.xxxl, paddingHorizontal: spacing.lg },
+  chipWrap: { marginTop: spacing.sm },
   banner: {
-    padding: 12,
-    backgroundColor: '#FFF3E0',
+    padding: spacing.md,
+    backgroundColor: colors.warningTint,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
-  bannerText: { color: '#E65100' },
-  bannerHired: { backgroundColor: '#E8F5E9', borderRadius: 12 },
-  bannerTextHired: { color: colors.secondary, fontWeight: '600' },
+  bannerText: { color: '#B45309', lineHeight: 20 },
+  bannerHired: { backgroundColor: colors.secondaryTint },
+  bannerTextHired: { color: colors.secondary, fontWeight: '600', lineHeight: 20 },
   hiredWrap: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
     backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: 1,
@@ -269,8 +285,8 @@ const styles = StyleSheet.create({
   },
   hiredLabel: { flex: 1, fontSize: 14, color: colors.textSecondary },
   card: {
-    marginBottom: 16,
-    padding: 20,
+    marginBottom: spacing.lg,
+    padding: spacing.xl,
     backgroundColor: colors.surface,
     borderRadius: 16,
     alignItems: 'center',
@@ -284,20 +300,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: { fontSize: 36, fontWeight: '700', color: colors.primary },
-  name: { fontSize: 22, fontWeight: '700', marginTop: 12 },
-  role: { fontSize: 16, marginTop: 4 },
-  meta: { color: colors.textSecondary, marginTop: 4 },
-  salary: { marginTop: 6, fontWeight: '600', color: colors.primary },
-  statLabel: { fontWeight: '700', fontSize: 16, color: colors.textPrimary },
+  name: { ...typography.h2, marginTop: spacing.md, textAlign: 'center' },
+  role: { ...typography.body, marginTop: spacing.xs, textAlign: 'center', color: colors.textSecondary },
+  meta: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
+  salary: { marginTop: spacing.sm, fontWeight: '600', color: colors.primary, textAlign: 'center' },
+  statLabel: { ...typography.h3, color: colors.textPrimary, textAlign: 'center' },
   statHint: {
-    marginTop: 4,
-    fontSize: 13,
+    marginTop: spacing.xs,
+    ...typography.caption,
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  statValue: { fontSize: 32, fontWeight: '700', marginTop: 12 },
-  hint: { marginTop: 8, textAlign: 'center', color: colors.secondary, lineHeight: 22 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-  activeLabel: { fontWeight: '600', fontSize: 16 },
-  editWrap: { marginBottom: 16 },
+  statValue: { fontSize: 32, fontWeight: '700', marginTop: spacing.md, textAlign: 'center' },
+  hint: {
+    ...typography.body,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+    color: colors.secondary,
+  },
+  row: { alignItems: 'center', width: '100%' },
+  activeLabel: { ...typography.h3, flex: 1, flexShrink: 1 },
+  editWrap: { marginBottom: spacing.lg },
 });

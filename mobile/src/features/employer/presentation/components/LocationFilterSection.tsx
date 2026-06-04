@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import {
   UAE_EMIRATES,
   UaeEmirate,
@@ -52,7 +54,9 @@ export function LocationFilterSection({ locations, onChange }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.hint, { textAlign: rtl.textAlign }]}>{t.locationFilterHint}</Text>
+      <Text style={[styles.hint, { textAlign: rtl.textAlign }]} numberOfLines={3}>
+        {t.locationFilterHint}
+      </Text>
       {locations.length > 0 ? (
         <View style={[styles.chips, rtl.row]}>
           {locations.map((loc) => (
@@ -65,7 +69,9 @@ export function LocationFilterSection({ locations, onChange }: Props) {
           ))}
         </View>
       ) : null}
-      <Text style={[styles.subLabel, { textAlign: rtl.textAlign }]}>{t.locationEmirate}</Text>
+      <Text style={[styles.subLabel, { textAlign: rtl.textAlign }]} numberOfLines={1}>
+        {t.locationEmirate}
+      </Text>
       <View style={[styles.chips, rtl.row]}>
         {UAE_EMIRATES.map((e) => (
           <SelectableChip
@@ -104,8 +110,8 @@ export function LocationFilterSection({ locations, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 8 },
-  hint: { fontSize: 12, color: colors.textSecondary, marginBottom: 8 },
-  subLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  wrap: { marginBottom: spacing.sm, gap: spacing.sm },
+  hint: { ...typography.caption, color: colors.textSecondary },
+  subLabel: { ...typography.label, color: colors.textSecondary },
+  chips: { flexWrap: 'wrap', gap: spacing.sm },
 });

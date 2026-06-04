@@ -1,85 +1,131 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '@/core/lib/supabase';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { RootStackParamList } from '@/core/navigation/types';
+import { FLAT_LIST_PERF, unlockItemLayout } from '@/shared/constants/listPerf';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { EmptyState } from '@/shared/widgets/EmptyState';
+import { ErrorState } from '@/shared/widgets/ErrorState';
+import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { BrowseListSkeleton } from '@/shared/widgets/BrowseListSkeleton';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { colors } from '@/core/theme/colors';
-
+import { spacing } from '@/core/theme/spacing';
+import {
+  UnlockListRow,
+  type UnlockRow,
+} from '@/features/employer/presentation/components/UnlockListRow';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+const ListSeparator = () => <View style={styles.sep} />;
 
 export function MyUnlocksScreen() {
   const { t } = useLocale();
   const navigation = useNavigation<Nav>();
-  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [rows, setRows] = useState<UnlockRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
+  const load = useCallback(async (isRefresh: boolean) => {
+    if (!isRefresh) setLoading(true);
+    setError(null);
+    try {
+      const { data, error: qError } = await supabase
         .from('unlocks')
         .select('id, candidate_id, unlocked_at, candidates(name, role, visa_status, location)')
         .order('unlocked_at', { ascending: false });
-      setRows((data ?? []) as Record<string, unknown>[]);
-    })();
-  }, []);
+      if (qError) throw qError;
+      setRows((data ?? []) as UnlockRow[]);
+    } catch (e) {
+      setError(getErrorMessage(e, t.errorLoadList));
+      if (!isRefresh) setRows([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [t.errorLoadList]);
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    void load(true);
+  }, [load]);
+
+  const openCandidate = useCallback(
+    (candidateId: string) => {
+      navigation.navigate('CandidateDetail', { candidateId });
+    },
+    [navigation],
+  );
+
+  const keyExtractor = useCallback((item: UnlockRow) => item.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: UnlockRow }) => (
+      <UnlockListRow item={item} onOpen={openCandidate} />
+    ),
+    [openCandidate],
+  );
+
+  const listEmpty = useMemo(() => {
+    if (error) {
+      return (
+        <ErrorState
+          title={t.errorTitle}
+          message={error}
+          actionLabel={t.retry}
+          onAction={() => void load(false)}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        title={t.noUnlocksYet}
+        message={t.noUnlocksHint}
+        actionLabel={t.browse}
+        icon="🔓"
+        onAction={() => navigation.getParent()?.navigate('BrowseTab' as never)}
+      />
+    );
+  }, [error, load, navigation, t]);
 
   return (
     <ContentWidth style={styles.container}>
-      <Text style={styles.title}>{t.myUnlocks}</Text>
-      <FlatList
-        style={styles.list}
-        data={rows}
-        keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={
-          <EmptyState
-            title={t.noUnlocksYet}
-            message={t.noUnlocksHint}
-            actionLabel={t.browse}
-            onAction={() =>
-              navigation.getParent()?.navigate('BrowseTab' as never)
-            }
-          />
-        }
-        renderItem={({ item }) => {
-          const c = item.candidates as Record<string, unknown> | null;
-          return (
-            <Pressable
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-              onPress={() =>
-                navigation.navigate('CandidateDetail', {
-                  candidateId: String(item.candidate_id),
-                })
-              }
-            >
-              <Text style={styles.name}>{String(c?.name ?? '—')}</Text>
-              <Text style={styles.role}>{String(c?.role ?? '')}</Text>
-              {c?.visa_status ? (
-                <Text style={styles.visa}>{String(c.visa_status)}</Text>
-              ) : null}
-            </Pressable>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-      />
+      <View style={styles.headerPad}>
+        <ScreenHeader title={t.myUnlocks} />
+      </View>
+      {loading && rows.length === 0 ? (
+        <BrowseListSkeleton rows={4} />
+      ) : (
+        <FlatList
+          style={styles.list}
+          data={rows}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          getItemLayout={unlockItemLayout}
+          {...FLAT_LIST_PERF}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={listEmpty}
+          ItemSeparatorComponent={ListSeparator}
+        />
+      )}
     </ContentWidth>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.scaffold, paddingTop: 16 },
+  container: { flex: 1, backgroundColor: colors.scaffold },
+  headerPad: { paddingHorizontal: spacing.lg },
   list: { flex: 1 },
-  title: { fontSize: 28, fontWeight: '700', paddingHorizontal: 16, marginBottom: 8 },
-  row: {
-    padding: 16,
-    backgroundColor: colors.surface,
-  },
-  rowPressed: { opacity: 0.75 },
-  name: { fontSize: 16, fontWeight: '600' },
-  role: { color: colors.textSecondary, marginTop: 4 },
-  visa: { fontSize: 12, color: colors.primary, marginTop: 6, fontWeight: '600' },
   sep: { height: 1, backgroundColor: colors.divider },
 });

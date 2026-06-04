@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 
@@ -11,6 +14,7 @@ type Props = {
   onAction?: () => void;
   secondaryLabel?: string;
   onSecondary?: () => void;
+  icon?: string;
 };
 
 export const EmptyState = memo(function EmptyState({
@@ -20,12 +24,28 @@ export const EmptyState = memo(function EmptyState({
   onAction,
   secondaryLabel,
   onSecondary,
+  icon = '📋',
 }: Props) {
+  const rtl = useRtlStyles();
   return (
     <View style={styles.wrap}>
-      <Text style={styles.icon}>📋</Text>
-      <Text style={styles.title}>{title}</Text>
-      {message ? <Text style={styles.message}>{message}</Text> : null}
+      <View style={styles.iconCircle}>
+        <Text style={styles.icon}>{icon}</Text>
+      </View>
+      <Text
+        style={[styles.title, { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection }]}
+        numberOfLines={3}
+      >
+        {title}
+      </Text>
+      {message ? (
+        <Text
+          style={[styles.message, { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection }]}
+          numberOfLines={6}
+        >
+          {message}
+        </Text>
+      ) : null}
       {actionLabel && onAction ? (
         <View style={styles.actions}>
           <PrimaryButton label={actionLabel} onPress={onAction} />
@@ -41,24 +61,27 @@ export const EmptyState = memo(function EmptyState({
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 48,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xxxl,
+    gap: spacing.md,
   },
-  icon: { fontSize: 40, marginBottom: 12 },
+  iconCircle: {
+    width: spacing.xxxl * 2,
+    height: spacing.xxxl * 2,
+    borderRadius: spacing.xxxl,
+    backgroundColor: colors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  icon: { fontSize: typography.h1.fontSize },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...typography.h3,
     color: colors.textPrimary,
-    textAlign: 'center',
   },
   message: {
-    marginTop: 8,
-    fontSize: 15,
-    lineHeight: 22,
+    ...typography.body,
     color: colors.textSecondary,
-    textAlign: 'center',
   },
-  actions: { width: '100%', maxWidth: 320, gap: 10, marginTop: 20 },
+  actions: { width: '100%', maxWidth: 320, gap: spacing.md, marginTop: spacing.sm },
 });
-
-

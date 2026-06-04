@@ -22,6 +22,7 @@ import { clearCandidateOnboardingDraft } from '@/features/candidate/providers/Ca
 import { resolveNationality } from '@/shared/constants/nationalities';
 import { formatIsoDateLocal, parseIsoDateLocal } from '@/shared/utils/dateFormat';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { promptForPushNotifications } from '@/core/services/notifications';
 
 
 
@@ -138,6 +139,8 @@ export function Step4Availability({ navigation }: Props) {
 
 
       await clearCandidateOnboardingDraft();
+
+      await promptForPushNotifications(t);
 
       navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
 

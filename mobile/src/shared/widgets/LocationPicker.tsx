@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import {
   UAE_EMIRATES,
   UaeEmirate,
@@ -76,7 +78,9 @@ export function LocationPicker({ value, onChange, error }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { textAlign: rtl.textAlign }]}>{t.locationEmirate}</Text>
+      <Text style={[styles.label, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+        {t.locationEmirate}
+      </Text>
       <FieldError message={error && !value ? error : undefined} />
       <View style={[styles.chips, rtl.row]}>
         {UAE_EMIRATES.map((e) => (
@@ -100,7 +104,11 @@ export function LocationPicker({ value, onChange, error }: Props) {
         onBlur={handleAreaBlur}
       />
       {value ? (
-        <Text style={[styles.selected, { textAlign: rtl.textAlign }]}>
+        <Text
+          style={[styles.selected, { textAlign: rtl.textAlign }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {t.locationSelected}: {value}
         </Text>
       ) : null}
@@ -109,8 +117,8 @@ export function LocationPicker({ value, onChange, error }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 8, marginBottom: 4 },
-  label: { marginBottom: 8, color: colors.textSecondary, fontWeight: '600', fontSize: 13 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  selected: { marginTop: 4, fontSize: 13, color: colors.primary, fontWeight: '600' },
+  wrap: { marginTop: spacing.sm, marginBottom: spacing.xs, gap: spacing.sm },
+  label: { ...typography.label, color: colors.textSecondary },
+  chips: { flexWrap: 'wrap', gap: spacing.sm },
+  selected: { ...typography.caption, color: colors.primary, fontWeight: '600' },
 });

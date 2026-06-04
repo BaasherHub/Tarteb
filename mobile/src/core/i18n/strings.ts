@@ -139,6 +139,13 @@ export interface Strings {
   locationFilterHint: string;
   salaryPlaceholder: string;
   phonePlaceholder: string;
+  phonePlaceholderSpaced: string;
+  phoneHelper: string;
+  phoneExampleLabel: (example: string) => string;
+  errPhoneInvalid: string;
+  otpSending: string;
+  otpVerified: string;
+  otpVerifying: string;
   whatsappPlaceholder: string;
   fullNamePlaceholder: string;
   companyPlaceholder: string;
@@ -198,6 +205,36 @@ export interface Strings {
   tradeLicense: string;
   tradeLicensePlaceholder: string;
   tradeLicenseHint: string;
+  a11ySelected: string;
+  a11yNotSelected: string;
+  a11yChipToggle: string;
+  a11yOpensCandidateProfile: string;
+  a11yFilterModal: string;
+  a11yApplyFilters: string;
+  a11yResetFilters: string;
+  a11yLoadingList: string;
+  a11yManagePlanHint: string;
+  a11yRefineHint: string;
+  a11yBackHint: string;
+  a11yFieldInvalid: string;
+  a11ySelectPlan: string;
+  a11ySignInEmail: string;
+  errorLoadList: string;
+  offlineCachedHint: string;
+  retry: string;
+  loadingMore: string;
+  errorBoundaryTitle: string;
+  errorBoundaryMessage: string;
+  notificationPermissionTitle: string;
+  notificationPermissionMessage: string;
+  notificationAllow: string;
+  notificationNotNow: string;
+  toastSubscriptionActive: string;
+  toastUnlockSuccess: string;
+  toastNewUnlock: string;
+  toastProfileViewed: string;
+  a11yDismissToast: string;
+  privacyPolicy: string;
 }
 
 const en: Strings = {
@@ -342,8 +379,14 @@ const en: Strings = {
   locationSelected: 'Selected',
   locationFilterHint: 'Filter by emirate or a specific district',
   salaryPlaceholder: 'Amount in AED',
-  phonePlaceholder: '05x xxx xxxx',
-  whatsappPlaceholder: 'Same as phone or different',
+  phonePlaceholder: '+971501551480',
+  phonePlaceholderSpaced: '+971 50 155 1480',
+  phoneHelper:
+    'Use international format starting with +971. Do not start with 050 — enter the full number.',
+  phoneExampleLabel: (example) => `Example: ${example}`,
+  errPhoneInvalid:
+    'Use international format: +971 followed by 9 digits (e.g. +971501551480).',
+  whatsappPlaceholder: '+971501551480',
   fullNamePlaceholder: 'As on your ID',
   companyPlaceholder: 'Your registered business name',
   contactPlaceholder: 'Person we can reach',
@@ -407,6 +450,40 @@ const en: Strings = {
   tradeLicense: 'Trade license number',
   tradeLicensePlaceholder: 'e.g. CN-1234567',
   tradeLicenseHint: 'Optional but helps candidates trust your business.',
+  a11ySelected: 'Selected',
+  a11yNotSelected: 'Not selected',
+  a11yChipToggle: 'Double tap to toggle',
+  a11yOpensCandidateProfile: 'Opens candidate profile',
+  a11yFilterModal: 'Filter candidates',
+  a11yApplyFilters: 'Apply filters',
+  a11yResetFilters: 'Clear all filters',
+  a11yLoadingList: 'Loading list',
+  a11yManagePlanHint: 'Opens subscription plans',
+  a11yRefineHint: 'Opens filter options',
+  a11yBackHint: 'Returns to job roles',
+  a11yFieldInvalid: 'Has an error',
+  a11ySelectPlan: 'Double tap to select this plan',
+  a11ySignInEmail: 'Opens email sign in',
+  errorLoadList: 'Could not load candidates. Check your connection and try again.',
+  offlineCachedHint: 'Showing saved results. Pull down to refresh when you are back online.',
+  retry: 'Try again',
+  loadingMore: 'Loading more…',
+  errorBoundaryTitle: 'Something went wrong',
+  errorBoundaryMessage: 'The app hit an unexpected error. You can try again.',
+  notificationPermissionTitle: 'Stay in the loop',
+  notificationPermissionMessage:
+    'Get alerts when employers view your profile, unlock your contact, or when your subscription is activated.',
+  notificationAllow: 'Enable notifications',
+  notificationNotNow: 'Not now',
+  toastSubscriptionActive: 'Your plan is active. You can unlock candidates now.',
+  toastUnlockSuccess: 'Contact unlocked. You can call or message this candidate.',
+  toastNewUnlock: 'An employer unlocked your contact details.',
+  toastProfileViewed: 'An employer viewed your profile.',
+  a11yDismissToast: 'Dismiss notification',
+  privacyPolicy: 'Privacy policy',
+  otpSending: 'Sending verification code…',
+  otpVerified: 'Phone verified',
+  otpVerifying: 'Verifying code…',
 };
 
 const ar: Strings = {
@@ -551,8 +628,14 @@ const ar: Strings = {
   locationSelected: 'المحدد',
   locationFilterHint: 'فلترة حسب الإمارة أو حي محدد',
   salaryPlaceholder: 'المبلغ بالدرهم',
-  phonePlaceholder: '05x xxx xxxx',
-  whatsappPlaceholder: 'نفس الهاتف أو رقم مختلف',
+  phonePlaceholder: '+971501551480',
+  phonePlaceholderSpaced: '+971 50 155 1480',
+  phoneHelper:
+    'استخدم الصيغة الدولية التي تبدأ بـ +971. لا تبدأ بـ 050 — أدخل الرقم كاملاً.',
+  phoneExampleLabel: (example) => `مثال: ${example}`,
+  errPhoneInvalid:
+    'استخدم الصيغة الدولية: +971 ثم 9 أرقام (مثال: +971501551480).',
+  whatsappPlaceholder: '+971501551480',
   fullNamePlaceholder: 'كما في الهوية',
   companyPlaceholder: 'اسم الشركة المسجل',
   contactPlaceholder: 'الشخص الذي يمكن التواصل معه',
@@ -616,6 +699,40 @@ const ar: Strings = {
   tradeLicense: 'رقم الرخصة التجارية',
   tradeLicensePlaceholder: 'مثال: CN-1234567',
   tradeLicenseHint: 'اختياري — يساعد المرشحين على الوثوق بنشاطك التجاري.',
+  a11ySelected: 'محدد',
+  a11yNotSelected: 'غير محدد',
+  a11yChipToggle: 'اضغط مرتين للتبديل',
+  a11yOpensCandidateProfile: 'يفتح ملف المرشح',
+  a11yFilterModal: 'تصفية المرشحين',
+  a11yApplyFilters: 'تطبيق الفلاتر',
+  a11yResetFilters: 'مسح جميع الفلاتر',
+  a11yLoadingList: 'جاري تحميل القائمة',
+  a11yManagePlanHint: 'يفتح خطط الاشتراك',
+  a11yRefineHint: 'يفتح خيارات التصفية',
+  a11yBackHint: 'العودة إلى المهن',
+  a11yFieldInvalid: 'يوجد خطأ',
+  a11ySelectPlan: 'اضغط مرتين لاختيار هذه الخطة',
+  a11ySignInEmail: 'يفتح تسجيل الدخول بالبريد',
+  errorLoadList: 'تعذّر تحميل المرشحين. تحقق من الاتصال وحاول مرة أخرى.',
+  offlineCachedHint: 'عرض نتائج محفوظة. اسحب للأسفل للتحديث عند عودة الاتصال.',
+  retry: 'حاول مرة أخرى',
+  loadingMore: 'جاري تحميل المزيد…',
+  errorBoundaryTitle: 'حدث خطأ غير متوقع',
+  errorBoundaryMessage: 'واجه التطبيق مشكلة. يمكنك المحاولة مرة أخرى.',
+  notificationPermissionTitle: 'ابقَ على اطلاع',
+  notificationPermissionMessage:
+    'تلقّ تنبيهات عند مشاهدة ملفك، فتح بيانات التواصل، أو تفعيل اشتراكك.',
+  notificationAllow: 'تفعيل الإشعارات',
+  notificationNotNow: 'ليس الآن',
+  toastSubscriptionActive: 'خطتك مفعّلة. يمكنك فتح بيانات المرشحين الآن.',
+  toastUnlockSuccess: 'تم فتح بيانات التواصل. يمكنك الاتصال أو المراسلة.',
+  toastNewUnlock: 'قام صاحب عمل بفتح بيانات تواصلك.',
+  toastProfileViewed: 'قام صاحب عمل بمشاهدة ملفك.',
+  a11yDismissToast: 'إغلاق التنبيه',
+  privacyPolicy: 'سياسة الخصوصية',
+  otpSending: 'جاري إرسال رمز التحقق…',
+  otpVerified: 'تم التحقق من الهاتف',
+  otpVerifying: 'جاري التحقق من الرمز…',
 };
 
 export function strings(lang: Lang): Strings {

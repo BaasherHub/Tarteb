@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,9 +8,10 @@ import { useLocale } from '@/core/i18n/LocaleContext';
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
-
 
 const Tab = createBottomTabNavigator();
 
@@ -27,7 +28,7 @@ function CandidateSettingsTab() {
   return (
     <ContentWidth style={styles.settingsTab}>
       <ScrollView contentContainerStyle={styles.settingsScroll}>
-        <Text style={styles.settingsTitle}>{t.settings}</Text>
+        <ScreenHeader title={t.settings} />
         <SettingsPanel onLogout={logout} />
       </ScrollView>
     </ContentWidth>
@@ -47,7 +48,7 @@ export function CandidateShellScreen() {
         tabBarLabelStyle: {
           fontSize: 13,
           fontWeight: '600',
-          marginBottom: Platform.OS === 'ios' ? 0 : 8,
+          marginBottom: Platform.OS === 'ios' ? 0 : spacing.sm,
         },
         tabBarStyle: Platform.select({
           web: {
@@ -66,12 +67,18 @@ export function CandidateShellScreen() {
       <Tab.Screen
         name="HomeTab"
         component={CandidateDashboardScreen}
-        options={{ tabBarLabel: t.home }}
+        options={{
+          tabBarLabel: t.home,
+          tabBarAccessibilityLabel: t.home,
+        }}
       />
       <Tab.Screen
         name="SettingsTab"
         component={CandidateSettingsTab}
-        options={{ tabBarLabel: t.settings }}
+        options={{
+          tabBarLabel: t.settings,
+          tabBarAccessibilityLabel: t.settings,
+        }}
       />
     </Tab.Navigator>
   );
@@ -79,6 +86,9 @@ export function CandidateShellScreen() {
 
 const styles = StyleSheet.create({
   settingsTab: { flex: 1, backgroundColor: colors.scaffold },
-  settingsScroll: { padding: 24, paddingBottom: 48 },
-  settingsTitle: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
+  settingsScroll: {
+    padding: spacing.xxl,
+    paddingBottom: spacing.xxxl,
+    gap: spacing.md,
+  },
 });
