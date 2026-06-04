@@ -1,17 +1,25 @@
-# tarteb
+# Tarteb
 
-A new Flutter project.
+UAE blue-collar job marketplace.
 
-## Getting Started
+## Main app
 
-This project is a starting point for a Flutter application.
+The active client is **Expo React Native (TypeScript)** in [`mobile/`](mobile/).
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cd mobile
+npm install
+cp .env.example .env   # add your Supabase URL and anon key
+npm start
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+See [`mobile/README.md`](mobile/README.md) and [`SETUP.md`](SETUP.md) for backend and environment setup. Supabase migrations live in [`supabase/`](supabase/).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Repository layout
+
+```
+tarteb/
+├── mobile/     # Expo React Native app (primary)
+├── supabase/   # Database migrations and Edge Functions
+└── ...
+```
