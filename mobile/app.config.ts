@@ -41,6 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ar: './locales/ar.json',
   },
   plugins: [
+    'expo-dev-client',
     'expo-font',
     [
       'expo-splash-screen',

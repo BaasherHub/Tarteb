@@ -1,6 +1,6 @@
 # Tarteb Mobile (React Native / Expo)
 
-React Native rewrite of Tarteb. Shares the same **Supabase** backend as the Flutter app in the repo root.
+Expo React Native client for Tarteb. Shares the **Supabase** backend in [`../supabase/`](../supabase/).
 
 ## Setup
 
@@ -12,9 +12,11 @@ React Native rewrite of Tarteb. Shares the same **Supabase** backend as the Flut
 3. Install and run:
    ```bash
    npm install
-   npx expo start
+   npm run start:dev
    ```
-   Press `a` for Android emulator or scan QR with Expo Go.
+   For **Development Build** on a real device (recommended), see **[DEVELOPMENT_BUILD.md](./DEVELOPMENT_BUILD.md)**.
+
+   Web-only quick test: `npx expo start --web`
 
 ## Migration status
 
