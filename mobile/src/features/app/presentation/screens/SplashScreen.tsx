@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,7 @@ import {
   routeAuthenticatedUser,
 } from '@/features/auth/data/services/authNavigation';
 import { useAuth } from '@/core/providers/AuthProvider';
+import { supabase } from '@/core/lib/supabase';
 import { colors } from '@/core/theme/colors';
 import { useLocale } from '@/core/i18n/LocaleContext';
 
@@ -20,30 +21,36 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export function SplashScreen({ navigation }: Props) {
   const { t } = useLocale();
-  const { session, isReady } = useAuth();
+  const { isReady } = useAuth();
   const [routeError, setRouteError] = useState<string | undefined>();
+  const bootstrapped = useRef(false);
 
-  const navigateFromAuth = useCallback(async () => {
+  const bootstrapRoute = async () => {
     setRouteError(undefined);
     try {
-      if (session) {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+
+      if (data.session) {
         await routeAuthenticatedUser(navigation);
         return;
       }
       navigation.replace('PhoneOtp');
     } catch (e) {
+      bootstrapped.current = false;
       if (e instanceof AuthRoutingError) {
         setRouteError(e.message);
         return;
       }
       setRouteError(t.errorGeneric);
     }
-  }, [navigation, session, t.errorGeneric]);
+  };
 
   useEffect(() => {
-    if (!isReady) return;
-    void navigateFromAuth();
-  }, [isReady, navigateFromAuth]);
+    if (!isReady || bootstrapped.current) return;
+    bootstrapped.current = true;
+    void bootstrapRoute();
+  }, [isReady]);
 
   return (
     <View style={styles.container}>
@@ -52,7 +59,13 @@ export function SplashScreen({ navigation }: Props) {
       {routeError ? (
         <View style={styles.errorBlock}>
           <Text style={styles.errorText}>{routeError}</Text>
-          <Pressable style={styles.retryBtn} onPress={() => void navigateFromAuth()}>
+          <Pressable
+            style={styles.retryBtn}
+            onPress={() => {
+              bootstrapped.current = false;
+              void bootstrapRoute();
+            }}
+          >
             <Text style={styles.retryText}>Retry</Text>
           </Pressable>
         </View>

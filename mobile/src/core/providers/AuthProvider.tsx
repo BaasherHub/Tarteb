@@ -24,12 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setIsReady(true);
-    });
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -38,8 +32,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
     });
 
+    const fallback = setTimeout(() => {
+      if (!mounted) return;
+      setIsReady((ready) => {
+        if (ready) return ready;
+        void supabase.auth.getSession().then(({ data }) => {
+          if (!mounted) return;
+          setSession(data.session);
+          setIsReady(true);
+        });
+        return true;
+      });
+    }, 3000);
+
     return () => {
       mounted = false;
+      clearTimeout(fallback);
       subscription.unsubscribe();
     };
   }, []);
