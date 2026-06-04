@@ -11,6 +11,7 @@ export interface Strings {
   otpCode: string;
   enterPhone: string;
   changePhone: string;
+  resendOtp: string;
   codeSentTo: string;
   signInWithEmail: string;
   selectRole: string;
@@ -145,8 +146,11 @@ export interface Strings {
   errPhoneInvalid: string;
   otpSending: string;
   otpVerified: string;
+  otpVerifiedEmail: string;
+  otpSuccessSubtitle: string;
   otpVerifying: string;
   whatsappPlaceholder: string;
+  whatsappOptionalHint: string;
   fullNamePlaceholder: string;
   companyPlaceholder: string;
   contactPlaceholder: string;
@@ -248,6 +252,7 @@ const en: Strings = {
   otpCode: 'OTP code',
   enterPhone: 'Enter your phone number',
   changePhone: 'Change phone number',
+  resendOtp: 'Resend code',
   codeSentTo: 'Code sent to',
   signInWithEmail: 'Sign in with email instead',
   selectRole: 'Choose your account type',
@@ -385,8 +390,8 @@ const en: Strings = {
     'Use international format starting with +971. Do not start with 050 — enter the full number.',
   phoneExampleLabel: (example) => `Example: ${example}`,
   errPhoneInvalid:
-    'Use international format: +971 followed by 9 digits (e.g. +971501551480).',
-  whatsappPlaceholder: '+971501551480',
+    'Enter a valid UAE mobile: +971 5X XXX XXXX (9 digits after +971).',
+  whatsappPlaceholder: '+971 50 155 1480',
   fullNamePlaceholder: 'As on your ID',
   companyPlaceholder: 'Your registered business name',
   contactPlaceholder: 'Person we can reach',
@@ -483,7 +488,11 @@ const en: Strings = {
   privacyPolicy: 'Privacy policy',
   otpSending: 'Sending verification code…',
   otpVerified: 'Phone verified',
+  otpVerifiedEmail: 'Email verified',
+  otpSuccessSubtitle: 'Success! Taking you to your account…',
   otpVerifying: 'Verifying code…',
+  whatsappOptionalHint:
+    'Optional — leave blank if WhatsApp is the same as your phone number.',
 };
 
 const ar: Strings = {
@@ -497,6 +506,7 @@ const ar: Strings = {
   otpCode: 'رمز التحقق',
   enterPhone: 'أدخل رقم هاتفك',
   changePhone: 'تغيير رقم الهاتف',
+  resendOtp: 'إعادة إرسال الرمز',
   codeSentTo: 'تم إرسال الرمز إلى',
   signInWithEmail: 'تسجيل الدخول بالبريد بدلاً من ذلك',
   selectRole: 'اختر نوع حسابك',
@@ -634,8 +644,8 @@ const ar: Strings = {
     'استخدم الصيغة الدولية التي تبدأ بـ +971. لا تبدأ بـ 050 — أدخل الرقم كاملاً.',
   phoneExampleLabel: (example) => `مثال: ${example}`,
   errPhoneInvalid:
-    'استخدم الصيغة الدولية: +971 ثم 9 أرقام (مثال: +971501551480).',
-  whatsappPlaceholder: '+971501551480',
+    'أدخل رقم موبايل إماراتي صالح: +971 5X XXX XXXX (9 أرقام بعد +971).',
+  whatsappPlaceholder: '+971 50 155 1480',
   fullNamePlaceholder: 'كما في الهوية',
   companyPlaceholder: 'اسم الشركة المسجل',
   contactPlaceholder: 'الشخص الذي يمكن التواصل معه',
@@ -732,7 +742,11 @@ const ar: Strings = {
   privacyPolicy: 'سياسة الخصوصية',
   otpSending: 'جاري إرسال رمز التحقق…',
   otpVerified: 'تم التحقق من الهاتف',
+  otpVerifiedEmail: 'تم التحقق من البريد',
+  otpSuccessSubtitle: 'تم بنجاح! جاري فتح حسابك…',
   otpVerifying: 'جاري التحقق من الرمز…',
+  whatsappOptionalHint:
+    'اختياري — اتركه فارغاً إذا كان واتساب نفس رقم هاتفك.',
 };
 
 export function strings(lang: Lang): Strings {

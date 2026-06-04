@@ -1,83 +1,118 @@
 # Tarteb — App Store & Play Store Launch Checklist
 
-Use this before submitting **1.0.0**. Re-run after any native config change (icons, Sentry plugin).
+Use this before submitting **1.0.0**. Re-run after any native config change (icons, Sentry plugin, permissions).
+
+**Last updated:** Launch blocker pass — Sentry Metro verified, OTP success haptics, screenshot guide.
+
+---
+
+## Production build readiness
+
+| Area | Status | Notes |
+|------|--------|--------|
+| TypeScript | ✅ Run `npx tsc --noEmit` before each EAS build | |
+| Metro / dev (`expo start`) | ✅ Sentry **excluded** in `__DEV__` via `crashReporting.stub` | See [`docs/SENTRY.md`](docs/SENTRY.md) |
+| Metro / release bundle | ✅ CJS resolver in `metro.config.js` + `crashReporting.prod` | |
+| Native Sentry plugin | ⚠️ Requires **new** `eas build --profile production` after SDK add | |
+| EAS production env | ⬜ Manual | Supabase, DSN, no OTP bypass |
+| Store screenshots | ⬜ Manual | [`docs/screenshots/README.md`](docs/screenshots/README.md) |
+
+---
 
 ## Critical product fixes
 
-- [x] App icon aligned with in-app brand (`#1A6FFF` + **T** mark) — `npm run generate:assets`
-- [x] Phone inputs: E.164 `+971`, live spacing (`+971 50 155 1480`), no `05x` placeholder
-- [x] `PhoneNumberField` + auth OTP loading / success animation
-- [x] Deep links: `tarteb://candidate/{id}`, `subscription`, `browse`, `unlocks`, `dashboard`
-- [x] Push notifications + permission prompt (post-onboarding / first candidate view)
-- [x] In-app toast system (RTL, actions)
+- [x] App icon aligned with in-app brand (`#1A6FFF` + **T** mark)
+- [x] Phone inputs: E.164 `+971 5X XXX XXXX`, live spacing, UAE mobile validation
+- [x] OTP: auto-submit, resend, `AuthSuccessPulse` + haptic (`expo-haptics`) on phone & email
+- [x] Optional WhatsApp: empty state, `validateOptionalUaeMobile`, E.164 save
+- [x] Deep links, push, toasts, error boundaries
+- [x] **Sentry:** `metro.config.js` + dev/prod crash reporting split — **Metro error resolved**
 
-## Store screenshots
+## Sentry (observability)
 
-Capture per [`docs/screenshots/README.md`](docs/screenshots/README.md) (8 shots + Play feature graphic).
+- [x] SDK + plugin in `app.config.ts`
+- [x] `crashReporting.ts` → stub in dev / prod in release only
+- [x] `metro.config.js` — `getSentryExpoConfig`, CJS `resolveRequest`, `unstable_enablePackageExports: false`
+- [x] Documented in [`docs/SENTRY.md`](docs/SENTRY.md)
+- [ ] `EXPO_PUBLIC_SENTRY_DSN` on EAS **production** environment
+- [ ] Production build installed; trigger test crash → event in Sentry dashboard
 
-| # | Asset | Status |
-|---|--------|--------|
-| 1 | Auth phone (EN) | [ ] |
-| 2 | Auth phone (AR / RTL) | [ ] |
-| 3 | Employer browse | [ ] |
-| 4 | Candidate detail + unlock | [ ] |
-| 5 | Subscription plans | [ ] |
-| 6 | Candidate dashboard (AR) | [ ] |
-| 7 | Refine filters modal | [ ] |
-| 8 | Settings + language | [ ] |
-| — | Play feature graphic 1024×500 | [ ] |
+**Cache reset if Metro regresses:**
 
-## Brand & assets
+```bash
+cd mobile && rm -rf .expo node_modules/.cache && npm install && npx expo start --clear
+```
 
-- [x] `assets/icon.png`, splash, Android adaptive + monochrome
-- [ ] Swap generated icons if marketing supplies final SVG (`npm run generate:assets`)
-- [x] `app.config.ts` — `#1A6FFF`, keyboard resize (Android), Sentry plugin
+## Auth flow consistency
+
+| Flow | OTP success | Errors |
+|------|-------------|--------|
+| Phone OTP | Green checkmark + haptic + subtitle | `InfoBanner` + `FieldError` |
+| Email OTP | Same | Same |
+| Role selection | — | `InfoBanner` |
+| Onboarding | — | Per-field + WhatsApp optional rules |
+
+**Manual QA (production build):**
+
+- [ ] Phone: `+971 5x` → SMS → success pulse → role/home
+- [ ] Email: code → success pulse → role/home
+- [ ] Invalid / partial phone → `errPhoneInvalid`
+- [ ] WhatsApp empty on step 3 → `null` in DB
+- [ ] WhatsApp partial `+971` only → error
+- [ ] Change phone / email resets OTP step
+
+## Take real screenshots
+
+**Status:** ⬜ **Not started** — use production build, **light mode**, EN + AR per [`docs/screenshots/README.md`](docs/screenshots/README.md).
+
+| # | Filename | EN/AR | iOS | Android | Done |
+|---|----------|-------|-----|---------|------|
+| 1 | `01-auth-phone-en.png` | EN | [ ] | [ ] | [ ] |
+| 2 | `02-auth-phone-ar.png` | AR | [ ] | [ ] | [ ] |
+| 3 | `03-employer-browse-en.png` | EN | [ ] | [ ] | [ ] |
+| 4 | `04-candidate-detail-en.png` | EN | [ ] | [ ] | [ ] |
+| 5 | `05-subscription-en.png` | EN | [ ] | [ ] | [ ] |
+| 6 | `06-candidate-dashboard-ar.png` | AR | [ ] | [ ] | [ ] |
+| 7 | `07-filters-modal-en.png` | EN | [ ] | [ ] | [ ] |
+| 8 | `08-settings-trust-en.png` | EN | [ ] | [ ] | [ ] |
+| — | `play-feature-graphic.png` | — | — | [ ] | [ ] |
+
+**Capture rules:** physical device preferred; **light mode only**; no dev OTP banner; realistic demo data.
 
 ## Configuration & dev flags (production)
 
 | Flag | Production rule | Verified |
 |------|-----------------|----------|
-| `EXPO_PUBLIC_SKIP_OTP_VERIFICATION` | **Must be unset** (bypass only works in `__DEV__` anyway) | [ ] |
-| `EXPO_PUBLIC_SUPABASE_URL` | Real project URL — not `placeholder.supabase.co` | [ ] |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Production anon key in EAS `production` env | [ ] |
-| `EXPO_PUBLIC_SENTRY_DSN` | Set for crash reporting (JS + native after rebuild) | [ ] |
-| `EXPO_PUBLIC_ANALYTICS_ENABLED` | Optional `true` when provider wired | [ ] |
-| `EXPO_PUBLIC_PRIVACY_POLICY_URL` | Live HTTPS URL | [ ] |
-| `__DEV__` / dev client | Store builds must be **production** profile, not `development` | [ ] |
+| `EXPO_PUBLIC_SKIP_OTP_VERIFICATION` | **Unset** | [ ] |
+| `EXPO_PUBLIC_SUPABASE_URL` | Real project | [ ] |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | EAS production | [ ] |
+| `EXPO_PUBLIC_SENTRY_DSN` | Set | [ ] |
+| `EXPO_PUBLIC_PRIVACY_POLICY_URL` | Live HTTPS | [ ] |
+| EAS profile | **production** (not development) | [ ] |
 
-Startup hook `validateProductionConfig()` logs warnings in release builds if misconfigured.
-
-**EAS:** set secrets on `production` environment only — never copy dev OTP bypass vars.
-
-- [ ] Twilio `send-otp` / `verify-otp` deployed on production Supabase
-- [ ] Rebuild native app after adding `@sentry/react-native` plugin: `eas build --profile production`
-
-## Observability
-
-- [x] Sentry SDK integrated (`crashReporting.ts`, `index.ts` wrap, `app.config` plugin)
-- [ ] Create Sentry project + add `EXPO_PUBLIC_SENTRY_DSN` to EAS production
-- [ ] Confirm first test crash/event in Sentry dashboard
-- [ ] Optional: `EXPO_PUBLIC_ANALYTICS_ENABLED` + provider in `analytics.ts`
+- [ ] Twilio `send-otp` / `verify-otp` on production Supabase
+- [ ] `eas build --profile production --platform all`
+- [ ] TestFlight + Play internal QA sign-off
+- [ ] Review notes: demo accounts, no OTP bypass
 
 ## Legal
 
 - [x] Draft [`../docs/PRIVACY_POLICY.md`](../docs/PRIVACY_POLICY.md)
-- [ ] Publish privacy URL (linked from Settings)
-- [ ] Terms of service URL (recommended)
-- [ ] Apple privacy nutrition labels / Google Data safety form
+- [ ] Published privacy URL in Settings
+- [ ] Terms of service (recommended)
+- [ ] Apple privacy labels / Google Data safety
 - [x] iOS `usesNonExemptEncryption: false`
 
-## QA matrix
+## QA matrix (production build)
 
-- [ ] Phone OTP: `+971 50 155 1480` formatting → SMS → verify → success animation
-- [ ] Reject invalid numbers (`050…` only without +971 normalization path)
-- [ ] Employer: browse → detail → unlock → subscription
-- [ ] Candidate: onboarding phones saved as E.164
-- [ ] Arabic RTL: auth, browse, filters, settings
-- [ ] Deep link cold start → candidate profile (logged in)
-- [ ] Push tap → correct screen
-- [ ] Offline browse cache + retry
-- [ ] Mid-range Android device (production APK/AAB)
+- [ ] OTP success + haptic on real device (not simulator-only)
+- [ ] OTP resend
+- [ ] Employer: browse → unlock → subscription
+- [ ] Candidate: onboarding + empty WhatsApp
+- [ ] Arabic RTL on auth, browse, settings
+- [ ] Deep links + push
+- [ ] Offline browse cache
+- [ ] Android mid-range + iPhone TestFlight
 
 ## Build & submit
 
@@ -90,13 +125,8 @@ eas submit --platform ios
 eas submit --platform android
 ```
 
-- [ ] TestFlight / internal testing sign-off
-- [ ] Play internal track sign-off
-- [ ] App Review notes: demo account, **no OTP bypass** in production build
-
 ## Post-launch
 
-- [ ] Sentry crash-free sessions > 99%
-- [ ] OTP delivery success rate
-- [ ] WhatsApp subscription activation SLA
-- [ ] v1.1 from store feedback
+- [ ] Sentry crash-free > 99%
+- [ ] OTP delivery rate
+- [ ] WhatsApp subscription SLA

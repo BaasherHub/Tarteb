@@ -41,9 +41,9 @@ export function normalizeE164(phone: string): string {
   return '';
 }
 
-/** UAE mobile numbers: +971 followed by 9 digits (typically starting with 5). */
+/** UAE mobile numbers: +971 5X XXX XXXX (9 digits after country code). */
 export function isValidUaeMobileE164(e164: string): boolean {
-  return /^\+971[0-9]{9}$/.test(e164);
+  return /^\+9715[0-9]{8}$/.test(e164);
 }
 
 /** Display with spaces: +971 50 155 1480 */
@@ -85,4 +85,27 @@ export function formatUaePhoneInput(raw: string): string {
 /** Strip to E.164 for copy/paste into Twilio. */
 export function e164FromFormattedInput(formatted: string): string {
   return normalizeE164(formatted);
+}
+
+/** User left optional field blank or only the +971 prefix. */
+export function isEmptyOptionalUaePhone(formatted: string | null | undefined): boolean {
+  if (!formatted?.trim()) return true;
+  const e164 = normalizeE164(formatted);
+  return !e164 || e164 === UAE_DIAL_CODE;
+}
+
+/**
+ * Optional UAE mobile (e.g. WhatsApp). Empty → null; partial/invalid → error.
+ */
+export function validateOptionalUaeMobile(
+  formatted: string | null | undefined,
+): { ok: true; e164: string | null } | { ok: false } {
+  if (isEmptyOptionalUaePhone(formatted)) {
+    return { ok: true, e164: null };
+  }
+  const e164 = normalizeE164(formatted!);
+  if (!isValidUaeMobileE164(e164)) {
+    return { ok: false };
+  }
+  return { ok: true, e164 };
 }

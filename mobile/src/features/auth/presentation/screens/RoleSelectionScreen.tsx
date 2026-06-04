@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
@@ -26,6 +19,7 @@ import { ConfirmDialog } from '@/shared/widgets/ConfirmDialog';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { InfoBanner } from '@/shared/widgets/InfoBanner';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoleSelection'>;
@@ -35,12 +29,14 @@ export function RoleSelectionScreen({ navigation }: Props) {
   const rtl = useRtlStyles();
   const [loading, setLoading] = useState<'candidate' | 'employer' | null>(null);
   const [pendingRole, setPendingRole] = useState<'candidate' | 'employer' | null>(null);
+  const [formError, setFormError] = useState<string | undefined>();
 
   const insertRole = async (role: 'candidate' | 'employer') => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return;
 
     setLoading(role);
+    setFormError(undefined);
     try {
       const { error } = await supabase.from('profiles').insert({
         user_id: userId,
@@ -54,8 +50,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
         e instanceof AuthRoutingError
           ? e.message
           : getErrorMessage(e, t.errorGeneric);
-      if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
-      else Alert.alert(t.errorTitle, msg);
+      setFormError(msg);
     } finally {
       setLoading(null);
     }
@@ -76,6 +71,11 @@ export function RoleSelectionScreen({ navigation }: Props) {
           >
             {t.selectRoleSubtitle}
           </Text>
+          {formError ? (
+            <View style={styles.bannerWrap}>
+              <InfoBanner message={formError} variant="warning" />
+            </View>
+          ) : null}
           <View style={styles.gap}>
             <RoleCard
               icon="person"
@@ -180,6 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.sm,
   },
+  bannerWrap: { marginBottom: spacing.md, width: '100%' },
   gap: { gap: spacing.md },
   card: {
     alignItems: 'center',

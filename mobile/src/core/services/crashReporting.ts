@@ -1,67 +1,21 @@
 import type { ComponentType } from 'react';
-import { env } from '@/core/config/env';
 
-type SentryModule = typeof import('@sentry/react-native');
+/**
+ * Metro must not statically resolve @sentry/react-native in dev.
+ * __DEV__ is inlined at bundle time so only one implementation is included.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const impl = __DEV__
+  ? require('./crashReporting.stub')
+  : require('./crashReporting.prod');
 
-let sentryModule: SentryModule | null = null;
-let initialized = false;
+export const initCrashReporting: () => void = impl.initCrashReporting;
 
-function getSentry(): SentryModule | null {
-  if (!env.crashReportingEnabled) return null;
-  if (!sentryModule) {
-    // Lazy load so dev bundles never pull @sentry/* (avoids Metro tracing path issues).
-    sentryModule = require('@sentry/react-native') as SentryModule;
-  }
-  return sentryModule;
-}
-
-/** Production-only when EXPO_PUBLIC_SENTRY_DSN is set. No-op in __DEV__. */
-export function initCrashReporting(): void {
-  const Sentry = getSentry();
-  if (!Sentry || initialized) return;
-
-  Sentry.init({
-    dsn: env.crashReportingDsn,
-    enabled: true,
-    debug: false,
-    attachStacktrace: true,
-    enableAutoSessionTracking: true,
-    enableAutoPerformanceTracing: false,
-    tracesSampleRate: 0,
-  });
-
-  initialized = true;
-}
-
-export function captureException(
+export const captureException: (
   error: unknown,
   context?: Record<string, string>,
-): void {
-  if (__DEV__) {
-    console.error('[crash]', error, context);
-    return;
-  }
+) => void = impl.captureException;
 
-  const Sentry = getSentry();
-  if (!Sentry || !initialized) return;
-
-  Sentry.withScope((scope) => {
-    if (context) {
-      Object.entries(context).forEach(([key, value]) => {
-        scope.setExtra(key, value);
-      });
-    }
-    Sentry.captureException(error);
-  });
-}
-
-export function wrapWithSentry<P extends Record<string, unknown>>(
+export const wrapWithSentry: <P extends Record<string, unknown>>(
   RootComponent: ComponentType<P>,
-): ComponentType<P> {
-  if (!env.crashReportingEnabled) return RootComponent;
-
-  const Sentry = getSentry();
-  if (!Sentry) return RootComponent;
-
-  return Sentry.wrap(RootComponent) as ComponentType<P>;
-}
+) => ComponentType<P> = impl.wrapWithSentry;

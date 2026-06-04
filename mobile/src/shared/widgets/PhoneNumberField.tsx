@@ -19,6 +19,8 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
   error?: string;
   hint?: string;
   showExample?: boolean;
+  /** When true, field can stay empty (e.g. optional WhatsApp). */
+  allowEmpty?: boolean;
 };
 
 /**
@@ -31,6 +33,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
   error,
   hint,
   showExample = true,
+  allowEmpty = false,
   ...rest
 }: Props) {
   const { t } = useLocale();
@@ -38,12 +41,21 @@ export const PhoneNumberField = memo(function PhoneNumberField({
 
   const handleChange = useCallback(
     (text: string) => {
+      if (allowEmpty && !text.trim()) {
+        onChangeText('');
+        return;
+      }
       onChangeText(formatUaePhoneInput(text));
     },
-    [onChangeText],
+    [allowEmpty, onChangeText],
   );
 
-  const helperText = hint ?? t.phoneHelper;
+  const displayValue =
+    allowEmpty && !value.trim() ? '' : value || formatUaePhoneInput('');
+
+  const helperText = hint ?? (allowEmpty ? undefined : t.phoneHelper);
+  const placeholder =
+    rest.placeholder ?? (allowEmpty ? t.whatsappPlaceholder : t.phonePlaceholderSpaced);
 
   return (
     <View style={styles.wrap}>
@@ -51,9 +63,9 @@ export const PhoneNumberField = memo(function PhoneNumberField({
         {...rest}
         label={label ?? t.phoneNumber}
         hint={helperText}
-        value={value}
+        value={displayValue}
         onChangeText={handleChange}
-        placeholder={t.phonePlaceholderSpaced}
+        placeholder={placeholder}
         keyboardType="phone-pad"
         textContentType="telephoneNumber"
         autoComplete="tel"
@@ -67,7 +79,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
           numberOfLines={2}
           accessibilityRole="text"
         >
-          {t.phoneExampleLabel(UAE_PHONE_EXAMPLE)}
+          {t.phoneExampleLabel(formatUaePhoneInput(UAE_PHONE_EXAMPLE))}
         </Text>
       ) : null}
     </View>

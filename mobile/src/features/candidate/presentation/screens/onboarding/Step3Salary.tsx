@@ -9,6 +9,7 @@ import {
   isValidUaeMobileE164,
   normalizeE164,
   UAE_DIAL_CODE,
+  validateOptionalUaeMobile,
 } from '@/shared/utils/phone';
 
 type Errors = { salary?: string; phone?: string; whatsapp?: string };
@@ -28,12 +29,9 @@ export function Step3Salary() {
       nextErrors.phone = data.phone?.trim() ? t.errPhoneInvalid : t.errPhone;
     }
 
-    const waRaw = data.whatsapp?.trim();
-    if (waRaw) {
-      const waE164 = normalizeE164(waRaw);
-      if (!isValidUaeMobileE164(waE164)) {
-        nextErrors.whatsapp = t.errPhoneInvalid;
-      }
+    const whatsappResult = validateOptionalUaeMobile(data.whatsapp);
+    if (!whatsappResult.ok) {
+      nextErrors.whatsapp = t.errPhoneInvalid;
     }
 
     setErrors(nextErrors);
@@ -42,7 +40,7 @@ export function Step3Salary() {
     update({
       salaryExpectation: salary,
       phone: phoneE164,
-      whatsapp: waRaw ? normalizeE164(waRaw) : null,
+      whatsapp: whatsappResult.ok ? whatsappResult.e164 : null,
     });
     setStep(4);
   };
@@ -75,12 +73,18 @@ export function Step3Salary() {
       />
       <PhoneNumberField
         label={t.whatsappOptional}
-        value={data.whatsapp ?? ''}
+        allowEmpty
+        showExample={false}
+        value={
+          data.whatsapp ? formatUaePhoneInput(data.whatsapp) : ''
+        }
         onChangeText={(whatsapp) => {
-          update({ whatsapp: whatsapp.trim() ? formatUaePhoneInput(whatsapp) : null });
+          update({
+            whatsapp: whatsapp.trim() ? formatUaePhoneInput(whatsapp) : null,
+          });
           setErrors((e) => ({ ...e, whatsapp: undefined }));
         }}
-        hint={t.whatsappOptional}
+        hint={t.whatsappOptionalHint}
         placeholder={t.whatsappPlaceholder}
         error={errors.whatsapp}
       />
