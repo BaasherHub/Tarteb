@@ -2,53 +2,76 @@
 
 ## Problem
 
-Metro failed with:
+Metro error:
 
 `Unable to resolve module ./tracing/utils.js from @sentry/core/build/esm/index.js`
 
-`@sentry/core` ESM uses internal `./tracing/*` paths that are not in the package `"exports"` map.
+`@sentry/core` ESM uses internal paths not exposed in package `"exports"`.
 
-## Solution (two layers)
+## Solution (three layers)
 
-### 1. Dev bundle excludes Sentry
+### 1. App source — no Sentry in dev graph
 
-`src/core/services/crashReporting.ts` loads:
+- `crashReporting.ts` re-exports **only** `crashReporting.stub.ts` (no `require('./crashReporting.prod')`).
+- `crashReporting.prod.ts` is swapped in only for production Metro (EAS / `NODE_ENV=production`).
 
-- `crashReporting.stub.ts` when `__DEV__` is true (no `@sentry/*` in the graph)
-- `crashReporting.prod.ts` when `__DEV__` is false (production / EAS release)
+### 2. Metro dev — stub all `@sentry/*`
 
-So `npx expo start` / dev client does not need to resolve `@sentry/core` at all.
+When `expo start` (dev bundle):
 
-### 2. Production bundle uses CJS
+- `metro.config.js` uses Expo `getDefaultConfig` (not `getSentryExpoConfig`).
+- `resolveRequest` returns `metro/sentry-stub.js` for any `@sentry/*` import.
+- `blockList` blocks `@sentry/**/build/esm/**` and `crashReporting.prod.ts`.
 
-`metro.config.js`:
+### 3. Metro production — real SDK via CJS
 
-- `getSentryExpoConfig` from `@sentry/react-native/metro`
-- `unstable_enablePackageExports: false`
-- Custom `resolveRequest` → `@sentry/core`, `@sentry/react`, `@sentry/browser` **CJS** entry files
+When `eas build` (`EAS_BUILD=true`):
 
-## Verify locally
+- `getSentryExpoConfig` enabled.
+- `crashReporting.ts` resolves to `crashReporting.prod.ts`.
+- `@sentry/core` / `@sentry/react` / `@sentry/browser` forced to **CJS** entry files.
+
+## Verify
 
 ```bash
 cd mobile
 npx tsc --noEmit
 npx expo start --clear
-# In another terminal (optional):
-npx expo export --platform android --dev
-EXPO_PUBLIC_SENTRY_DSN=https://example@o0.ingest.sentry.io/0 npx expo export --platform android
 ```
 
-## Production
+Production bundle (optional):
 
-- Set `EXPO_PUBLIC_SENTRY_DSN` on EAS **production** only
-- Rebuild native after `@sentry/react-native` plugin: `eas build --profile production`
-- Confirm an event in the Sentry dashboard from a release build
+```bash
+set EAS_BUILD=true
+set NODE_ENV=production
+set EXPO_PUBLIC_SENTRY_DSN=https://example@o0.ingest.sentry.io/0
+npx expo export --platform android
+```
 
-## If Metro still errors
+## Cache reset
 
-1. Delete `.expo` and `node_modules/.cache`
-2. Confirm `metro.config.js` exists at `mobile/metro.config.js`
-3. Confirm no file imports `@sentry/react-native` except `crashReporting.prod.ts`
-4. Run `npm install` and `npx expo start --clear`
+**Windows (PowerShell):**
 
-Do **not** import `@sentry/core` or tracing helpers directly in app code.
+```powershell
+cd C:\Projects\tarteb\mobile
+Remove-Item -Recurse -Force .expo -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force node_modules\.cache -ErrorAction SilentlyContinue
+npm install
+npx expo start --clear
+```
+
+**macOS / Linux:**
+
+```bash
+cd mobile
+rm -rf .expo node_modules/.cache
+npm install
+npx expo start --clear
+watchman watch-del-all   # optional
+```
+
+## Rules
+
+- Do **not** `import '@sentry/react-native'` outside `crashReporting.prod.ts`.
+- Do **not** import `@sentry/core` tracing helpers in app code.
+- Set `EXPO_PUBLIC_SENTRY_DSN` on EAS **production** only.

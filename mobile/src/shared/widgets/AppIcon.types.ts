@@ -4,6 +4,7 @@ export type AppIconName =
   | 'settings'
   | 'camera'
   | 'images'
+  | 'images-outline'
   | 'chevron-forward'
   | 'chevron-back'
   | 'home'

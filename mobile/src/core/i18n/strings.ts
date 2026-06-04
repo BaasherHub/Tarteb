@@ -16,10 +16,46 @@ export interface Strings {
   signInWithEmail: string;
   selectRole: string;
   selectRoleSubtitle: string;
+  roleSelectionKicker: string;
+  roleSelectionNextHint: string;
+  signingUpAsRole: (role: string) => string;
   roleCandidate: string;
   roleEmployer: string;
   roleCandidateSubtitle: string;
   roleEmployerSubtitle: string;
+  roleCandidateBullets: readonly string[];
+  roleEmployerBullets: readonly string[];
+  roleSelectionTrust: string;
+  roleCompareTitle: string;
+  roleCompareIntro: string;
+  roleCompareFeature: string;
+  roleComparisonRows: readonly {
+    feature: string;
+    candidate: string;
+    employer: string;
+  }[];
+  photoEmptyHeadline: string;
+  photoEmptySub: string;
+  photoBenefits: readonly string[];
+  dashboardPhotoNag: string;
+  dashboardPhotoNagAction: string;
+  hiredBanner: string;
+  hiredAlertTitle: string;
+  hiredAlertMessage: string;
+  hiredAlertConfirm: string;
+  markHiredLabel: string;
+  markHiredA11y: string;
+  employerOnboardingKicker: string;
+  employerOnboardingIntro: string;
+  employerOnboardingStep1Title: string;
+  employerOnboardingStep2Title: string;
+  employerOnboardingStep1Intro: string;
+  employerOnboardingStep2Intro: string;
+  companyLogo: string;
+  companyLogoTap: string;
+  companyLogoHint: string;
+  previousEmployerPlaceholder: string;
+  nationalityExamplesHint: string;
   browse: string;
   myUnlocks: string;
   subscribe: string;
@@ -36,6 +72,11 @@ export interface Strings {
   subscriptionBullet3: string;
   subscriptionValidUntil: (date: string) => string;
   settings: string;
+  settingsPhoneLabel: string;
+  settingsMemberSince: string;
+  uaePassTitle: string;
+  uaePassSub: string;
+  uaePassSoon: string;
   continue: string;
   cancel: string;
   confirm: string;
@@ -50,12 +91,8 @@ export interface Strings {
   contactName: string;
   startBrowsing: string;
   stepOf: (c: number, t: number) => string;
-  yourPhoto: string;
   camera: string;
   gallery: string;
-  skipForNow: string;
-  skipPhotoForNow: string;
-  skipPhotoForNowHint: string;
   errPhotoRequired: string;
   jobRole: string;
   visaStatus: string;
@@ -75,6 +112,41 @@ export interface Strings {
   submitProfile: string;
   saveProfile: string;
   required: string;
+  requiredField: string;
+  onboardingStep1Title: string;
+  onboardingStepPhotoTitle: string;
+  onboardingStepPhotoIntro: string;
+  onboardingStepRoleTitle: string;
+  onboardingStep2Title: string;
+  onboardingStep3Title: string;
+  onboardingStep4Title: string;
+  onboardingStep5Title: string;
+  onboardingPhotoIntro: string;
+  profileCompletionHeadline: (percent: number) => string;
+  profileCompletionNext: (milestone: string) => string;
+  profileCompleteHeadline: string;
+  profileCompleteCelebration: string;
+  profileCompletionCta: string;
+  saveCompanyProfile: string;
+  employerEditKicker: string;
+  employerOnboardingEditIntro: string;
+  employerOnboardingEditStep1Intro: string;
+  whatsappSubscribeMessage: (tierName: string, price: string, contact: string) => string;
+  whatsappSupportMessage: string;
+  profileMilestoneLabel: (id: string) => string;
+  subscriptionChoosePlan: string;
+  subscriptionPlanActiveTitle: (tierName: string) => string;
+  subscriptionRemainingUnlimited: string;
+  subscriptionRemainingCount: (left: number) => string;
+  subscriptionSubscribeToTier: (tierName: string) => string;
+  subscriptionSwitchToTier: (tierName: string) => string;
+  subscriptionPaymentNote: string;
+  subscriptionBadgeCurrent: string;
+  subscriptionBadgePopular: string;
+  subscriptionA11yCurrentPlan: string;
+  tierDisplayName: (tier: 'starter' | 'business' | 'agency') => string;
+  tierDisplayPrice: (tier: 'starter' | 'business' | 'agency') => string;
+  tierDisplayBullets: (tier: 'starter' | 'business' | 'agency') => readonly string[];
   profilePaused: string;
   profileViews: string;
   profileLive: string;
@@ -83,6 +155,9 @@ export interface Strings {
   filters: string;
   candidatePickRole: string;
   candidatePickRoleHint: string;
+  jobRoleSearchPlaceholder: string;
+  allJobRoles: string;
+  jobRoleNoMatch: string;
   roleSelected: string;
   browsePickRole: string;
   browsePickRoleHint: string;
@@ -134,6 +209,7 @@ export interface Strings {
   locationEmirate: string;
   locationArea: string;
   locationAreaHint: string;
+  employerLocationAreaHint: string;
   locationAreaPlaceholder: string;
   locationNoMatch: string;
   locationSelected: string;
@@ -149,7 +225,7 @@ export interface Strings {
   otpVerifiedEmail: string;
   otpSuccessSubtitle: string;
   otpVerifying: string;
-  whatsappPlaceholder: string;
+  whatsappEmptyPlaceholder: string;
   whatsappOptionalHint: string;
   fullNamePlaceholder: string;
   companyPlaceholder: string;
@@ -196,7 +272,9 @@ export interface Strings {
   errEmail: string;
   errEmailInvalid: string;
   draftSaved: string;
+  draftSavedBanner: string;
   discardDraft: string;
+  discardDraftLink: string;
   yourRole: string;
   wrongRoleHelp: string;
   contactSupportRole: string;
@@ -255,13 +333,91 @@ const en: Strings = {
   resendOtp: 'Resend code',
   codeSentTo: 'Code sent to',
   signInWithEmail: 'Sign in with email instead',
-  selectRole: 'Choose your account type',
+  selectRole: 'How will you use Tarteb?',
   selectRoleSubtitle:
-    'This choice is permanent in the app. Contact support if you need to change it later.',
+    'One account type per person. Pick the path that matches how you will use Tarteb.',
+  roleSelectionKicker: 'Get started',
+  roleSelectionNextHint: 'Next: verify your UAE mobile number (+971).',
+  roleSelectionTrust:
+    'Your choice is saved securely. Contact support if you selected the wrong account type.',
+  roleCompareTitle: 'Compare account types',
+  roleCompareIntro:
+    'Review the differences below. You cannot switch between job seeker and employer in the app without support.',
+  roleCompareFeature: 'What you get',
+  roleComparisonRows: [
+    {
+      feature: 'Your goal',
+      candidate: 'Find work in the UAE',
+      employer: 'Hire staff for your business',
+    },
+    {
+      feature: 'You create',
+      candidate: 'A personal job profile',
+      employer: 'A company hiring profile',
+    },
+    {
+      feature: 'Others see',
+      candidate: 'Employers browse you',
+      employer: 'Candidates you unlock',
+    },
+    {
+      feature: 'Cost',
+      candidate: 'Free for job seekers',
+      employer: 'Monthly subscription (AED 79.9)',
+    },
+    {
+      feature: 'Change type later',
+      candidate: 'Contact support only',
+      employer: 'Contact support only',
+    },
+  ],
+  photoEmptyHeadline: 'Your photo is required',
+  photoEmptySub:
+    'Employers decide in seconds. A clear face photo is the strongest trust signal on Tarteb.',
+  photoBenefits: [
+    'Up to 5× more profile views',
+    'Employers contact candidates with photos first',
+    'Shows you are serious about finding work',
+  ],
+  dashboardPhotoNag:
+    'Add a clear face photo so employers trust your profile. Profiles without photos are rarely contacted.',
+  dashboardPhotoNagAction: 'Add photo now',
+  employerOnboardingKicker: 'Employer setup',
+  employerOnboardingIntro:
+    'Tell us about your business so candidates know who is hiring. Fields marked required must be completed.',
+  employerOnboardingStep1Title: 'Company',
+  employerOnboardingStep2Title: 'Contact & location',
+  employerOnboardingStep1Intro:
+    'Add your company details. A logo helps candidates recognise your business.',
+  employerOnboardingStep2Intro:
+    'How can candidates and our team reach you? Use your UAE mobile number.',
+  companyLogo: 'Company logo',
+  companyLogoTap: 'Tap to add company logo',
+  companyLogoHint: 'Optional — square image works best. Builds trust with job seekers.',
+  hiredBanner: 'You are marked as hired — your profile is hidden from employers',
+  hiredAlertTitle: 'Got hired?',
+  hiredAlertMessage:
+    'Congratulations! Your profile will be hidden from employers so you are not contacted for new roles.',
+  hiredAlertConfirm: 'Yes, I got hired',
+  markHiredLabel: 'I got hired — hide my profile',
+  markHiredA11y: 'Mark profile as hired',
+  previousEmployerPlaceholder: 'Previous company name (optional)',
+  nationalityExamplesHint: 'Examples: United Arab Emirates, Egypt, India, Philippines…',
+  signingUpAsRole: (role) => `Creating your account as ${role}`,
   roleCandidate: 'Job seeker',
   roleEmployer: 'Employer',
-  roleCandidateSubtitle: 'Create a profile employers can browse',
-  roleEmployerSubtitle: 'Browse candidates with a monthly plan',
+  roleCandidateSubtitle: 'I am looking for work in the UAE',
+  roleEmployerSubtitle: 'I am hiring for my business',
+  roleCandidateBullets: [
+    'Build a profile employers can discover',
+    'Set salary, visa, and availability',
+    'Get notified when employers view you',
+  ],
+  roleEmployerBullets: [
+    'Browse verified job seekers by role',
+    'Unlock phone and WhatsApp contacts',
+    'Monthly plan — no per-profile fees',
+  ],
   browse: 'Browse',
   myUnlocks: 'Candidates',
   subscribe: 'Subscribe',
@@ -279,6 +435,11 @@ const en: Strings = {
   subscriptionBullet3: 'Cancel anytime — no per-CV fees',
   subscriptionValidUntil: (date) => `Valid until ${date}`,
   settings: 'Settings',
+  settingsPhoneLabel: 'Phone',
+  settingsMemberSince: 'Member since',
+  uaePassTitle: 'UAE Pass verification',
+  uaePassSub: 'Verify your identity with UAE Pass',
+  uaePassSoon: 'Soon',
   continue: 'Continue',
   cancel: 'Cancel',
   confirm: 'Confirm',
@@ -293,13 +454,9 @@ const en: Strings = {
   contactName: 'Contact name',
   startBrowsing: 'Start browsing',
   stepOf: (c, t) => `Step ${c} of ${t}`,
-  yourPhoto: 'Your photo',
   camera: 'Camera',
   gallery: 'Gallery',
-  skipForNow: 'Skip for now',
-  skipPhotoForNow: 'Skip photo for now',
-  skipPhotoForNowHint: 'You can add a photo later. A clear face photo helps employers trust your profile.',
-  errPhotoRequired: 'Add a photo or tap “Skip photo for now”',
+  errPhotoRequired: 'Add a clear face photo to continue. Use Camera or Gallery.',
   jobRole: 'Job role',
   visaStatus: 'Visa status',
   nationality: 'Nationality',
@@ -318,6 +475,91 @@ const en: Strings = {
   submitProfile: 'Submit profile',
   saveProfile: 'Save profile',
   required: 'Please fill all required fields',
+  requiredField: 'Required',
+  onboardingStep1Title: 'Photo & job role',
+  onboardingStepPhotoTitle: 'Your profile photo',
+  onboardingStepPhotoIntro:
+    'A clear face photo helps employers trust your profile and contact you faster.',
+  onboardingStepRoleTitle: 'Your job role',
+  onboardingStep2Title: 'Visa & location',
+  onboardingStep3Title: 'Salary & contacts',
+  onboardingStep4Title: 'Experience & finish',
+  onboardingStep5Title: 'Experience & finish',
+  onboardingPhotoIntro:
+    'Employers see your photo first. Use a clear face picture in good light.',
+  profileCompletionHeadline: (percent) => `Profile ${percent}% complete`,
+  profileCompletionNext: (milestone) => `Next: ${milestone}`,
+  profileCompleteHeadline: 'Profile complete',
+  profileCompleteCelebration:
+    'Your profile is complete. Employers can discover you with full trust signals.',
+  profileCompletionCta: 'Improve profile →',
+  saveCompanyProfile: 'Save company profile',
+  employerEditKicker: 'Edit company',
+  employerOnboardingEditIntro: 'Update your business details. Changes apply immediately.',
+  employerOnboardingEditStep1Intro:
+    'Update your company name, logo, or trade license.',
+  whatsappSubscribeMessage: (tierName, price, contact) =>
+    `Hi, I want to subscribe to Tarteb — ${tierName} plan (${price}).\nMy number: ${contact}`,
+  whatsappSupportMessage: 'Hi, I need support with Tarteb.',
+  profileMilestoneLabel: (id) => {
+    const labels: Record<string, string> = {
+      photo: 'Add your profile photo',
+      role: 'Select your job role',
+      visa: 'Add visa status',
+      nationality: 'Add nationality',
+      location: 'Add your location',
+      salary: 'Add expected salary',
+      phone: 'Add phone number',
+      name: 'Add your full name',
+      available: 'Set availability date',
+      experience: 'Add experience & languages',
+      company: 'Add company name',
+      contact: 'Add contact person',
+      email: 'Add business email',
+      logo: 'Add company logo',
+    };
+    return labels[id] ?? '';
+  },
+  subscriptionChoosePlan: 'Choose a plan',
+  subscriptionPlanActiveTitle: (tierName) => `${tierName} plan — active`,
+  subscriptionRemainingUnlimited: 'Unlimited unlocks this month',
+  subscriptionRemainingCount: (left) => `${left} unlocks left this month`,
+  subscriptionSubscribeToTier: (tierName) => `Subscribe to ${tierName} via WhatsApp`,
+  subscriptionSwitchToTier: (tierName) => `Switch to ${tierName} via WhatsApp`,
+  subscriptionPaymentNote:
+    'Payment confirmed via WhatsApp · Activated within 1 hour · Cancel anytime',
+  subscriptionBadgeCurrent: 'Current',
+  subscriptionBadgePopular: 'Popular',
+  subscriptionA11yCurrentPlan: 'Current plan',
+  tierDisplayName: (tier) =>
+    ({ starter: 'Starter', business: 'Business', agency: 'Agency' })[tier],
+  tierDisplayPrice: (tier) =>
+    ({
+      starter: 'AED 79.9 / mo',
+      business: 'AED 199 / mo',
+      agency: 'AED 499 / mo',
+    })[tier],
+  tierDisplayBullets: (tier) =>
+    ({
+      starter: [
+        '5 contact unlocks / month',
+        'Phone & WhatsApp details',
+        'All job categories',
+      ],
+      business: [
+        '25 contact unlocks / month',
+        'Phone & WhatsApp details',
+        'All job categories',
+        'Priority support',
+      ],
+      agency: [
+        'Unlimited contact unlocks',
+        'Phone & WhatsApp details',
+        'All job categories',
+        'Priority support',
+        'Multi-role hiring',
+      ],
+    })[tier],
   profilePaused: 'Your profile is paused — employers cannot see you',
   profileViews: 'Profile views',
   profileLive: 'Your profile is live — employers can find you',
@@ -325,8 +567,10 @@ const en: Strings = {
   editProfile: 'Edit profile',
   filters: 'Filters',
   candidatePickRole: 'Your job role',
-  candidatePickRoleHint:
-    'Choose the one role that best matches what you are looking for. Listed A–Z.',
+  candidatePickRoleHint: 'Choose the role you want to work in.',
+  jobRoleSearchPlaceholder: 'Search job role…',
+  allJobRoles: 'All roles',
+  jobRoleNoMatch: 'No roles match your search.',
   roleSelected: 'Selected',
   browsePickRole: 'What role are you hiring for?',
   browsePickRoleHint:
@@ -372,26 +616,28 @@ const en: Strings = {
   nationalityLabel: 'Nationality',
   experienceLabel: 'Experience',
   permissionRequired: 'Camera or photo library permission is required',
-  emailPlaceholder: 'you@example.com',
+  emailPlaceholder: 'Work or personal email',
   back: 'Back',
-  nationalityPlaceholder: 'Start typing, e.g. Sud…',
-  nationalityHint: 'Pick from the list so profiles stay consistent (e.g. Sudanese, not Sudan).',
+  nationalityPlaceholder: 'Search your nationality…',
+  nationalityHint: 'Type to search, then pick your country from the list.',
   locationEmirate: 'Emirate',
   locationArea: 'Area or district',
   locationAreaHint: 'Optional — helps employers find people near their business.',
-  locationAreaPlaceholder: 'e.g. Deira, Marina, Khalifa City…',
+  employerLocationAreaHint:
+    'Optional — helps candidates see where your business is based.',
+  locationAreaPlaceholder: 'District or neighbourhood (optional)',
   locationNoMatch: 'No matching area — try another spelling or pick the emirate only.',
   locationSelected: 'Selected',
   locationFilterHint: 'Filter by emirate or a specific district',
   salaryPlaceholder: 'Amount in AED',
-  phonePlaceholder: '+971501551480',
-  phonePlaceholderSpaced: '+971 50 155 1480',
+  phonePlaceholder: '+9715XXXXXXXX',
+  phonePlaceholderSpaced: '+971 5X XXX XXXX',
   phoneHelper:
     'Use international format starting with +971. Do not start with 050 — enter the full number.',
   phoneExampleLabel: (example) => `Example: ${example}`,
   errPhoneInvalid:
     'Enter a valid UAE mobile: +971 5X XXX XXXX (9 digits after +971).',
-  whatsappPlaceholder: '+971 50 155 1480',
+  whatsappEmptyPlaceholder: 'WhatsApp number (optional)',
   fullNamePlaceholder: 'As on your ID',
   companyPlaceholder: 'Your registered business name',
   contactPlaceholder: 'Person we can reach',
@@ -400,7 +646,7 @@ const en: Strings = {
   signInWithPhone: 'Sign in with phone instead',
   changeEmail: 'Change email',
   pickDate: 'Pick availability date',
-  photoHint: 'A clear face photo helps employers trust your profile',
+  photoHint: 'Face the camera, good lighting, no sunglasses or filters.',
   tapToAddPhoto: 'Tap to add photo',
   popularRoles: 'Popular roles',
   moreRoles: 'More roles',
@@ -438,7 +684,9 @@ const en: Strings = {
   errEmail: 'Enter your email',
   errEmailInvalid: 'Enter a valid email address',
   draftSaved: 'Your progress is saved — you can leave and continue later.',
+  draftSavedBanner: 'Draft saved',
   discardDraft: 'Discard saved progress',
+  discardDraftLink: 'Discard',
   yourRole: 'Your account type',
   wrongRoleHelp:
     'Role cannot be changed in the app. If you chose Candidate or Employer by mistake, contact us on WhatsApp.',
@@ -453,7 +701,7 @@ const en: Strings = {
   activeAgo: (days) =>
     days === 0 ? 'Active today' : days === 1 ? 'Active yesterday' : days < 7 ? `Active ${days}d ago` : days < 30 ? `Active ${Math.floor(days / 7)}w ago` : `Active ${Math.floor(days / 30)}mo ago`,
   tradeLicense: 'Trade license number',
-  tradeLicensePlaceholder: 'e.g. CN-1234567',
+  tradeLicensePlaceholder: 'Trade license number (optional)',
   tradeLicenseHint: 'Optional but helps candidates trust your business.',
   a11ySelected: 'Selected',
   a11yNotSelected: 'Not selected',
@@ -492,7 +740,7 @@ const en: Strings = {
   otpSuccessSubtitle: 'Success! Taking you to your account…',
   otpVerifying: 'Verifying code…',
   whatsappOptionalHint:
-    'Optional — leave blank if WhatsApp is the same as your phone number.',
+    'Leave blank if the same as your phone. Uses +971 format when filled.',
 };
 
 const ar: Strings = {
@@ -509,13 +757,91 @@ const ar: Strings = {
   resendOtp: 'إعادة إرسال الرمز',
   codeSentTo: 'تم إرسال الرمز إلى',
   signInWithEmail: 'تسجيل الدخول بالبريد بدلاً من ذلك',
-  selectRole: 'اختر نوع حسابك',
+  selectRole: 'كيف ستستخدم ترتّب؟',
   selectRoleSubtitle:
-    'هذا الاختيار دائم في التطبيق. تواصل مع الدعم إذا احتجت تغييره لاحقاً.',
+    'نوع حساب واحد لكل شخص. اختر المسار الذي يناسب استخدامك لتطبيق ترتّب.',
+  roleSelectionKicker: 'ابدأ الآن',
+  roleSelectionNextHint: 'التالي: التحقق من رقمك الإماراتي (+971).',
+  roleSelectionTrust:
+    'يتم حفظ اختيارك بأمان. تواصل مع الدعم إذا اخترت نوع حساب خاطئاً.',
+  roleCompareTitle: 'قارن أنواع الحساب',
+  roleCompareIntro:
+    'راجع الفروقات أدناه. لا يمكن التبديل بين باحث عن عمل وصاحب عمل من التطبيق دون الدعم.',
+  roleCompareFeature: 'ما الذي تحصل عليه',
+  roleComparisonRows: [
+    {
+      feature: 'هدفك',
+      candidate: 'البحث عن عمل في الإمارات',
+      employer: 'توظيف لشركتك',
+    },
+    {
+      feature: 'تنشئ',
+      candidate: 'ملفاً شخصياً للعمل',
+      employer: 'ملف شركة للتوظيف',
+    },
+    {
+      feature: 'يراك الآخرون',
+      candidate: 'أصحاب العمل يتصفحونك',
+      employer: 'المرشحون الذين تفتح بياناتهم',
+    },
+    {
+      feature: 'التكلفة',
+      candidate: 'مجاني لباحثي العمل',
+      employer: 'اشتراك شهري (٧٩٫٩ درهم)',
+    },
+    {
+      feature: 'تغيير النوع لاحقاً',
+      candidate: 'عبر الدعم فقط',
+      employer: 'عبر الدعم فقط',
+    },
+  ],
+  photoEmptyHeadline: 'صورتك مطلوبة',
+  photoEmptySub:
+    'أصحاب العمل يقررون خلال ثوانٍ. صورة واضحة للوجه أقوى إشارة ثقة على ترتّب.',
+  photoBenefits: [
+    'حتى ٥ أضعاف مشاهدات الملف',
+    'أصحاب العمل يتواصلون أولاً مع من لديهم صورة',
+    'تُظهر جدّيتك في البحث عن عمل',
+  ],
+  dashboardPhotoNag:
+    'أضف صورة واضحة للوجه ليزيد ثقة أصحاب العمل. الملفات بدون صور نادراً ما يتم التواصل معها.',
+  dashboardPhotoNagAction: 'أضف صورة الآن',
+  employerOnboardingKicker: 'إعداد صاحب العمل',
+  employerOnboardingIntro:
+    'أخبرنا عن نشاطك التجاري ليعرف المرشحون من يوظّف. الحقول المطلوبة يجب إكمالها.',
+  employerOnboardingStep1Title: 'الشركة',
+  employerOnboardingStep2Title: 'التواصل والموقع',
+  employerOnboardingStep1Intro:
+    'أضف بيانات شركتك. الشعار يساعد المرشحين على التعرّف على نشاطك.',
+  employerOnboardingStep2Intro:
+    'كيف يتواصل معك المرشحون وفريقنا؟ استخدم رقم موبايل إماراتي.',
+  companyLogo: 'شعار الشركة',
+  companyLogoTap: 'اضغط لإضافة شعار الشركة',
+  companyLogoHint: 'اختياري — صورة مربعة أفضل. يعزز الثقة مع الباحثين عن عمل.',
+  hiredBanner: 'تم تسجيلك كموظّف — ملفك مخفي عن أصحاب العمل',
+  hiredAlertTitle: 'حصلت على عمل؟',
+  hiredAlertMessage:
+    'مبروك! سيُخفى ملفك عن أصحاب العمل ولن يتواصلوا معك لعروض جديدة.',
+  hiredAlertConfirm: 'نعم، حصلت على عمل',
+  markHiredLabel: 'حصلت على عمل — إخفاء ملفي',
+  markHiredA11y: 'تسجيل الملف كموظّف',
+  previousEmployerPlaceholder: 'اسم الشركة السابقة (اختياري)',
+  nationalityExamplesHint: 'أمثلة: الإمارات، مصر، الهند، الفلبين…',
+  signingUpAsRole: (role) => `إنشاء حسابك كـ ${role}`,
   roleCandidate: 'باحث عن عمل',
   roleEmployer: 'صاحب عمل',
-  roleCandidateSubtitle: 'أنشئ ملفاً يمكن لأصحاب العمل تصفحه',
-  roleEmployerSubtitle: 'تصفح المرشحين بخطة شهرية',
+  roleCandidateSubtitle: 'أبحث عن عمل في الإمارات',
+  roleEmployerSubtitle: 'أوظّف لشركتي',
+  roleCandidateBullets: [
+    'أنشئ ملفاً يكتشفه أصحاب العمل',
+    'حدّد الراتب والتأشيرة والتوفر',
+    'إشعار عند مشاهدة ملفك',
+  ],
+  roleEmployerBullets: [
+    'تصفح باحثي العمل حسب المهنة',
+    'افتح الهاتف وواتساب',
+    'خطة شهرية — بدون رسوم لكل ملف',
+  ],
   browse: 'تصفح',
   myUnlocks: 'المرشحون',
   subscribe: 'اشترك',
@@ -533,6 +859,11 @@ const ar: Strings = {
   subscriptionBullet3: 'إلغاء في أي وقت — بدون رسوم لكل سيرة',
   subscriptionValidUntil: (date) => `صالح حتى ${date}`,
   settings: 'الإعدادات',
+  settingsPhoneLabel: 'الهاتف',
+  settingsMemberSince: 'عضو منذ',
+  uaePassTitle: 'التحقق عبر الهوية الرقمية',
+  uaePassSub: 'تحقق من هويتك عبر UAE Pass',
+  uaePassSoon: 'قريباً',
   continue: 'متابعة',
   cancel: 'إلغاء',
   confirm: 'تأكيد',
@@ -547,13 +878,9 @@ const ar: Strings = {
   contactName: 'اسم جهة الاتصال',
   startBrowsing: 'ابدأ التصفح',
   stepOf: (c, t) => `الخطوة ${c} من ${t}`,
-  yourPhoto: 'صورتك',
   camera: 'الكاميرا',
   gallery: 'المعرض',
-  skipForNow: 'تخطي الآن',
-  skipPhotoForNow: 'تخطي الصورة الآن',
-  skipPhotoForNowHint: 'يمكنك إضافة صورة لاحقاً. صورة واضحة للوجه تساعد أصحاب العمل على الوثوق بملفك.',
-  errPhotoRequired: 'أضف صورة أو اضغط «تخطي الصورة الآن»',
+  errPhotoRequired: 'أضف صورة واضحة للوجه للمتابعة. استخدم الكاميرا أو المعرض.',
   jobRole: 'المهنة',
   visaStatus: 'حالة التأشيرة',
   nationality: 'الجنسية',
@@ -572,6 +899,91 @@ const ar: Strings = {
   submitProfile: 'إرسال الملف',
   saveProfile: 'حفظ الملف',
   required: 'يرجى تعبئة الحقول المطلوبة',
+  requiredField: 'مطلوب',
+  onboardingStep1Title: 'الصورة والمهنة',
+  onboardingStepPhotoTitle: 'صورة ملفك',
+  onboardingStepPhotoIntro:
+    'صورة واضحة للوجه تساعد أصحاب العمل على الوثوق بملفك والتواصل معك أسرع.',
+  onboardingStepRoleTitle: 'مهنتك',
+  onboardingStep2Title: 'التأشيرة والموقع',
+  onboardingStep3Title: 'الراتب والتواصل',
+  onboardingStep4Title: 'الخبرة والإنهاء',
+  onboardingStep5Title: 'الخبرة والإنهاء',
+  onboardingPhotoIntro:
+    'أصحاب العمل يرون صورتك أولاً. استخدم صورة واضحة للوجه بإضاءة جيدة.',
+  profileCompletionHeadline: (percent) => `اكتمال الملف ${percent}٪`,
+  profileCompletionNext: (milestone) => `التالي: ${milestone}`,
+  profileCompleteHeadline: 'الملف مكتمل',
+  profileCompleteCelebration:
+    'ملفك مكتمل. يمكن لأصحاب العمل اكتشافك بإشارات ثقة كاملة.',
+  profileCompletionCta: 'تحسين الملف ←',
+  saveCompanyProfile: 'حفظ بيانات الشركة',
+  employerEditKicker: 'تعديل الشركة',
+  employerOnboardingEditIntro: 'حدّث بيانات نشاطك التجاري. التغييرات تُطبّق فوراً.',
+  employerOnboardingEditStep1Intro:
+    'حدّث اسم الشركة أو الشعار أو الرخصة التجارية.',
+  whatsappSubscribeMessage: (tierName, price, contact) =>
+    `مرحباً، أريد الاشتراك في ترتّب — خطة ${tierName} (${price}).\nرقمي: ${contact}`,
+  whatsappSupportMessage: 'مرحباً، أحتاج دعماً بخصوص ترتّب.',
+  profileMilestoneLabel: (id) => {
+    const labels: Record<string, string> = {
+      photo: 'أضف صورة الملف',
+      role: 'اختر مهنتك',
+      visa: 'أضف حالة التأشيرة',
+      nationality: 'أضف الجنسية',
+      location: 'أضف موقعك',
+      salary: 'أضف الراتب المتوقع',
+      phone: 'أضف رقم الهاتف',
+      name: 'أضف الاسم الكامل',
+      available: 'حدد تاريخ التوفر',
+      experience: 'أضف الخبرة واللغات',
+      company: 'أضف اسم الشركة',
+      contact: 'أضف جهة الاتصال',
+      email: 'أضف البريد الإلكتروني',
+      logo: 'أضف شعار الشركة',
+    };
+    return labels[id] ?? '';
+  },
+  subscriptionChoosePlan: 'اختر خطة',
+  subscriptionPlanActiveTitle: (tierName) => `خطة ${tierName} — نشطة`,
+  subscriptionRemainingUnlimited: 'فتح غير محدود هذا الشهر',
+  subscriptionRemainingCount: (left) => `${left} فتح متبقٍ هذا الشهر`,
+  subscriptionSubscribeToTier: (tierName) => `اشترك في ${tierName} عبر واتساب`,
+  subscriptionSwitchToTier: (tierName) => `التحويل إلى ${tierName} عبر واتساب`,
+  subscriptionPaymentNote:
+    'تأكيد الدفع عبر واتساب · التفعيل خلال ساعة · إلغاء في أي وقت',
+  subscriptionBadgeCurrent: 'الحالية',
+  subscriptionBadgePopular: 'الأكثر شيوعاً',
+  subscriptionA11yCurrentPlan: 'الخطة الحالية',
+  tierDisplayName: (tier) =>
+    ({ starter: 'أساسية', business: 'أعمال', agency: 'وكالة' })[tier],
+  tierDisplayPrice: (tier) =>
+    ({
+      starter: '٧٩٫٩ درهم / شهر',
+      business: '١٩٩ درهم / شهر',
+      agency: '٤٩٩ درهم / شهر',
+    })[tier],
+  tierDisplayBullets: (tier) =>
+    ({
+      starter: [
+        '٥ فتح بيانات تواصل / شهر',
+        'هاتف وواتساب',
+        'جميع المهن',
+      ],
+      business: [
+        '٢٥ فتح بيانات تواصل / شهر',
+        'هاتف وواتساب',
+        'جميع المهن',
+        'دعم أولوية',
+      ],
+      agency: [
+        'فتح بيانات تواصل غير محدود',
+        'هاتف وواتساب',
+        'جميع المهن',
+        'دعم أولوية',
+        'توظيف لعدة مهن',
+      ],
+    })[tier],
   profilePaused: 'ملفك متوقف — أصحاب العمل لا يمكنهم رؤيتك',
   profileViews: 'مشاهدات الملف',
   profileLive: 'ملفك نشط — أصحاب العمل يمكنهم العثور عليك',
@@ -579,8 +991,10 @@ const ar: Strings = {
   editProfile: 'تعديل الملف',
   filters: 'الفلاتر',
   candidatePickRole: 'مهنتك',
-  candidatePickRoleHint:
-    'اختر المهنة الأنسب لما تبحث عنه. مرتبة أبجدياً.',
+  candidatePickRoleHint: 'اختر المهنة التي تبحث عنها.',
+  jobRoleSearchPlaceholder: 'ابحث عن المهنة…',
+  allJobRoles: 'كل المهن',
+  jobRoleNoMatch: 'لا توجد مهنة مطابقة.',
   roleSelected: 'المحدد',
   browsePickRole: 'ما المهنة التي توظف لها؟',
   browsePickRoleHint:
@@ -626,26 +1040,27 @@ const ar: Strings = {
   nationalityLabel: 'الجنسية',
   experienceLabel: 'الخبرة',
   permissionRequired: 'مطلوب إذن الكاميرا أو معرض الصور',
-  emailPlaceholder: 'you@example.com',
+  emailPlaceholder: 'بريد العمل أو الشخصي',
   back: 'رجوع',
-  nationalityPlaceholder: 'ابدأ الكتابة، مثال: سود…',
-  nationalityHint: 'اختر من القائمة للحفاظ على توحيد البيانات (مثال: سوداني وليس السودان).',
+  nationalityPlaceholder: 'ابحث عن جنسيتك…',
+  nationalityHint: 'ابحث ثم اختر بلدك من القائمة.',
   locationEmirate: 'الإمارة',
   locationArea: 'المنطقة أو الحي',
   locationAreaHint: 'اختياري — يساعد أصحاب العمل في إيجاد مرشحين قريبين.',
-  locationAreaPlaceholder: 'مثال: ديرة، مارينا، خليفة سيتي…',
+  employerLocationAreaHint: 'اختياري — يساعد المرشحين على معرفة موقع نشاطك.',
+  locationAreaPlaceholder: 'الحي أو المنطقة (اختياري)',
   locationNoMatch: 'لا توجد منطقة مطابقة — جرّب إملاءً آخر أو اختر الإمارة فقط.',
   locationSelected: 'المحدد',
   locationFilterHint: 'فلترة حسب الإمارة أو حي محدد',
   salaryPlaceholder: 'المبلغ بالدرهم',
-  phonePlaceholder: '+971501551480',
-  phonePlaceholderSpaced: '+971 50 155 1480',
+  phonePlaceholder: '+9715XXXXXXXX',
+  phonePlaceholderSpaced: '+971 5X XXX XXXX',
   phoneHelper:
     'استخدم الصيغة الدولية التي تبدأ بـ +971. لا تبدأ بـ 050 — أدخل الرقم كاملاً.',
   phoneExampleLabel: (example) => `مثال: ${example}`,
   errPhoneInvalid:
     'أدخل رقم موبايل إماراتي صالح: +971 5X XXX XXXX (9 أرقام بعد +971).',
-  whatsappPlaceholder: '+971 50 155 1480',
+  whatsappEmptyPlaceholder: 'رقم واتساب (اختياري)',
   fullNamePlaceholder: 'كما في الهوية',
   companyPlaceholder: 'اسم الشركة المسجل',
   contactPlaceholder: 'الشخص الذي يمكن التواصل معه',
@@ -692,7 +1107,9 @@ const ar: Strings = {
   errEmail: 'أدخل البريد الإلكتروني',
   errEmailInvalid: 'أدخل بريداً إلكترونياً صالحاً',
   draftSaved: 'تم حفظ تقدمك — يمكنك المغادرة والمتابعة لاحقاً.',
+  draftSavedBanner: 'تم حفظ المسودة',
   discardDraft: 'حذف التقدم المحفوظ',
+  discardDraftLink: 'تجاهل',
   yourRole: 'نوع حسابك',
   wrongRoleHelp:
     'لا يمكن تغيير الدور من التطبيق. إذا اخترت مرشحاً أو صاحب عمل بالخطأ، تواصل معنا عبر واتساب.',
@@ -707,7 +1124,7 @@ const ar: Strings = {
   activeAgo: (days) =>
     days === 0 ? 'نشط اليوم' : days === 1 ? 'نشط أمس' : days < 7 ? `نشط منذ ${days} أيام` : days < 30 ? `نشط منذ ${Math.floor(days / 7)} أسابيع` : `نشط منذ ${Math.floor(days / 30)} أشهر`,
   tradeLicense: 'رقم الرخصة التجارية',
-  tradeLicensePlaceholder: 'مثال: CN-1234567',
+  tradeLicensePlaceholder: 'رقم الرخصة التجارية (اختياري)',
   tradeLicenseHint: 'اختياري — يساعد المرشحين على الوثوق بنشاطك التجاري.',
   a11ySelected: 'محدد',
   a11yNotSelected: 'غير محدد',

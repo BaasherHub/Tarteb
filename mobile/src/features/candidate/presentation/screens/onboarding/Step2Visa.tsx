@@ -39,7 +39,7 @@ export function Step2Visa() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     update({ nationality: resolved! });
-    setStep(3);
+    setStep(4);
   };
 
   return (
@@ -47,9 +47,10 @@ export function Step2Visa() {
       primaryLabel={t.continue}
       onPrimary={next}
       backLabel={t.back}
-      onBack={() => setStep(1)}
+      onBack={() => setStep(2)}
     >
-      <Text style={[styles.title, { textAlign: rtl.textAlign }]}>{t.visaStatus}</Text>
+      <Text style={[styles.title, { textAlign: rtl.textAlign }]}>{t.onboardingStep2Title}</Text>
+      <Text style={[styles.sub, { textAlign: rtl.textAlign }]}>{t.visaStatus}</Text>
       <FieldError message={errors.visa} />
       <View style={styles.visaGrid}>
         {VISA_STATUSES.map((status) => {
@@ -76,7 +77,7 @@ export function Step2Visa() {
       </View>
       <AutocompleteField
         label={t.nationality}
-        hint={t.nationalityHint}
+        hint={`${t.nationalityHint} ${t.nationalityExamplesHint}`}
         value={nationalityQuery}
         onChangeText={(q) => {
           setNationalityQuery(q);
@@ -105,7 +106,12 @@ export function Step2Visa() {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.h2, marginBottom: spacing.sm },
+  title: { ...typography.h2, marginBottom: spacing.xs },
+  sub: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
   visaGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

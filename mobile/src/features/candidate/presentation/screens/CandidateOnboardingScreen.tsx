@@ -4,11 +4,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { CandidateOnboardingProvider } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
-import { Step1PhotoRole } from './onboarding/Step1PhotoRole';
+import { Step1Photo } from './onboarding/Step1Photo';
+import { Step2JobRole } from './onboarding/Step2JobRole';
 import { Step2Visa } from './onboarding/Step2Visa';
 import { Step3Salary } from './onboarding/Step3Salary';
-import { Step4Experience } from './onboarding/Step4Experience';
-import { Step4Availability } from './onboarding/Step4Availability';
+import { Step4Finish } from './onboarding/Step4Finish';
 import { colors } from '@/core/theme/colors';
 
 
@@ -18,11 +18,11 @@ function OnboardingSteps(props: Props) {
   const { step } = useCandidateOnboarding();
   return (
     <View style={styles.flex}>
-      {step === 1 && <Step1PhotoRole />}
-      {step === 2 && <Step2Visa />}
-      {step === 3 && <Step3Salary />}
-      {step === 4 && <Step4Experience />}
-      {step === 5 && <Step4Availability {...props} />}
+      {step === 1 && <Step1Photo />}
+      {step === 2 && <Step2JobRole />}
+      {step === 3 && <Step2Visa />}
+      {step === 4 && <Step3Salary />}
+      {step === 5 && <Step4Finish {...props} />}
     </View>
   );
 }

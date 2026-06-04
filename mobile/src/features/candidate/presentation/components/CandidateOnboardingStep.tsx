@@ -6,13 +6,15 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
-import { OnboardingProgress } from '@/features/candidate/presentation/components/OnboardingProgress';
+import { OnboardingProgress } from '@/shared/widgets/OnboardingProgress';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 import { OnboardingDraftBanner } from '@/features/candidate/presentation/components/OnboardingDraftBanner';
+import { useLocale } from '@/core/i18n/LocaleContext';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 
 type Props = {
@@ -47,6 +49,15 @@ export function CandidateOnboardingStep({
   scrollRef,
 }: Props) {
   const { step, totalSteps } = useCandidateOnboarding();
+  const { t } = useLocale();
+  const insets = useSafeAreaInsets();
+  const stepTitles = [
+    t.onboardingStepPhotoTitle,
+    t.onboardingStepRoleTitle,
+    t.onboardingStep2Title,
+    t.onboardingStep3Title,
+    t.onboardingStep4Title,
+  ];
 
   const body = scroll ? (
     <ScrollView
@@ -64,10 +75,14 @@ export function CandidateOnboardingStep({
   return (
     <View style={styles.flex}>
       <ContentWidth style={styles.flex} variant="plain">
-        <OnboardingProgress step={step} totalSteps={totalSteps} />
+        <OnboardingProgress
+          step={step}
+          totalSteps={totalSteps}
+          stepTitles={stepTitles}
+        />
         <OnboardingDraftBanner />
         {body}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
           {backLabel && onBack && step > 1 ? (
             <SecondaryButton label={backLabel} onPress={onBack} />
           ) : null}

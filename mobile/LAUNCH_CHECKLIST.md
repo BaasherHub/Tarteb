@@ -11,8 +11,8 @@ Use this before submitting **1.0.0**. Re-run after any native config change (ico
 | Area | Status | Notes |
 |------|--------|--------|
 | TypeScript | ✅ Run `npx tsc --noEmit` before each EAS build | |
-| Metro / dev (`expo start`) | ✅ Sentry **excluded** in `__DEV__` via `crashReporting.stub` | See [`docs/SENTRY.md`](docs/SENTRY.md) |
-| Metro / release bundle | ✅ CJS resolver in `metro.config.js` + `crashReporting.prod` | |
+| Metro / dev (`expo start`) | ✅ `@sentry/*` → `metro/sentry-stub.js`; `crashReporting` = stub only | See [`docs/SENTRY.md`](docs/SENTRY.md) |
+| Metro / EAS production | ✅ `getSentryExpoConfig` + CJS resolver + `crashReporting.prod` swap | `EAS_BUILD=true` |
 | Native Sentry plugin | ⚠️ Requires **new** `eas build --profile production` after SDK add | |
 | EAS production env | ⬜ Manual | Supabase, DSN, no OTP bypass |
 | Store screenshots | ⬜ Manual | [`docs/screenshots/README.md`](docs/screenshots/README.md) |
@@ -26,6 +26,7 @@ Use this before submitting **1.0.0**. Re-run after any native config change (ico
 - [x] OTP: auto-submit, resend, `AuthSuccessPulse` + haptic (`expo-haptics`) on phone & email
 - [x] Optional WhatsApp: empty state, `validateOptionalUaeMobile`, E.164 save
 - [x] Deep links, push, toasts, error boundaries
+- [ ] **Android FCM:** `google-services.json` in `mobile/` + EAS FCM credentials — see [`docs/FCM.md`](docs/FCM.md)
 - [x] **Sentry:** `metro.config.js` + dev/prod crash reporting split — **Metro error resolved**
 
 ## Sentry (observability)

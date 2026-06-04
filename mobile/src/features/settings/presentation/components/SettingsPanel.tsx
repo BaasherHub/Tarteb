@@ -63,7 +63,7 @@ export function SettingsPanel({ onLogout }: Props) {
           {phone && (
             <View style={[styles.accountRow, rtl.rowBetween]}>
               <Text style={[styles.accountLabel, { textAlign: rtl.textAlign }]} numberOfLines={1}>
-                Phone
+                {t.settingsPhoneLabel}
               </Text>
               <Text
                 style={[styles.accountValue, { textAlign: rtl.textAlignEnd, writingDirection: 'ltr' }]}
@@ -77,7 +77,7 @@ export function SettingsPanel({ onLogout }: Props) {
           {memberSince && (
             <View style={[styles.accountRow, rtl.rowBetween, styles.accountRowLast]}>
               <Text style={[styles.accountLabel, { textAlign: rtl.textAlign }]} numberOfLines={1}>
-                Member since
+                {t.settingsMemberSince}
               </Text>
               <Text style={[styles.accountValue, { textAlign: rtl.textAlignEnd }]} numberOfLines={1}>
                 {memberSince}
@@ -96,7 +96,7 @@ export function SettingsPanel({ onLogout }: Props) {
           <InfoBanner message={t.wrongRoleHelp} variant="info" />
           <Pressable
             onPress={() => {
-              void openWhatsAppSupport();
+              void openWhatsAppSupport(t.whatsappSupportMessage);
             }}
             style={styles.roleLink}
             accessibilityRole="button"
@@ -113,14 +113,14 @@ export function SettingsPanel({ onLogout }: Props) {
         <View style={[styles.uaePassRow, rtl.rowBetween]}>
           <View style={styles.uaePassCopy}>
             <Text style={[styles.uaePassTitle, { textAlign: rtl.textAlign }]} numberOfLines={2}>
-              UAE Pass Verification
+              {t.uaePassTitle}
             </Text>
             <Text style={[styles.uaePassSub, { textAlign: rtl.textAlign }]} numberOfLines={3}>
-              Verify your identity with the UAE national ID
+              {t.uaePassSub}
             </Text>
           </View>
           <View style={styles.uaePassBadge}>
-            <Text style={styles.uaePassBadgeText}>Soon</Text>
+            <Text style={styles.uaePassBadgeText}>{t.uaePassSoon}</Text>
           </View>
         </View>
       </View>
@@ -156,7 +156,7 @@ export function SettingsPanel({ onLogout }: Props) {
       </Pressable>
       <Pressable
         style={styles.item}
-        onPress={() => openWhatsAppSupport()}
+        onPress={() => openWhatsAppSupport(t.whatsappSupportMessage)}
         accessibilityRole="button"
       >
         <Text style={[styles.itemText, { textAlign: rtl.textAlign }]} numberOfLines={2}>

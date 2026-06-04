@@ -21,9 +21,10 @@ type Props = {
   value: string;
   onChange: (location: string) => void;
   error?: string;
+  areaHint?: string;
 };
 
-export function LocationPicker({ value, onChange, error }: Props) {
+export function LocationPicker({ value, onChange, error, areaHint }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const parsed = parseLocation(value);
@@ -94,7 +95,7 @@ export function LocationPicker({ value, onChange, error }: Props) {
       </View>
       <AutocompleteField
         label={t.locationArea}
-        hint={t.locationAreaHint}
+        hint={areaHint ?? t.locationAreaHint}
         value={areaQuery}
         onChangeText={commitAreaQuery}
         onSelect={selectArea}

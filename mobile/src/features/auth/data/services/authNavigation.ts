@@ -1,5 +1,10 @@
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
+import {
+  clearPendingAccountRole,
+  getPendingAccountRole,
+  type PendingAccountRole,
+} from '@/core/services/pendingAccountRole';
 
 export class AuthRoutingError extends Error {
   constructor(
@@ -41,6 +46,11 @@ export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
   }
 
   if (!profile) {
+    const pendingRole = await getPendingAccountRole();
+    if (pendingRole) {
+      await applyPendingRole(userId, pendingRole);
+      return routeAuthenticatedUser(navigation);
+    }
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
     return;
   }
@@ -51,6 +61,18 @@ export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
   } else {
     await routeEmployer(navigation, userId);
   }
+}
+
+async function applyPendingRole(
+  userId: string,
+  role: PendingAccountRole,
+): Promise<void> {
+  const { error } = await supabase.from('profiles').insert({
+    user_id: userId,
+    role,
+  });
+  if (error) throw error;
+  await clearPendingAccountRole();
 }
 
 async function routeCandidate(navigation: Nav, userId: string): Promise<void> {

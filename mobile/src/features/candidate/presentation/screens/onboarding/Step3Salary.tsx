@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
+import { typography } from '@/core/theme/typography';
+import { spacing } from '@/core/theme/spacing';
 import { FormField } from '@/shared/widgets/FormField';
 import { PhoneNumberField } from '@/shared/widgets/PhoneNumberField';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
@@ -16,6 +20,7 @@ type Errors = { salary?: string; phone?: string; whatsapp?: string };
 
 export function Step3Salary() {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const { data, update, setStep } = useCandidateOnboarding();
   const [errors, setErrors] = useState<Errors>({});
 
@@ -42,7 +47,7 @@ export function Step3Salary() {
       phone: phoneE164,
       whatsapp: whatsappResult.ok ? whatsappResult.e164 : null,
     });
-    setStep(4);
+    setStep(5);
   };
 
   return (
@@ -50,8 +55,9 @@ export function Step3Salary() {
       primaryLabel={t.continue}
       onPrimary={next}
       backLabel={t.back}
-      onBack={() => setStep(2)}
+      onBack={() => setStep(3)}
     >
+      <Text style={[styles.title, { textAlign: rtl.textAlign }]}>{t.onboardingStep3Title}</Text>
       <FormField
         label={t.monthlySalary}
         keyboardType="number-pad"
@@ -85,9 +91,12 @@ export function Step3Salary() {
           setErrors((e) => ({ ...e, whatsapp: undefined }));
         }}
         hint={t.whatsappOptionalHint}
-        placeholder={t.whatsappPlaceholder}
         error={errors.whatsapp}
       />
     </CandidateOnboardingStep>
   );
 }
+
+const styles = StyleSheet.create({
+  title: { ...typography.h2, marginBottom: spacing.lg },
+});

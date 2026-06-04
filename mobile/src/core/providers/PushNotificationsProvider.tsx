@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import * as Linking from 'expo-linking';
-import * as Notifications from 'expo-notifications';
 import {
   handlePushPayload,
   navigateFromUrl,
@@ -8,13 +7,13 @@ import {
 } from '@/core/navigation/deepLink';
 import { navigationRef } from '@/core/navigation/navigationRef';
 import { ensureAndroidChannel } from '@/core/services/notifications';
+import { canRegisterNativePushToken } from '@/core/config/push';
+import { getNotificationsModule } from '@/core/services/notificationsLazy';
 
 type Props = { children: React.ReactNode };
 
 export function PushNotificationsProvider({ children }: Props) {
   useEffect(() => {
-    void ensureAndroidChannel();
-
     const onUrl = ({ url }: { url: string }) => {
       if (navigationRef.isReady()) {
         navigateFromUrl(navigationRef, url);
@@ -29,22 +28,37 @@ export function PushNotificationsProvider({ children }: Props) {
       }
     });
 
-    const responseSub = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const data = response.notification.request.content.data as PushPayload;
-        handlePushPayload(navigationRef, data);
-      },
-    );
+    return () => urlSub.remove();
+  }, []);
 
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
-      const data = response.notification.request.content.data as PushPayload;
-      handlePushPayload(navigationRef, data);
-    });
+  useEffect(() => {
+    if (!canRegisterNativePushToken()) return;
+
+    let responseSub: { remove: () => void } | undefined;
+    let cancelled = false;
+
+    void (async () => {
+      await ensureAndroidChannel();
+      const Notifications = await getNotificationsModule();
+      if (cancelled) return;
+
+      responseSub = Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          const data = response.notification.request.content.data as PushPayload;
+          handlePushPayload(navigationRef, data);
+        },
+      );
+
+      const last = await Notifications.getLastNotificationResponseAsync();
+      if (last) {
+        const data = last.notification.request.content.data as PushPayload;
+        handlePushPayload(navigationRef, data);
+      }
+    })();
 
     return () => {
-      urlSub.remove();
-      responseSub.remove();
+      cancelled = true;
+      responseSub?.remove();
     };
   }, []);
 

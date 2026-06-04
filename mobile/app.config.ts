@@ -1,6 +1,12 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
+import fs from 'fs';
+import path from 'path';
 
 const BRAND_PRIMARY = '#1A6FFF';
+
+const projectRoot = __dirname;
+const googleServicesJson = path.join(projectRoot, 'google-services.json');
+const fcmConfigured = fs.existsSync(googleServicesJson);
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -33,6 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.tarteb.app',
     versionCode: 1,
+    ...(fcmConfigured ? { googleServicesFile: './google-services.json' } : {}),
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
       backgroundColor: BRAND_PRIMARY,
@@ -92,6 +99,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   extra: {
+    fcmConfigured,
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
     supportsRTL: true,

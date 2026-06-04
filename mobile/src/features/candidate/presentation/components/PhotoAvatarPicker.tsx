@@ -1,96 +1,237 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
+import type { AppIconName } from '@/shared/widgets/AppIcon.types';
 
 type Props = {
   imageUri?: string | null;
-  initial?: string;
   onPressCamera: () => void;
   onPressGallery: () => void;
+  size?: 'default' | 'large';
 };
+
+function ActionButton({
+  label,
+  icon,
+  onPress,
+  variant,
+  rtlRow,
+}: {
+  label: string;
+  icon: AppIconName;
+  onPress: () => void;
+  variant: 'primary' | 'secondary';
+  rtlRow: ViewStyle['flexDirection'];
+}) {
+  const primary = variant === 'primary';
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.actionBtn,
+        primary ? styles.actionPrimary : styles.actionSecondary,
+        pressed && styles.actionPressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={[styles.actionInner, { flexDirection: rtlRow }]}>
+        <View style={styles.iconSlot}>
+          <AppIcon
+            name={icon}
+            size={20}
+            color={primary ? '#fff' : colors.primary}
+          />
+        </View>
+        <Text
+          style={primary ? styles.actionTextPrimary : styles.actionText}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
 
 export function PhotoAvatarPicker({
   imageUri,
-  initial = '?',
   onPressCamera,
   onPressGallery,
+  size = 'default',
 }: Props) {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
+  const large = size === 'large';
+  const ring = large ? 168 : 132;
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.avatarRing}>
+      <View
+        style={[
+          styles.avatarRing,
+          {
+            width: ring,
+            height: ring,
+            borderRadius: ring / 2,
+            borderColor: imageUri ? colors.secondary : colors.primary,
+            borderStyle: imageUri ? 'solid' : 'dashed',
+          },
+        ]}
+      >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.avatar} />
+          <>
+            <Image
+              source={{ uri: imageUri }}
+              style={[
+                styles.avatar,
+                {
+                  width: ring - 12,
+                  height: ring - 12,
+                  borderRadius: (ring - 12) / 2,
+                },
+              ]}
+            />
+            <View style={[styles.checkBadge, rtl.isRtl ? styles.checkRtl : styles.checkLtr]}>
+              <AppIcon name="checkmark-circle" size={26} color={colors.secondary} />
+            </View>
+          </>
         ) : (
-          <View style={styles.placeholder}>
-            <AppIcon name="camera" size={32} color={colors.primary} />
-            <Text style={styles.tapLabel}>{t.tapToAddPhoto}</Text>
-            <Text style={styles.initial}>{initial.toUpperCase()}</Text>
-          </View>
+          <Pressable
+            onPress={onPressGallery}
+            style={[
+              styles.placeholder,
+              {
+                width: ring - 12,
+                height: ring - 12,
+                borderRadius: (ring - 12) / 2,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t.tapToAddPhoto}
+          >
+            <AppIcon name="person" size={large ? 40 : 32} color={colors.primary} />
+            <Text style={[styles.tapLabel, large && styles.tapLabelLarge]} numberOfLines={2}>
+              {t.tapToAddPhoto}
+            </Text>
+          </Pressable>
         )}
       </View>
-      <View style={styles.actions}>
-        <Pressable
+
+      <View style={[styles.actionsRow, rtl.row]}>
+        <ActionButton
+          label={t.camera}
+          icon="camera"
           onPress={onPressCamera}
-          style={styles.actionBtn}
-          accessibilityRole="button"
-          accessibilityLabel={t.camera}
-        >
-          <AppIcon name="camera" size={18} color={colors.primary} />
-          <Text style={styles.actionText}>{t.camera}</Text>
-        </Pressable>
-        <Pressable
+          variant="primary"
+          rtlRow={rtl.row.flexDirection}
+        />
+        <ActionButton
+          label={t.gallery}
+          icon="images-outline"
           onPress={onPressGallery}
-          style={styles.actionBtn}
-          accessibilityRole="button"
-          accessibilityLabel={t.gallery}
-        >
-          <AppIcon name="images" size={18} color={colors.primary} />
-          <Text style={styles.actionText}>{t.gallery}</Text>
-        </Pressable>
+          variant="secondary"
+          rtlRow={rtl.row.flexDirection}
+        />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', marginBottom: 16 },
-  avatarRing: {
-    width: 148,
-    height: 148,
-    borderRadius: 74,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: colors.primary,
-    padding: 4,
-    marginBottom: 12,
+  wrap: {
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: spacing.sm,
   },
-  avatar: { width: '100%', height: '100%', borderRadius: 70 },
-  placeholder: {
-    flex: 1,
-    borderRadius: 70,
-    backgroundColor: `${colors.primary}08`,
+  avatarRing: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    borderWidth: 2.5,
+    marginBottom: spacing.lg,
+    position: 'relative',
+  },
+  avatar: {
+    backgroundColor: colors.divider,
+  },
+  checkBadge: {
+    position: 'absolute',
+    bottom: 2,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 2,
+  },
+  checkLtr: { right: 2 },
+  checkRtl: { left: 2 },
+  placeholder: {
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   tapLabel: {
-    fontSize: 12,
+    ...typography.caption,
     color: colors.primary,
     fontWeight: '600',
-    marginTop: 6,
     textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 120,
   },
-  initial: {
-    position: 'absolute',
-    fontSize: 40,
+  tapLabelLarge: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  actionsRow: {
+    width: '100%',
+    gap: spacing.md,
+    alignItems: 'stretch',
+  },
+  actionBtn: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+  },
+  actionPrimary: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  actionSecondary: {
+    backgroundColor: colors.surface,
+    borderColor: `${colors.primary}55`,
+  },
+  actionPressed: {
+    opacity: 0.88,
+  },
+  actionInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  iconSlot: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionText: {
+    color: colors.primary,
     fontWeight: '700',
-    color: `${colors.primary}30`,
+    fontSize: 15,
+    lineHeight: 20,
   },
-  actions: { flexDirection: 'row', gap: 16 },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
-  actionText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
+  actionTextPrimary: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+    lineHeight: 20,
+  },
 });
-

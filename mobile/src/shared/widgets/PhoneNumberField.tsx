@@ -55,7 +55,8 @@ export const PhoneNumberField = memo(function PhoneNumberField({
 
   const helperText = hint ?? (allowEmpty ? undefined : t.phoneHelper);
   const placeholder =
-    rest.placeholder ?? (allowEmpty ? t.whatsappPlaceholder : t.phonePlaceholderSpaced);
+    rest.placeholder ??
+    (allowEmpty ? t.whatsappEmptyPlaceholder : t.phonePlaceholderSpaced);
 
   return (
     <View style={styles.wrap}>

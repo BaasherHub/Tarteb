@@ -26,6 +26,8 @@ import { DashboardSkeleton } from '@/shared/widgets/DashboardSkeleton';
 import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
 import { registerPushTokenIfGranted } from '@/core/services/notifications';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { ProfileCompletionCard } from '@/shared/widgets/ProfileCompletionCard';
+import { candidateProfileCompletion } from '@/shared/utils/profileCompletion';
 
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -101,14 +103,11 @@ export function CandidateDashboardScreen() {
   };
 
   const markHired = () => {
-    Alert.alert(
-      '🎉 Got hired?',
-      "Congratulations! Mark your profile as hired and it will be hidden from employers.",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, I got hired!',
-          onPress: async () => {
+    Alert.alert(t.hiredAlertTitle, t.hiredAlertMessage, [
+      { text: t.cancel, style: 'cancel' },
+      {
+        text: t.hiredAlertConfirm,
+        onPress: async () => {
             const userId = (await supabase.auth.getUser()).data.user?.id;
             if (!userId) return;
             await supabase
@@ -141,6 +140,13 @@ export function CandidateDashboardScreen() {
   const photoUrl = candidate.photo_url as string | undefined;
   const visa = String(candidate.visa_status ?? '');
   const salary = candidate.salary_expectation;
+  const completion = candidateProfileCompletion(candidate);
+
+  const openProfileEditor = () => {
+    navigation.navigate('CandidateOnboarding', {
+      initial: onboardingFromRow(candidate),
+    });
+  };
 
   return (
     <ScrollView
@@ -168,7 +174,7 @@ export function CandidateDashboardScreen() {
 
         {isHired && (
           <View style={[styles.banner, styles.bannerHired]}>
-            <Text style={styles.bannerTextHired}>🎉 You got hired — profile hidden from employers</Text>
+            <Text style={styles.bannerTextHired}>{t.hiredBanner}</Text>
           </View>
         )}
         {!isActive && !isHired && (
@@ -176,6 +182,12 @@ export function CandidateDashboardScreen() {
             <Text style={styles.bannerText}>{t.profilePaused}</Text>
           </View>
         )}
+
+        <ProfileCompletionCard
+          completion={completion}
+          onImprove={completion.percent < 100 ? openProfileEditor : undefined}
+          variant="candidate"
+        />
 
         <View style={styles.card}>
           {photoUrl ? (
@@ -236,23 +248,16 @@ export function CandidateDashboardScreen() {
             <Switch
               value={false}
               onValueChange={markHired}
-              accessibilityLabel="Mark as hired"
+              accessibilityLabel={t.markHiredA11y}
             />
             <Text style={[styles.hiredLabel, { textAlign: rtl.textAlign }]} numberOfLines={3}>
-              I got hired — hide my profile
+              {t.markHiredLabel}
             </Text>
           </View>
         )}
 
         <View style={styles.editWrap}>
-          <PrimaryButton
-            label={t.editProfile}
-            onPress={() =>
-              navigation.navigate('CandidateOnboarding', {
-                initial: onboardingFromRow(candidate),
-              })
-            }
-          />
+          <PrimaryButton label={t.editProfile} onPress={openProfileEditor} />
         </View>
       </ContentWidth>
     </ScrollView>

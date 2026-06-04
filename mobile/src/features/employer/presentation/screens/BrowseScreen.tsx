@@ -24,6 +24,7 @@ import { EmptyState } from '@/shared/widgets/EmptyState';
 import { ErrorState } from '@/shared/widgets/ErrorState';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { supabase } from '@/core/lib/supabase';
 import { getErrorMessage, isLikelyNetworkError } from '@/shared/utils/errors';
 import {
   BrowseFilters,
@@ -49,6 +50,9 @@ import { BrowseListRow } from '@/features/employer/presentation/components/Brows
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { RefineFiltersModal } from './RefineFiltersModal';
 import { RolePickerView } from './RolePickerView';
+import { ProfileCompletionCard } from '@/shared/widgets/ProfileCompletionCard';
+import { employerProfileCompletion } from '@/shared/utils/profileCompletion';
+import { employerFromRow } from '@/features/employer/domain/types/employerOnboarding';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -74,6 +78,7 @@ export function BrowseScreen() {
   const [subActive, setSubActive] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
+  const [employerProfile, setEmployerProfile] = useState<Record<string, unknown> | null>(null);
 
   const pageRef = useRef(0);
   const loadingMoreRef = useRef(false);
@@ -90,6 +95,16 @@ export function BrowseScreen() {
       const pendingAt = await getSubscriptionPendingAt();
       setSubPending(isSubscriptionPending(pendingAt, active));
       if (active) await clearSubscriptionPending();
+
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (userId) {
+        const { data: employer } = await supabase
+          .from('employers')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        setEmployerProfile(employer as Record<string, unknown> | null);
+      }
     } catch {
       setSubActive(false);
       setSubPending(false);
@@ -307,12 +322,38 @@ export function BrowseScreen() {
     [navigateSubscription, subActive, subPending, t],
   );
 
+  const employerCompletion =
+    employerProfile ? employerProfileCompletion(employerProfile) : null;
+
+  const openEmployerProfileEdit = useCallback(() => {
+    if (!employerProfile) return;
+    navigation.navigate('EmployerOnboarding', {
+      initial: employerFromRow(employerProfile),
+    });
+  }, [employerProfile, navigation]);
+
+  const employerCompletionCard =
+    employerCompletion ? (
+      <View style={styles.completionPad}>
+        <ProfileCompletionCard
+          completion={employerCompletion}
+          variant="employer"
+          onImprove={
+            employerCompletion.percent < 100 && employerProfile
+              ? openEmployerProfileEdit
+              : undefined
+          }
+        />
+      </View>
+    ) : null;
+
   if (!selectedRole) {
     return (
       <ContentWidth style={styles.container}>
         <View style={styles.headerPad}>
           <ScreenHeader title={t.browse} right={planPill} />
         </View>
+        {employerCompletionCard}
         <RolePickerView onSelectRole={selectRole} />
       </ContentWidth>
     );
@@ -378,6 +419,10 @@ export function BrowseScreen() {
         />
       ) : null}
 
+      {employerCompletion && employerCompletion.percent < 100
+        ? employerCompletionCard
+        : null}
+
       {showingCache ? (
         <View style={styles.cacheBanner}>
           <InfoBanner message={t.offlineCachedHint} variant="warning" />
@@ -410,6 +455,7 @@ export function BrowseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.scaffold },
+  completionPad: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   headerPad: { paddingHorizontal: spacing.lg },
   list: { flex: 1 },
   cacheBanner: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },

@@ -38,7 +38,7 @@ export function SplashScreen({ navigation }: Props) {
         flushPendingDeepLink(navigationRef);
         return;
       }
-      navigation.replace('PhoneOtp');
+      navigation.replace('RoleSelection');
     } catch (e) {
       bootstrapped.current = false;
       if (e instanceof AuthRoutingError) {
@@ -69,7 +69,7 @@ export function SplashScreen({ navigation }: Props) {
               void bootstrapRoute();
             }}
           >
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t.retry}</Text>
           </Pressable>
         </View>
       ) : (

@@ -19,12 +19,15 @@ export const env = {
     process.env.EXPO_PUBLIC_SUPABASE_URL ?? extra?.supabaseUrl ?? '',
   supabaseAnonKey:
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? extra?.supabaseAnonKey ?? '',
-  /** Requires __DEV__ AND explicit env — cannot activate in store builds. */
+  /**
+   * Dev-only OTP bypass. Release/production builds always have __DEV__ === false,
+   * so this stays false even if EXPO_PUBLIC_SKIP_OTP_VERIFICATION is set in EAS env.
+   */
   skipOtpVerification:
     typeof __DEV__ !== 'undefined' &&
     __DEV__ === true &&
     process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
-  /** Shown only when OTP bypass is active in development. */
+  /** Dev banner — same gating as skipOtpVerification; never shown in store builds. */
   showDevOtpBanner:
     typeof __DEV__ !== 'undefined' &&
     __DEV__ === true &&

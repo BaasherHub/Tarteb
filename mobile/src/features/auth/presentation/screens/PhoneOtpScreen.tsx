@@ -87,8 +87,10 @@ import {
   verifyOtp,
 
 } from '@/features/auth/data/services/twilioVerify';
-
-
+import {
+  getPendingAccountRole,
+  type PendingAccountRole,
+} from '@/core/services/pendingAccountRole';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneOtp'>;
 
@@ -133,8 +135,18 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
 
   const otpBypass = isOtpBypassEnabled();
+  const [pendingRole, setPendingRole] = useState<PendingAccountRole | null>(null);
 
+  useEffect(() => {
+    void getPendingAccountRole().then(setPendingRole);
+  }, []);
 
+  const pendingRoleLabel =
+    pendingRole === 'candidate'
+      ? t.roleCandidate
+      : pendingRole === 'employer'
+        ? t.roleEmployer
+        : null;
 
   useEffect(() => {
 
@@ -456,7 +468,9 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
             <AppBrand />
 
-
+            {pendingRoleLabel ? (
+              <InfoBanner message={t.signingUpAsRole(pendingRoleLabel)} />
+            ) : null}
 
             <InfoBanner message={t.accountNotice} />
 

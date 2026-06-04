@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleProp, Text, TextStyle } from 'react-native';
+import { StyleProp, TextStyle } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors } from '@/core/theme/colors';
 import type { AppIconName } from '@/shared/widgets/AppIcon.types';
-
 
 type Props = {
   name: AppIconName;
@@ -11,25 +11,7 @@ type Props = {
   style?: StyleProp<TextStyle>;
 };
 
-const WEB_SYMBOLS: Record<AppIconName, string> = {
-  person: '👤',
-  business: '🏢',
-  settings: '⚙',
-  camera: '📷',
-  images: '🖼',
-  'chevron-forward': '›',
-  'chevron-back': '‹',
-  home: '⌂',
-  search: '⌕',
-  'checkmark-circle': '✓',
-  time: '◷',
-  'logo-whatsapp': '💬',
-};
-
+/** Web uses the same Ionicons as native for consistent QA on localhost. */
 export function AppIcon({ name, size = 22, color = colors.primary, style }: Props) {
-  return (
-    <Text style={[{ fontSize: size, color, lineHeight: size + 2 }, style]}>
-      {WEB_SYMBOLS[name]}
-    </Text>
-  );
-}
+  return <Ionicons name={name} size={size} color={color} style={style} />;
+};

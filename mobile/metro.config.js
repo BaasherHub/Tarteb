@@ -1,9 +1,24 @@
 const path = require('path');
-const { getSentryExpoConfig } = require('@sentry/react-native/metro');
+const { getDefaultConfig } = require('expo/metro-config');
+const {
+  isDevMetroBundle,
+  createSentryAwareResolveRequest,
+  devSentryBlockList,
+} = require('./metro/crash-reporting-resolver');
 
 const projectRoot = __dirname;
 
-/** Force Metro to bundle Sentry JS SDKs via CJS (ESM has unresolvable ./tracing/* paths). */
+/** @type {import('expo/metro-config').MetroConfig} */
+let config;
+
+if (isDevMetroBundle()) {
+  // Dev: plain Expo Metro — no Sentry serializer hooks pulling @sentry/core into the graph.
+  config = getDefaultConfig(projectRoot);
+} else {
+  const { getSentryExpoConfig } = require('@sentry/react-native/metro');
+  config = getSentryExpoConfig(projectRoot, { includeWebReplay: false });
+}
+
 const SENTRY_CJS_ENTRY = {
   '@sentry/core': 'build/cjs/index.js',
   '@sentry/react': 'build/cjs/index.js',
@@ -23,29 +38,35 @@ function resolveSentryCjsEntry(moduleName) {
   }
 }
 
-/** @type {import('expo/metro-config').MetroConfig} */
-const config = getSentryExpoConfig(projectRoot, {
-  includeWebReplay: false,
-});
-
-const sentryResolveRequest = config.resolver?.resolveRequest;
+const defaultResolveRequest = config.resolver?.resolveRequest;
+const sentryToolingResolve = defaultResolveRequest;
 
 config.resolver = {
   ...config.resolver,
   unstable_enablePackageExports: false,
   unstable_conditionNames: ['require', 'import', 'react-native', 'default'],
-  resolveRequest: (context, moduleName, platform) => {
-    const cjsFile = resolveSentryCjsEntry(moduleName);
-    if (cjsFile) {
-      return { type: 'sourceFile', filePath: cjsFile };
+  blockList: [
+    ...(Array.isArray(config.resolver?.blockList)
+      ? config.resolver.blockList
+      : config.resolver?.blockList
+        ? [config.resolver.blockList]
+        : []),
+    ...devSentryBlockList(),
+  ],
+  resolveRequest: createSentryAwareResolveRequest(projectRoot, (context, moduleName, platform) => {
+    if (!isDevMetroBundle()) {
+      const cjsFile = resolveSentryCjsEntry(moduleName);
+      if (cjsFile) {
+        return { type: 'sourceFile', filePath: cjsFile };
+      }
     }
 
-    if (sentryResolveRequest) {
-      return sentryResolveRequest(context, moduleName, platform);
+    if (sentryToolingResolve) {
+      return sentryToolingResolve(context, moduleName, platform);
     }
 
     return context.resolveRequest(context, moduleName, platform);
-  },
+  }),
 };
 
 module.exports = config;

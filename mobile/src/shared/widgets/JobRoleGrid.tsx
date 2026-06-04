@@ -1,15 +1,24 @@
-import React, { memo } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { memo, useMemo, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
 import { interaction } from '@/core/theme/interaction';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
-import { usePressScale } from '@/shared/hooks/usePressScale';
+import { AppIcon } from '@/shared/widgets/AppIcon';
 import { chipA11yProps } from '@/shared/utils/a11y';
-import { useIsCompactScreen } from '@/shared/utils/layout';
-import { POPULAR_ROLES, ROLE_CATEGORIES } from '@/features/candidate/domain/constants/candidate';
+import {
+  POPULAR_ROLES,
+  SORTED_CANDIDATE_ROLES,
+} from '@/features/candidate/domain/constants/candidate';
 
 type Props = {
   selectedRole?: string | null;
@@ -17,148 +26,263 @@ type Props = {
   counts?: Record<string, number>;
 };
 
-function RoleCard({
-  role,
-  selected,
-  count,
-  onSelectRole,
-  compact,
-}: {
-  role: string;
-  selected: boolean;
-  count?: number;
-  onSelectRole: (role: string) => void;
-  compact: boolean;
-}) {
-  const { t } = useLocale();
-  const a11y = chipA11yProps(role, selected, t);
-  const { animatedStyle, onPressIn, onPressOut } = usePressScale();
-
-  return (
-    <Pressable
-      onPress={() => onSelectRole(role)}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      accessibilityRole="button"
-      {...a11y}
-      style={styles.pressable}
-    >
-      <Animated.View
-        style={[
-          styles.card,
-          compact && styles.cardCompact,
-          selected && styles.cardSelected,
-          animatedStyle,
-        ]}
-      >
-        <Text
-          style={[styles.label, selected && styles.labelSelected]}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-          maxFontSizeMultiplier={1.25}
-        >
-          {role}
-        </Text>
-        {count != null && count > 0 && (
-          <Text style={[styles.count, selected && styles.countSelected]}>{count}</Text>
-        )}
-      </Animated.View>
-    </Pressable>
-  );
+function matchesQuery(role: string, query: string): boolean {
+  return role.toLowerCase().includes(query.trim().toLowerCase());
 }
 
-export const JobRoleGrid = memo(function JobRoleGrid({ selectedRole, onSelectRole, counts }: Props) {
-  const { lang } = useLocale();
+export const JobRoleGrid = memo(function JobRoleGrid({
+  selectedRole,
+  onSelectRole,
+  counts,
+}: Props) {
+  const { t } = useLocale();
   const rtl = useRtlStyles();
-  const compact = useIsCompactScreen();
+  const [query, setQuery] = useState('');
+
+  const popularSet = useMemo(() => new Set(POPULAR_ROLES), []);
+
+  const filteredPopular = useMemo(() => {
+    if (!query.trim()) return POPULAR_ROLES;
+    return POPULAR_ROLES.filter((r) => matchesQuery(r, query));
+  }, [query]);
+
+  const filteredOther = useMemo(() => {
+    const base = SORTED_CANDIDATE_ROLES.filter((r) => !popularSet.has(r));
+    if (!query.trim()) return base;
+    return base.filter((r) => matchesQuery(r, query));
+  }, [query, popularSet]);
+
+  const showPopular = filteredPopular.length > 0;
+  const showAll = filteredOther.length > 0;
 
   return (
     <View style={styles.root}>
-      <Text
-        style={[styles.sectionHeader, { textAlign: rtl.textAlign }]}
-        accessibilityRole="header"
-      >
-        {lang === 'ar' ? 'الأكثر طلباً' : 'Popular'}
-      </Text>
-      <View style={[styles.grid, rtl.row]}>
-        {POPULAR_ROLES.map((role) => (
-          <RoleCard
-            key={role}
-            role={role}
-            selected={selectedRole === role}
-            count={counts?.[role]}
-            onSelectRole={onSelectRole}
-            compact={compact}
-          />
-        ))}
-      </View>
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t.jobRoleSearchPlaceholder}
+        placeholderTextColor={colors.placeholder}
+        style={[styles.search, { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection }]}
+        accessibilityLabel={t.jobRoleSearchPlaceholder}
+        autoCorrect={false}
+        autoCapitalize="none"
+      />
 
-      {ROLE_CATEGORIES.map((cat) => (
-        <View key={cat.label} style={styles.category}>
-          <Text
-            style={[styles.sectionHeader, { textAlign: rtl.textAlign }]}
-            accessibilityRole="header"
-          >
-            {lang === 'ar' ? cat.labelAr : cat.label}
+      {selectedRole ? (
+        <View style={[styles.selectedBar, rtl.row]}>
+          <Text style={[styles.selectedLabel, { textAlign: rtl.textAlign }]} numberOfLines={1}>
+            {t.roleSelected}
           </Text>
-          <View style={[styles.grid, rtl.row]}>
-            {cat.roles.map((role) => (
-              <RoleCard
-                key={role}
-                role={role}
-                selected={selectedRole === role}
-                count={counts?.[role]}
-                onSelectRole={onSelectRole}
-                compact={compact}
-              />
-            ))}
+          <Text style={[styles.selectedValue, { textAlign: rtl.textAlignEnd }]} numberOfLines={1}>
+            {selectedRole}
+          </Text>
+        </View>
+      ) : null}
+
+      {showPopular ? (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}>
+            {t.popularRoles}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.popularRow, rtl.row]}
+            keyboardShouldPersistTaps="handled"
+          >
+            {filteredPopular.map((role) => {
+              const selected = selectedRole === role;
+              const a11y = chipA11yProps(role, selected, t);
+              return (
+                <Pressable
+                  key={role}
+                  onPress={() => onSelectRole(role)}
+                  style={({ pressed }) => [
+                    styles.popularChip,
+                    selected && styles.popularChipSelected,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
+                  {...a11y}
+                >
+                  <Text
+                    style={[styles.popularChipText, selected && styles.popularChipTextSelected]}
+                    numberOfLines={1}
+                  >
+                    {role}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {showAll ? (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}>
+            {t.allJobRoles}
+          </Text>
+          <View style={styles.list}>
+            {filteredOther.map((role, index) => {
+              const selected = selectedRole === role;
+              const count = counts?.[role];
+              const a11y = chipA11yProps(role, selected, t);
+              return (
+                <Pressable
+                  key={role}
+                  onPress={() => onSelectRole(role)}
+                  style={({ pressed }) => [
+                    styles.listRow,
+                    rtl.row,
+                    index > 0 && styles.listRowBorder,
+                    selected && styles.listRowSelected,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
+                  {...a11y}
+                >
+                  <Text
+                    style={[styles.listLabel, selected && styles.listLabelSelected]}
+                    numberOfLines={2}
+                  >
+                    {role}
+                  </Text>
+                  <View style={[styles.listMeta, rtl.row]}>
+                    {count != null && count > 0 ? (
+                      <Text style={styles.count}>{count}</Text>
+                    ) : null}
+                    {selected ? (
+                      <AppIcon name="checkmark-circle" size={22} color={colors.primary} />
+                    ) : null}
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
-      ))}
+      ) : null}
+
+      {!showPopular && !showAll ? (
+        <Text style={[styles.empty, { textAlign: rtl.textAlignCenter }]}>{t.jobRoleNoMatch}</Text>
+      ) : null}
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  root: { gap: spacing.xs },
-  category: { marginTop: spacing.sm },
-  sectionHeader: {
+  root: { gap: spacing.lg },
+  search: {
+    ...typography.body,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 48,
+    color: colors.textPrimary,
+  },
+  selectedBar: {
+    backgroundColor: colors.primaryTint,
+    borderRadius: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
+  },
+  selectedLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    flexShrink: 0,
+  },
+  selectedValue: {
+    ...typography.body,
+    color: colors.primary,
+    fontWeight: '700',
+    flex: 1,
+  },
+  section: { gap: spacing.sm },
+  sectionTitle: {
     ...typography.label,
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
-    marginTop: spacing.xl,
+    letterSpacing: 0.4,
   },
-  grid: { flexWrap: 'wrap', gap: spacing.md },
-  pressable: { minWidth: '47%', flexGrow: 1, flexBasis: '45%' },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: spacing.md,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
+  popularRow: {
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
   },
-  cardCompact: {
-    minWidth: '100%',
-    flexBasis: '100%',
+  popularChip: {
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    borderRadius: 24,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.divider,
+    maxWidth: 200,
   },
-  cardSelected: {
+  popularChipSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primaryTint,
   },
-  label: { ...typography.body, fontWeight: '600', color: colors.textPrimary, textAlign: 'center' },
-  labelSelected: { color: colors.primary },
+  popularChipText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  popularChipTextSelected: {
+    color: colors.primary,
+  },
+  list: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  listRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 52,
+    gap: spacing.md,
+  },
+  listRowBorder: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+  },
+  listRowSelected: {
+    backgroundColor: colors.primaryTint,
+  },
+  listLabel: {
+    ...typography.body,
+    fontWeight: '500',
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  listLabelSelected: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  listMeta: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    flexShrink: 0,
+  },
   count: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.textSecondary,
   },
-  countSelected: { color: colors.primary },
+  pressed: { opacity: interaction.pressed },
+  empty: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    paddingVertical: spacing.xl,
+  },
 });

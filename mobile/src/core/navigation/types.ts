@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { CandidateOnboardingData } from '@/features/candidate/domain/types/candidateOnboarding';
+import type { EmployerOnboardingData } from '@/features/employer/domain/types/employerOnboarding';
 
 export type EmployerTabParamList = {
   BrowseTab: undefined;
@@ -17,7 +18,7 @@ export type RootStackParamList = {
   PhoneOtp: undefined;
   EmailOtp: undefined;
   RoleSelection: undefined;
-  EmployerOnboarding: undefined;
+  EmployerOnboarding: { initial?: EmployerOnboardingData } | undefined;
   EmployerShell: NavigatorScreenParams<EmployerTabParamList> | undefined;
   CandidateOnboarding: { initial?: CandidateOnboardingData };
   CandidateDashboard: undefined;
