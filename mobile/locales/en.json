@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Tarteb",
+    "NSCameraUsageDescription": "Tarteb uses the camera so you can add a profile photo.",
+    "NSPhotoLibraryUsageDescription": "Tarteb uses your photo library so you can choose a profile photo."
+  },
+  "android": {
+    "app_name": "Tarteb"
+  }
+}

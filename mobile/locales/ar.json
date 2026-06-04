@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "طارب",
+    "NSCameraUsageDescription": "يستخدم تطبيق طارب الكاميرا لإضافة صورة الملف الشخصي.",
+    "NSPhotoLibraryUsageDescription": "يستخدم تطبيق طارب معرض الصور لاختيار صورة الملف الشخصي."
+  },
+  "android": {
+    "app_name": "طارب"
+  }
+}
