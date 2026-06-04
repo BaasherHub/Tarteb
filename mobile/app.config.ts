@@ -81,7 +81,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
     supportsRTL: true,
     eas: {
-      projectId: process.env.EAS_PROJECT_ID ?? '',
+      projectId:
+        process.env.EAS_PROJECT_ID ?? '626b8ae5-2553-487f-bddf-76ce3015191c',
     },
   },
 });
