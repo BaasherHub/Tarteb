@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import type { Lang } from '@/core/i18n/strings';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
@@ -10,6 +10,7 @@ import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { SettingsLinkRow } from '@/features/settings/presentation/components/SettingsLinkRow';
+import { ConfirmDialog } from '@/shared/widgets/ConfirmDialog';
 import { ListRowSkeleton } from '@/shared/widgets/ListRowSkeleton';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
@@ -71,6 +72,8 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [phone, setPhone] = useState<string | null>(null);
   const [memberSince, setMemberSince] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,17 +142,16 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const roleLabel =
     role === 'candidate' ? t.roleCandidate : role === 'employer' ? t.roleEmployer : null;
 
-  const confirmLogout = () => {
-    Alert.alert(t.settingsLogoutConfirmTitle, t.settingsLogoutConfirmMessage, [
-      { text: t.cancel, style: 'cancel' },
-      {
-        text: t.settingsLogoutConfirm,
-        style: 'destructive',
-        onPress: () => {
-          void onLogout();
-        },
-      },
-    ]);
+  const confirmLogout = () => setLogoutConfirmOpen(true);
+
+  const runLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await onLogout();
+      setLogoutConfirmOpen(false);
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   const phoneDisplay = phone ? formatPhoneForDisplay(phone) : null;
@@ -290,6 +292,19 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
           accessibilityLabel={t.logout}
         />
       </SurfaceCard>
+
+      <ConfirmDialog
+        visible={logoutConfirmOpen}
+        title={t.settingsLogoutConfirmTitle}
+        message={t.settingsLogoutConfirmMessage}
+        confirmLabel={t.settingsLogoutConfirm}
+        cancelLabel={t.cancel}
+        loading={logoutLoading}
+        onConfirm={() => void runLogout()}
+        onCancel={() => {
+          if (!logoutLoading) setLogoutConfirmOpen(false);
+        }}
+      />
     </View>
   );
 }

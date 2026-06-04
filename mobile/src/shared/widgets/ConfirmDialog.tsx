@@ -18,7 +18,7 @@ type Props = {
   visible: boolean;
   title: string;
   message: string;
-  highlight: string;
+  highlight?: string;
   confirmLabel: string;
   cancelLabel: string;
   loading?: boolean;
@@ -79,11 +79,13 @@ export function ConfirmDialog({
           >
             {message}
           </Text>
-          <View style={styles.highlightBox} accessibilityRole="text">
-            <Text style={styles.highlight} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-              {highlight}
-            </Text>
-          </View>
+          {highlight?.trim() ? (
+            <View style={styles.highlightBox} accessibilityRole="text">
+              <Text style={styles.highlight} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                {highlight}
+              </Text>
+            </View>
+          ) : null}
           {loading ? (
             <ActivityIndicator
               color={colors.primary}
