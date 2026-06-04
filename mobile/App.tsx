@@ -1,7 +1,6 @@
-import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { LocaleProvider } from './src/i18n/LocaleContext';
-import { RootNavigator } from './src/navigation/RootNavigator';
+import { LocaleProvider } from '@/core/i18n/LocaleContext';
+import { RootNavigator } from '@/core/navigation/RootNavigator';
 
 export default function App() {
   return (
