@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   plugins: [
+    'expo-font',
     [
       'expo-image-picker',
       {
