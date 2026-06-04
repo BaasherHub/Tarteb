@@ -2,24 +2,32 @@
 
 UAE blue-collar job marketplace.
 
-## Main app
+## Active app
 
-The active client is **Expo React Native (TypeScript)** in [`mobile/`](mobile/).
+The client is **Expo React Native (TypeScript)** in [`mobile/`](mobile/).
 
 ```bash
 cd mobile
 npm install
-cp .env.example .env   # add your Supabase URL and anon key
-npm start
+cp .env.example .env   # Supabase URL and anon key
+npx expo start
 ```
 
-See [`mobile/README.md`](mobile/README.md) and [`SETUP.md`](SETUP.md) for backend and environment setup. Supabase migrations live in [`supabase/`](supabase/).
+- App docs: [`mobile/README.md`](mobile/README.md)
+- Backend: [`supabase/`](supabase/) (migrations and Edge Functions)
+- CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
 ## Repository layout
 
 ```
 tarteb/
-├── mobile/     # Expo React Native app (primary)
-├── supabase/   # Database migrations and Edge Functions
-└── ...
+├── mobile/              # Expo app (primary)
+├── supabase/            # Database + Edge Functions
+├── .github/             # GitHub Actions
+├── archive/flutter/     # Legacy Flutter files (archived, not maintained)
+└── README.md
 ```
+
+## Legacy Flutter
+
+Old Flutter scaffold and setup docs were moved to [`archive/flutter/`](archive/flutter/) and are not part of day-to-day development.

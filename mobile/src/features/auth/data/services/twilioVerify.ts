@@ -4,7 +4,7 @@ import { supabase } from '@/core/lib/supabase';
 
 let otpSessionPhoneE164: string | null = null;
 
-/** TESTING ONLY — when true, no Twilio SMS (see TESTING_OTP_BYPASS.md). */
+/** TESTING ONLY — when true, no Twilio SMS (see archive/flutter/TESTING_OTP_BYPASS.md). */
 export function isOtpBypassEnabled(): boolean {
   return env.skipOtpVerification;
 }

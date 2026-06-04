@@ -65,3 +65,12 @@ mobile/.expo/
 mobile/dist/
 mobile/.env
 *.g.dart
+
+# IDE / local tooling (not committed)
+.cursor/
+.netlify/
+
+# Archived Flutter build artifacts
+archive/flutter/build/
+archive/flutter/.dart_tool/
+archive/flutter/.flutter-plugins-dependencies

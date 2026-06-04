@@ -4,7 +4,7 @@ const extra = Constants.expoConfig?.extra as
   | { supabaseUrl?: string; supabaseAnonKey?: string }
   | undefined;
 
-/** TESTING ONLY — see TESTING_OTP_BYPASS.md. Never true in production builds. */
+/** TESTING ONLY — see archive/flutter/TESTING_OTP_BYPASS.md. Never true in production builds. */
 export const env = {
   supabaseUrl:
     process.env.EXPO_PUBLIC_SUPABASE_URL ?? extra?.supabaseUrl ?? '',
