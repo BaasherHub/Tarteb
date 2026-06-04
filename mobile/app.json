@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "Tarteb",
-    "slug": "tarteb"
+    "slug": "tarteb",
+    "owner": "baasher"
   }
 }
