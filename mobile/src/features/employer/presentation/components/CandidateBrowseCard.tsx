@@ -8,27 +8,37 @@ import { typography } from '@/core/theme/typography';
 import { usePressScale } from '@/shared/hooks/usePressScale';
 import { candidateCardA11yLabel } from '@/shared/utils/a11y';
 import { VisaChip } from '@/shared/widgets/VisaChip';
+import { CandidateRolesDisplay } from '@/shared/widgets/CandidateRolesDisplay';
+import { formatCandidateRolesA11y } from '@/shared/utils/candidateRoles';
 
 type Props = {
   item: Record<string, unknown>;
+  hiringRole?: string | null;
   onPress: () => void;
 };
 
 function CandidateBrowseCardInner({
   item,
+  hiringRole,
   onPress,
 }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const { animatedStyle, onPressIn, onPressOut } = usePressScale();
   const name = String(item.name ?? '—');
-  const role = String(item.role ?? '');
+  const roleA11y = formatCandidateRolesA11y(item, hiringRole, {
+    main: t.employerPrimaryRoleBadge,
+    also: t.employerAlsoOpenTo,
+    matchPrimary: t.employerMatchPrimaryShort,
+    matchSecondary: t.employerMatchSecondaryShort,
+  });
   const location = String(item.location ?? '');
   const nationality = String(item.nationality ?? '');
   const visa = String(item.visa_status ?? '');
   const salary = item.salary_expectation;
   const photoUrl = item.photo_url as string | undefined;
   const unlocked = item.phone != null;
+  const hasCv = item.has_cv === true;
   const lastActiveAt = item.last_active_at as string | undefined;
   const activeDays = lastActiveAt
     ? Math.floor((Date.now() - new Date(lastActiveAt).getTime()) / 86_400_000)
@@ -37,7 +47,7 @@ function CandidateBrowseCardInner({
 
   const a11yLabel = candidateCardA11yLabel(t, {
     name,
-    role,
+    role: roleA11y || String(item.role ?? ''),
     location:
       salary != null
         ? `${location}. ${t.salaryPerMonth(String(salary))}`
@@ -83,17 +93,22 @@ function CandidateBrowseCardInner({
                   {t.unlockedBadge}
                 </Text>
               </View>
+            ) : hasCv ? (
+              <View style={styles.cvBadge}>
+                <Text style={styles.cvBadgeText} numberOfLines={1}>
+                  {t.cvBadge}
+                </Text>
+              </View>
             ) : null}
           </View>
-          <Text
-            style={[styles.role, { textAlign: rtl.textAlign }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {role}
-          </Text>
+          <CandidateRolesDisplay
+            role={item.role}
+            additional_roles={item.additional_roles}
+            hiringRole={hiringRole}
+            layout="card"
+          />
           <View style={[styles.chipRow, rtl.row]}>
-            {visa ? <VisaChip label={visa} /> : null}
+            {visa ? <VisaChip label={t.visaStatusLabel(visa)} /> : null}
             {nationality ? (
               <Text
                 style={[styles.nat, { textAlign: rtl.textAlign }]}
@@ -135,7 +150,10 @@ function CandidateBrowseCardInner({
 
 export const CandidateBrowseCard = memo(
   CandidateBrowseCardInner,
-  (prev, next) => prev.item === next.item && prev.onPress === next.onPress,
+  (prev, next) =>
+    prev.item === next.item &&
+    prev.onPress === next.onPress &&
+    prev.hiringRole === next.hiringRole,
 );
 
 const styles = StyleSheet.create({
@@ -164,7 +182,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   name: { ...typography.h3, flexShrink: 1, minWidth: 0 },
-  role: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   chipRow: {
     alignItems: 'center',
     gap: spacing.sm,
@@ -188,6 +205,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   unlockedText: { fontSize: 11, fontWeight: '700', color: colors.secondary },
+  cvBadge: {
+    backgroundColor: colors.primaryTint,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+    flexShrink: 0,
+  },
+  cvBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
   activeAgo: { fontSize: 11, color: colors.textSecondary, marginTop: spacing.xs },
   activeAgoFresh: { color: colors.secondary, fontWeight: '600' },
 });

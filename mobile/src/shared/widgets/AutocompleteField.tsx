@@ -1,5 +1,6 @@
-import React, { useId, useMemo, useState } from 'react';
+import React, { useId, useMemo, useRef, useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -44,9 +45,42 @@ export function AutocompleteField({
   const { t } = useLocale();
   const inputId = useId();
   const [focused, setFocused] = useState(false);
+  const listInteracting = useRef(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showList = focused && options.length > 0;
 
   const list = useMemo(() => options, [options]);
+
+  const clearBlurTimer = () => {
+    if (blurTimer.current) {
+      clearTimeout(blurTimer.current);
+      blurTimer.current = null;
+    }
+  };
+
+  const scheduleBlur = () => {
+    clearBlurTimer();
+    blurTimer.current = setTimeout(() => {
+      if (!listInteracting.current) setFocused(false);
+    }, 250);
+  };
+
+  const keepListFocus = () => {
+    listInteracting.current = true;
+    clearBlurTimer();
+    setFocused(true);
+  };
+
+  const releaseListFocus = () => {
+    setTimeout(() => {
+      listInteracting.current = false;
+    }, 300);
+  };
+
+  const preventWebInputBlur = (e: { preventDefault?: () => void }) => {
+    e.preventDefault?.();
+    keepListFocus();
+  };
 
   return (
     <View style={styles.wrap} accessibilityRole="none">
@@ -74,10 +108,11 @@ export function AutocompleteField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.placeholder}
-        onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setTimeout(() => setFocused(false), 150);
+        onFocus={() => {
+          clearBlurTimer();
+          setFocused(true);
         }}
+        onBlur={scheduleBlur}
         style={[
           styles.input,
           error ? styles.inputError : null,
@@ -95,18 +130,30 @@ export function AutocompleteField({
           style={styles.dropdown}
           accessibilityRole="list"
           accessibilityLabel={label}
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onTouchStart={keepListFocus}
+          onTouchEnd={releaseListFocus}
+          {...(Platform.OS === 'web'
+            ? ({ onMouseDown: preventWebInputBlur } as object)
+            : {})}
         >
           <ScrollView
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="always"
             nestedScrollEnabled
             style={styles.list}
             showsVerticalScrollIndicator
+            onScrollBeginDrag={keepListFocus}
+            onScrollEndDrag={releaseListFocus}
+            onMomentumScrollEnd={releaseListFocus}
           >
             {list.map((item) => (
               <Pressable
                 key={item}
                 onPress={() => {
                   onSelect(item);
+                  listInteracting.current = false;
+                  clearBlurTimer();
                   setFocused(false);
                 }}
                 accessibilityRole="button"
@@ -145,7 +192,7 @@ export function AutocompleteField({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: spacing.fieldGap, zIndex: 1 },
+  wrap: { marginBottom: spacing.fieldGap, zIndex: 2 },
   label: { ...typography.label, color: colors.textSecondary, marginBottom: spacing.xs },
   hint: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.sm },
   input: {
@@ -166,7 +213,7 @@ const styles = StyleSheet.create({
     borderColor: colors.divider,
     borderRadius: spacing.md,
     backgroundColor: colors.surface,
-    maxHeight: 200,
+    maxHeight: 220,
     overflow: 'hidden',
     elevation: 4,
     shadowColor: '#000',

@@ -1,5 +1,7 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,134 +18,231 @@ import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { chipA11yProps } from '@/shared/utils/a11y';
 import {
-  POPULAR_ROLES,
-  SORTED_CANDIDATE_ROLES,
+  getCategoryById,
+  getRoleCategoryChipLabel,
+  getRoleCategoryLabel,
+  ONBOARDING_ROLE_CATEGORIES,
+  type RoleCategoryId,
 } from '@/features/candidate/domain/constants/candidate';
 
+export type JobRoleGridFilterState = {
+  query: string;
+  categoryId: RoleCategoryId | null;
+  onQueryChange: (query: string) => void;
+  onCategoryChange: (categoryId: RoleCategoryId | null) => void;
+};
+
 type Props = {
+  selectionMode?: 'single' | 'multi';
   selectedRole?: string | null;
+  selectedRoles?: string[];
+  /** Roles that cannot be selected (e.g. primary when picking additional). */
+  excludedRoles?: string[];
+  maxSelections?: number;
   onSelectRole: (role: string) => void;
   counts?: Record<string, number>;
+  /** Search + category chips; default true. */
+  showChrome?: boolean;
+  /** Lifted filter state (share one chrome across step sections). */
+  filter?: JobRoleGridFilterState;
+  /** Shown above the list (e.g. max additional roles reached). */
+  listBanner?: string | null;
 };
 
 function matchesQuery(role: string, query: string): boolean {
-  return role.toLowerCase().includes(query.trim().toLowerCase());
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return role.toLowerCase().includes(q);
+}
+
+function sortRoles(roles: string[]): string[] {
+  return [...roles].sort((a, b) => a.localeCompare(b));
 }
 
 export const JobRoleGrid = memo(function JobRoleGrid({
+  selectionMode = 'single',
   selectedRole,
+  selectedRoles = [],
+  excludedRoles = [],
+  maxSelections = 1,
   onSelectRole,
   counts,
+  showChrome = true,
+  filter: externalFilter,
+  listBanner,
 }: Props) {
-  const { t } = useLocale();
+  const { t, lang } = useLocale();
   const rtl = useRtlStyles();
-  const [query, setQuery] = useState('');
+  const [internalQuery, setInternalQuery] = useState('');
+  const [internalCategoryId, setInternalCategoryId] = useState<RoleCategoryId | null>(null);
+  const query = externalFilter?.query ?? internalQuery;
+  const setQuery = externalFilter?.onQueryChange ?? setInternalQuery;
+  const categoryId = externalFilter?.categoryId ?? internalCategoryId;
+  const setCategoryId = externalFilter?.onCategoryChange ?? setInternalCategoryId;
+  const isMulti = selectionMode === 'multi';
+  const excludedSet = useMemo(() => new Set(excludedRoles), [excludedRoles]);
+  const selectedSet = useMemo(
+    () => new Set(isMulti ? selectedRoles : selectedRole ? [selectedRole] : []),
+    [isMulti, selectedRole, selectedRoles],
+  );
+  const atSelectionCap = isMulti && selectedSet.size >= maxSelections;
 
-  const popularSet = useMemo(() => new Set(POPULAR_ROLES), []);
+  const activeCategory = categoryId ? getCategoryById(categoryId) : undefined;
+  const activeCategoryLabel = activeCategory
+    ? getRoleCategoryLabel(activeCategory, lang)
+    : undefined;
 
-  const filteredPopular = useMemo(() => {
-    if (!query.trim()) return POPULAR_ROLES;
-    return POPULAR_ROLES.filter((r) => matchesQuery(r, query));
-  }, [query]);
+  const scopedRoles = useMemo(() => {
+    if (categoryId) {
+      const cat = getCategoryById(categoryId);
+      return sortRoles(cat?.roles ?? []);
+    }
+    return sortRoles(
+      ONBOARDING_ROLE_CATEGORIES.flatMap((c) => c.roles),
+    );
+  }, [categoryId]);
 
-  const filteredOther = useMemo(() => {
-    const base = SORTED_CANDIDATE_ROLES.filter((r) => !popularSet.has(r));
-    if (!query.trim()) return base;
-    return base.filter((r) => matchesQuery(r, query));
-  }, [query, popularSet]);
+  const filteredListRoles = useMemo(() => {
+    return scopedRoles.filter((r) => matchesQuery(r, query));
+  }, [scopedRoles, query]);
 
-  const showPopular = filteredPopular.length > 0;
-  const showAll = filteredOther.length > 0;
+  const showList = filteredListRoles.length > 0;
+  const isEmpty = !showList;
+
+  const emptyMessage = useMemo(() => {
+    const q = query.trim();
+    if (q || activeCategoryLabel) {
+      return t.jobRoleNoMatchDetail({
+        query: q || undefined,
+        categoryLabel: activeCategoryLabel,
+      });
+    }
+    return t.jobRoleNoMatch;
+  }, [query, activeCategoryLabel, t]);
+
+  const onSelectCategory = useCallback(
+    (id: RoleCategoryId | null) => {
+      setCategoryId(id);
+    },
+    [setCategoryId],
+  );
+
+  const hasActiveFilters = Boolean(query.trim() || categoryId);
 
   return (
     <View style={styles.root}>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t.jobRoleSearchPlaceholder}
-        placeholderTextColor={colors.placeholder}
-        style={[styles.search, { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection }]}
-        accessibilityLabel={t.jobRoleSearchPlaceholder}
-        autoCorrect={false}
-        autoCapitalize="none"
-      />
+      {showChrome ? (
+        <>
+      <View style={[styles.searchWrap, rtl.row]}>
+        <AppIcon
+          name="search"
+          size={20}
+          color={colors.textSecondary}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t.jobRoleSearchPlaceholder}
+          placeholderTextColor={colors.placeholder}
+          style={[
+            styles.search,
+            { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
+          ]}
+          accessibilityLabel={t.jobRoleSearchPlaceholder}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+      </View>
 
-      {selectedRole ? (
-        <View style={[styles.selectedBar, rtl.row]}>
-          <Text style={[styles.selectedLabel, { textAlign: rtl.textAlign }]} numberOfLines={1}>
-            {t.roleSelected}
-          </Text>
-          <Text style={[styles.selectedValue, { textAlign: rtl.textAlignEnd }]} numberOfLines={1}>
-            {selectedRole}
-          </Text>
+      {hasActiveFilters ? (
+        <View style={[styles.activeFilters, rtl.row]}>
+          {categoryId && activeCategoryLabel ? (
+            <FilterTag
+              label={activeCategoryLabel}
+              onClear={() => onSelectCategory(null)}
+              clearLabel={t.jobRoleClearCategory}
+            />
+          ) : null}
+          {query.trim() ? (
+            <FilterTag
+              label={`“${query.trim()}”`}
+              onClear={() => setQuery('')}
+              clearLabel={t.jobRoleClearSearch}
+            />
+          ) : null}
         </View>
       ) : null}
 
-      {showPopular ? (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}>
-            {t.popularRoles}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.popularRow, rtl.row]}
-            keyboardShouldPersistTaps="handled"
-          >
-            {filteredPopular.map((role) => {
-              const selected = selectedRole === role;
-              const a11y = chipA11yProps(role, selected, t);
-              return (
-                <Pressable
-                  key={role}
-                  onPress={() => onSelectRole(role)}
-                  style={({ pressed }) => [
-                    styles.popularChip,
-                    selected && styles.popularChipSelected,
-                    pressed && styles.pressed,
-                  ]}
-                  accessibilityRole="button"
-                  {...a11y}
-                >
-                  <Text
-                    style={[styles.popularChipText, selected && styles.popularChipTextSelected]}
-                    numberOfLines={1}
-                  >
-                    {role}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
+      <View style={styles.block}>
+        <HorizontalChipScroller
+          isRtl={rtl.isRtl}
+          accessibilityLabel={t.jobRoleCategories}
+        >
+          <CategoryChip
+            label={t.jobRoleAllCategories}
+            selected={categoryId === null}
+            onPress={() => onSelectCategory(null)}
+          />
+          {ONBOARDING_ROLE_CATEGORIES.map((cat) => (
+            <CategoryChip
+              key={cat.id}
+              label={getRoleCategoryChipLabel(cat, lang)}
+              selected={categoryId === cat.id}
+              onPress={() => onSelectCategory(cat.id)}
+              accessibilityHint={getRoleCategoryLabel(cat, lang)}
+            />
+          ))}
+        </HorizontalChipScroller>
+      </View>
+        </>
       ) : null}
 
-      {showAll ? (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}>
-            {t.allJobRoles}
-          </Text>
+      {listBanner ? (
+        <Text style={[styles.listBanner, { textAlign: rtl.textAlign }]}>{listBanner}</Text>
+      ) : null}
+
+      {showList ? (
+        <View style={styles.block}>
+          {showChrome && categoryId && activeCategoryLabel ? (
+            <Text style={[styles.listHeading, { textAlign: rtl.textAlign }]}>
+              {activeCategoryLabel}
+            </Text>
+          ) : null}
           <View style={styles.list}>
-            {filteredOther.map((role, index) => {
-              const selected = selectedRole === role;
+            {filteredListRoles.map((role, index) => {
+              const selected = selectedSet.has(role);
+              const disabled =
+                excludedSet.has(role) || (atSelectionCap && !selected);
               const count = counts?.[role];
               const a11y = chipA11yProps(role, selected, t);
               return (
                 <Pressable
                   key={role}
-                  onPress={() => onSelectRole(role)}
+                  onPress={() => {
+                    if (disabled) return;
+                    onSelectRole(role);
+                  }}
+                  disabled={disabled}
                   style={({ pressed }) => [
                     styles.listRow,
                     rtl.row,
                     index > 0 && styles.listRowBorder,
                     selected && styles.listRowSelected,
-                    pressed && styles.pressed,
+                    disabled && styles.listRowDisabled,
+                    pressed && !disabled && styles.pressed,
                   ]}
                   accessibilityRole="button"
-                  {...a11y}
+                  accessibilityLabel={a11y.accessibilityLabel}
+                  accessibilityHint={a11y.accessibilityHint}
+                  accessibilityState={{ selected, disabled }}
                 >
                   <Text
-                    style={[styles.listLabel, selected && styles.listLabelSelected]}
+                    style={[
+                      styles.listLabel,
+                      selected && styles.listLabelSelected,
+                      disabled && styles.listLabelDisabled,
+                    ]}
                     numberOfLines={2}
                   >
                     {role}
@@ -153,7 +252,11 @@ export const JobRoleGrid = memo(function JobRoleGrid({
                       <Text style={styles.count}>{count}</Text>
                     ) : null}
                     {selected ? (
-                      <AppIcon name="checkmark-circle" size={22} color={colors.primary} />
+                      <AppIcon
+                        name="checkmark-circle"
+                        size={22}
+                        color={colors.primary}
+                      />
                     ) : null}
                   </View>
                 </Pressable>
@@ -163,82 +266,252 @@ export const JobRoleGrid = memo(function JobRoleGrid({
         </View>
       ) : null}
 
-      {!showPopular && !showAll ? (
-        <Text style={[styles.empty, { textAlign: rtl.textAlignCenter }]}>{t.jobRoleNoMatch}</Text>
+      {isEmpty ? (
+        <Text style={[styles.empty, { textAlign: rtl.textAlignCenter }]}>
+          {emptyMessage}
+        </Text>
       ) : null}
     </View>
   );
 });
 
+function HorizontalChipScroller({
+  children,
+  isRtl,
+  accessibilityLabel,
+}: {
+  children: React.ReactNode;
+  isRtl: boolean;
+  accessibilityLabel: string;
+}) {
+  const [layoutW, setLayoutW] = useState(0);
+  const [contentW, setContentW] = useState(0);
+  const [offsetX, setOffsetX] = useState(0);
+
+  const showScrollHint = useMemo(() => {
+    if (contentW <= layoutW + 8) return false;
+    const maxOffset = Math.max(0, contentW - layoutW);
+    const distFromTrailing = isRtl ? offsetX : maxOffset - offsetX;
+    return distFromTrailing > 12;
+  }, [contentW, layoutW, offsetX, isRtl]);
+
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setOffsetX(e.nativeEvent.contentOffset.x);
+    setLayoutW(e.nativeEvent.layoutMeasurement.width);
+    setContentW(e.nativeEvent.contentSize.width);
+  }, []);
+
+  return (
+    <View style={styles.scrollerWrap}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.chipRow,
+          { flexDirection: isRtl ? 'row-reverse' : 'row' },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        accessibilityLabel={accessibilityLabel}
+        onScroll={onScroll}
+        scrollEventThrottle={32}
+        onContentSizeChange={(w) => setContentW(w)}
+        onLayout={(e) => setLayoutW(e.nativeEvent.layout.width)}
+      >
+        {children}
+      </ScrollView>
+      {showScrollHint ? (
+        <View
+          style={[
+            styles.scrollHint,
+            isRtl ? styles.scrollHintStart : styles.scrollHintEnd,
+          ]}
+          pointerEvents="none"
+        >
+          <AppIcon
+            name={isRtl ? 'chevron-back' : 'chevron-forward'}
+            size={18}
+            color={colors.textSecondary}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function FilterTag({
+  label,
+  onClear,
+  clearLabel,
+}: {
+  label: string;
+  onClear: () => void;
+  clearLabel: string;
+}) {
+  return (
+    <View style={styles.filterTag}>
+      <Text style={styles.filterTagText} numberOfLines={1}>
+        {label}
+      </Text>
+      <Pressable
+        onPress={onClear}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={clearLabel}
+        style={styles.filterTagClear}
+      >
+        <Text style={styles.filterTagClearText}>×</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function CategoryChip({
+  label,
+  selected,
+  onPress,
+  accessibilityHint,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  accessibilityHint?: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.categoryChip,
+        selected && styles.categoryChipSelected,
+        pressed && styles.pressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
+    >
+      <Text
+        style={[
+          styles.categoryChipText,
+          selected && styles.categoryChipTextSelected,
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  root: { gap: spacing.lg },
-  search: {
-    ...typography.body,
+  root: { gap: spacing.sm },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.inputBorder,
-    borderRadius: 12,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    borderRadius: 14,
+    paddingHorizontal: spacing.md,
     minHeight: 48,
+  },
+  searchIcon: { marginEnd: spacing.sm },
+  search: {
+    ...typography.body,
+    flex: 1,
+    paddingVertical: spacing.sm,
     color: colors.textPrimary,
+    minHeight: 44,
   },
-  selectedBar: {
-    backgroundColor: colors.primaryTint,
-    borderRadius: 12,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+  activeFilters: {
+    flexWrap: 'wrap',
     gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: `${colors.primary}40`,
   },
-  selectedLabel: {
+  filterTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '100%',
+    backgroundColor: colors.primaryTint,
+    borderRadius: 20,
+    paddingLeft: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: `${colors.primary}44`,
+  },
+  filterTagText: {
+    ...typography.caption,
+    fontWeight: '600',
+    color: colors.primary,
+    flexShrink: 1,
+  },
+  filterTagClear: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  filterTagClearText: {
+    fontSize: 18,
+    lineHeight: 20,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  block: { gap: spacing.xs },
+  listBanner: {
     ...typography.caption,
     color: colors.textSecondary,
     fontWeight: '600',
-    flexShrink: 0,
+    backgroundColor: colors.primaryTint,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
   },
-  selectedValue: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '700',
-    flex: 1,
-  },
-  section: { gap: spacing.sm },
-  sectionTitle: {
-    ...typography.label,
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  popularRow: {
+  scrollerWrap: { position: 'relative' },
+  chipRow: {
+    flexDirection: 'row',
     gap: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: 2,
+    paddingEnd: spacing.xl,
   },
-  popularChip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 24,
+  scrollHint: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.scaffold,
+    opacity: 0.92,
+  },
+  scrollHintEnd: { right: 0 },
+  scrollHintStart: { left: 0 },
+  categoryChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: 18,
     backgroundColor: colors.surface,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.divider,
-    maxWidth: 200,
   },
-  popularChipSelected: {
+  categoryChipSelected: {
+    borderWidth: 1.5,
     borderColor: colors.primary,
     backgroundColor: colors.primaryTint,
   },
-  popularChipText: {
-    ...typography.body,
+  categoryChipText: {
+    ...typography.caption,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textSecondary,
   },
-  popularChipTextSelected: {
+  categoryChipTextSelected: {
     color: colors.primary,
+    fontWeight: '700',
+  },
+  listHeading: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   list: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.divider,
     backgroundColor: colors.surface,
@@ -249,7 +522,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    minHeight: 52,
+    minHeight: 50,
     gap: spacing.md,
   },
   listRowBorder: {
@@ -258,6 +531,9 @@ const styles = StyleSheet.create({
   },
   listRowSelected: {
     backgroundColor: colors.primaryTint,
+  },
+  listRowDisabled: {
+    opacity: 0.45,
   },
   listLabel: {
     ...typography.body,
@@ -268,6 +544,9 @@ const styles = StyleSheet.create({
   listLabelSelected: {
     color: colors.primary,
     fontWeight: '700',
+  },
+  listLabelDisabled: {
+    color: colors.textSecondary,
   },
   listMeta: {
     alignItems: 'center',
@@ -281,8 +560,9 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: interaction.pressed },
   empty: {
-    ...typography.caption,
+    ...typography.body,
     color: colors.textSecondary,
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.lg,
+    lineHeight: 22,
   },
 });

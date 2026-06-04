@@ -12,6 +12,10 @@ type Props = {
   selected: boolean;
   onPress: () => void;
   accessibilityLabel?: string;
+  /** Denser chip for grids (years, languages). */
+  compact?: boolean;
+  /** Tightest chip — 3-column language grids. */
+  dense?: boolean;
 };
 
 export const SelectableChip = memo(function SelectableChip({
@@ -19,6 +23,8 @@ export const SelectableChip = memo(function SelectableChip({
   selected,
   onPress,
   accessibilityLabel,
+  compact = false,
+  dense = false,
 }: Props) {
   const { t } = useLocale();
   const a11y = chipA11yProps(accessibilityLabel ?? label, selected, t);
@@ -36,13 +42,20 @@ export const SelectableChip = memo(function SelectableChip({
       <Animated.View
         style={[
           styles.chip,
+          compact && styles.chipCompact,
+          dense && styles.chipDense,
           selected && styles.chipOn,
           animatedStyle,
         ]}
       >
         <Text
-          style={[styles.text, selected && styles.textOn]}
-          numberOfLines={2}
+          style={[
+            styles.text,
+            compact && styles.textCompact,
+            dense && styles.textDense,
+            selected && styles.textOn,
+          ]}
+          numberOfLines={dense ? 1 : 2}
           ellipsizeMode="tail"
           maxFontSizeMultiplier={1.25}
         >
@@ -69,6 +82,22 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.primaryTint,
   },
+  chipCompact: {
+    minHeight: 36,
+    minWidth: 44,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 10,
+  },
+  chipDense: {
+    minHeight: 32,
+    minWidth: 0,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
   text: { ...typography.caption, fontSize: 14, color: colors.textPrimary, textAlign: 'center' },
+  textCompact: { fontSize: 13, fontWeight: '600' },
+  textDense: { fontSize: 12, fontWeight: '600' },
   textOn: { color: colors.primary, fontWeight: '600' },
 });

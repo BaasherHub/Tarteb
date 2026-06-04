@@ -1,37 +1,78 @@
-import React from 'react';
-import { Platform, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { BackHandler, Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CandidateDashboardScreen } from './CandidateDashboardScreen';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { RootStackParamList } from '@/core/navigation/types';
+import { RootStackParamList, CandidateTabParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
+import { clearPushToken } from '@/core/services/notifications';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
-import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { CandidateTabLayout } from '@/features/candidate/presentation/components/CandidateTabLayout';
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
+import { AppIcon } from '@/shared/widgets/AppIcon';
+import type { AppIconName } from '@/shared/widgets/AppIcon.types';
+import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<CandidateTabParamList>();
 
 function CandidateSettingsTab() {
   const { t } = useLocale();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const tabNav = useNavigation<BottomTabNavigationProp<CandidateTabParamList>>();
+  const stackNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const goHome = useCallback(() => {
+    tabNav.navigate('HomeTab');
+  }, [tabNav]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBack = () => {
+        goHome();
+        return true;
+      };
+      const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+      return () => sub.remove();
+    }, [goHome]),
+  );
 
   const logout = async () => {
+    await clearPushToken().catch(() => {});
     await supabase.auth.signOut();
-    navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+    stackNav.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+  };
+
+  const openEditProfile = async () => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+    const { data: row } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!row) return;
+    stackNav.navigate('CandidateOnboarding', {
+      initial: onboardingFromRow(row as Record<string, unknown>),
+      startStep: 3,
+    });
   };
 
   return (
-    <ContentWidth style={styles.settingsTab}>
-      <ScrollView contentContainerStyle={styles.settingsScroll}>
-        <ScreenHeader title={t.settings} />
-        <SettingsPanel onLogout={logout} />
-      </ScrollView>
-    </ContentWidth>
+    <CandidateTabLayout>
+      <ScreenHeader title={t.settings} />
+      <SettingsPanel
+        onLogout={logout}
+        onEditProfile={openEditProfile}
+        onOpenPrivacy={() => stackNav.navigate('PrivacyPolicy')}
+      />
+    </CandidateTabLayout>
   );
 }
 
@@ -41,10 +82,10 @@ export function CandidateShellScreen() {
   return (
     <Tab.Navigator
       screenOptions={{
+        sceneStyle: styles.scene,
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarIcon: () => null,
         tabBarLabelStyle: {
           fontSize: 13,
           fontWeight: '600',
@@ -70,6 +111,13 @@ export function CandidateShellScreen() {
         options={{
           tabBarLabel: t.home,
           tabBarAccessibilityLabel: t.home,
+          tabBarIcon: ({ focused, color }) => (
+            <AppIcon
+              name={(focused ? 'person' : 'person-outline') as AppIconName}
+              size={22}
+              color={color}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -78,6 +126,13 @@ export function CandidateShellScreen() {
         options={{
           tabBarLabel: t.settings,
           tabBarAccessibilityLabel: t.settings,
+          tabBarIcon: ({ focused, color }) => (
+            <AppIcon
+              name={(focused ? 'settings' : 'settings-outline') as AppIconName}
+              size={22}
+              color={color}
+            />
+          ),
         }}
       />
     </Tab.Navigator>
@@ -85,10 +140,10 @@ export function CandidateShellScreen() {
 }
 
 const styles = StyleSheet.create({
-  settingsTab: { flex: 1, backgroundColor: colors.scaffold },
-  settingsScroll: {
-    padding: spacing.xxl,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.md,
+  scene: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: colors.scaffold,
   },
 });
+

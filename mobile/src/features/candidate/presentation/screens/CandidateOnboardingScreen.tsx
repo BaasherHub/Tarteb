@@ -6,8 +6,8 @@ import { CandidateOnboardingProvider } from '@/features/candidate/providers/Cand
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { Step1Photo } from './onboarding/Step1Photo';
 import { Step2JobRole } from './onboarding/Step2JobRole';
-import { Step2Visa } from './onboarding/Step2Visa';
-import { Step3Salary } from './onboarding/Step3Salary';
+import { Step3Location } from './onboarding/Step3Location';
+import { Step4SalaryVisa } from './onboarding/Step4SalaryVisa';
 import { Step4Finish } from './onboarding/Step4Finish';
 import { colors } from '@/core/theme/colors';
 
@@ -20,8 +20,8 @@ function OnboardingSteps(props: Props) {
     <View style={styles.flex}>
       {step === 1 && <Step1Photo />}
       {step === 2 && <Step2JobRole />}
-      {step === 3 && <Step2Visa />}
-      {step === 4 && <Step3Salary />}
+      {step === 3 && <Step3Location />}
+      {step === 4 && <Step4SalaryVisa />}
       {step === 5 && <Step4Finish {...props} />}
     </View>
   );
@@ -29,8 +29,9 @@ function OnboardingSteps(props: Props) {
 
 export function CandidateOnboardingScreen(props: Props) {
   const initial = props.route.params?.initial;
+  const startStep = props.route.params?.startStep;
   return (
-    <CandidateOnboardingProvider initial={initial}>
+    <CandidateOnboardingProvider initial={initial} startStep={startStep}>
       <OnboardingSteps {...props} />
     </CandidateOnboardingProvider>
   );

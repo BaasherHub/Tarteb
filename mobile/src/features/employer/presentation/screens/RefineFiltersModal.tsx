@@ -16,8 +16,10 @@ import {
 } from '@/features/employer/data/services/candidateBrowse';
 import { filterNationalities, resolveNationality } from '@/shared/constants/nationalities';
 import { colors } from '@/core/theme/colors';
+import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
+import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { FormField } from '@/shared/widgets/FormField';
 import { LocationFilterSection } from '@/features/employer/presentation/components/LocationFilterSection';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -140,10 +142,9 @@ function RefineFiltersModalInner({
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
-          <Section title={t.nationality}>
+          <Section title={t.nationality} first>
             <AutocompleteField
               label={t.nationality}
-              hint={t.nationalityHint}
               value={nationalityQuery}
               onChangeText={setNationalityQuery}
               onSelect={(n) => {
@@ -212,7 +213,7 @@ function RefineFiltersModalInner({
               {EXPERIENCE_OPTIONS.map((opt) => (
                 <SelectableChip
                   key={opt.years}
-                  label={opt.label}
+                  label={t.experienceBucketLabel(opt.years)}
                   selected={filters.experienceYears.includes(opt.years)}
                   onPress={() => toggleList('experienceYears', opt.years)}
                 />
@@ -288,21 +289,15 @@ export const RefineFiltersModal = memo(RefineFiltersModalInner);
 const Section = memo(function Section({
   title,
   children,
+  first,
 }: {
   title: string;
   children: React.ReactNode;
+  first?: boolean;
 }) {
-  const rtl = useRtlStyles();
   return (
     <View style={styles.section}>
-      <Text
-        style={[styles.sectionTitle, { textAlign: rtl.textAlign }]}
-        numberOfLines={2}
-        accessibilityRole="header"
-        maxFontSizeMultiplier={1.3}
-      >
-        {title}
-      </Text>
+      <SectionLabel first={first}>{title}</SectionLabel>
       {children}
     </View>
   );
@@ -335,7 +330,7 @@ const ChipRow = memo(function ChipRow({
 const styles = StyleSheet.create({
   sheet: { flex: 1, backgroundColor: colors.scaffold },
   header: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: layout.screenPaddingX,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
     gap: spacing.xs,
@@ -347,22 +342,16 @@ const styles = StyleSheet.create({
   optionalHint: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   scroll: { flex: 1 },
   scrollContent: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: layout.screenPaddingX,
     paddingVertical: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   section: { marginBottom: spacing.lg },
-  sectionTitle: { ...typography.h3, marginBottom: spacing.sm },
   chipRow: { flexWrap: 'wrap', gap: spacing.sm },
   salaryRow: { gap: spacing.md, alignItems: 'flex-start' },
   salaryHalf: { flex: 1, minWidth: 0 },
   footer: {
-    gap: spacing.md,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    ...layoutStyles.footer,
     backgroundColor: colors.surface,
   },
 });

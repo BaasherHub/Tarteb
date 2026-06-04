@@ -1,15 +1,15 @@
 import React, { RefObject } from 'react';
 import {
-  Platform,
   ScrollView,
   StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { layoutStyles } from '@/core/theme/layout';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
+import { ScreenFooter } from '@/shared/widgets/ScreenFooter';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { OnboardingProgress } from '@/shared/widgets/OnboardingProgress';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -43,7 +43,6 @@ export function EmployerOnboardingStep({
 }: Props) {
   const { t } = useLocale();
   const { step, totalSteps } = useEmployerOnboarding();
-  const insets = useSafeAreaInsets();
   const stepTitles = [t.employerOnboardingStep1Title, t.employerOnboardingStep2Title];
 
   const body = scroll ? (
@@ -70,7 +69,7 @@ export function EmployerOnboardingStep({
           accentColor={colors.secondary}
         />
         {body}
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+        <ScreenFooter>
           {backLabel && onBack && step > 1 ? (
             <SecondaryButton label={backLabel} onPress={onBack} />
           ) : null}
@@ -80,7 +79,7 @@ export function EmployerOnboardingStep({
             loading={primaryLoading}
             disabled={primaryDisabled}
           />
-        </View>
+        </ScreenFooter>
       </ContentWidth>
     </View>
   );
@@ -89,14 +88,6 @@ export function EmployerOnboardingStep({
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.scaffold },
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.xl, paddingBottom: spacing.xxl },
-  body: { flex: 1, padding: spacing.xl },
-  footer: {
-    padding: spacing.xl,
-    gap: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.scaffold,
-    ...(Platform.OS === 'web' ? { position: 'relative' as const, zIndex: 10 } : {}),
-  },
+  scrollContent: { ...layoutStyles.screenContent, paddingBottom: spacing.xxl },
+  body: { flex: 1, ...layoutStyles.screenContent },
 });

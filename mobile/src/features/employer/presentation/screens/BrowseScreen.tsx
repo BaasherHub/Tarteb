@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +17,7 @@ import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { colors } from '@/core/theme/colors';
 import { interaction } from '@/core/theme/interaction';
+import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { browseItemLayout, FLAT_LIST_PERF } from '@/shared/constants/listPerf';
@@ -62,6 +64,8 @@ const listStyles = StyleSheet.create({
   sep: { height: 1, backgroundColor: colors.divider },
 });
 
+const ROLE_LEGEND_DISMISSED_KEY = 'employer_role_legend_dismissed_v1';
+
 export function BrowseScreen() {
   const { t } = useLocale();
   const rtl = useRtlStyles();
@@ -79,6 +83,7 @@ export function BrowseScreen() {
   const [subPending, setSubPending] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [employerProfile, setEmployerProfile] = useState<Record<string, unknown> | null>(null);
+  const [showRoleLegend, setShowRoleLegend] = useState(false);
 
   const pageRef = useRef(0);
   const loadingMoreRef = useRef(false);
@@ -86,6 +91,17 @@ export function BrowseScreen() {
   filtersRef.current = filters;
 
   const refined = filters ? hasRefineFilters(filters) : false;
+
+  useEffect(() => {
+    AsyncStorage.getItem(ROLE_LEGEND_DISMISSED_KEY).then((v) => {
+      setShowRoleLegend(v !== '1');
+    });
+  }, []);
+
+  const dismissRoleLegend = useCallback(() => {
+    setShowRoleLegend(false);
+    void AsyncStorage.setItem(ROLE_LEGEND_DISMISSED_KEY, '1');
+  }, []);
 
   const loadSubscription = useCallback(async () => {
     try {
@@ -230,9 +246,12 @@ export function BrowseScreen() {
 
   const openCandidate = useCallback(
     (candidateId: string) => {
-      navigation.navigate('CandidateDetail', { candidateId });
+      navigation.navigate('CandidateDetail', {
+        candidateId,
+        hiringRole: selectedRole ?? undefined,
+      });
     },
-    [navigation],
+    [navigation, selectedRole],
   );
 
   const navigateSubscription = useCallback(
@@ -247,9 +266,13 @@ export function BrowseScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Record<string, unknown> }) => (
-      <BrowseListRow item={item} onOpen={openCandidate} />
+      <BrowseListRow
+        item={item}
+        hiringRole={selectedRole}
+        onOpen={openCandidate}
+      />
     ),
-    [openCandidate],
+    [openCandidate, selectedRole],
   );
 
   const onEndReached = useCallback(() => {
@@ -423,6 +446,24 @@ export function BrowseScreen() {
         ? employerCompletionCard
         : null}
 
+      {showRoleLegend ? (
+        <View style={styles.legendPad}>
+          <View style={[styles.legendBox, rtl.row]}>
+            <Text style={[styles.legendText, { textAlign: rtl.textAlign, flex: 1 }]}>
+              {t.employerRoleFilterLegend}
+            </Text>
+            <Pressable
+              onPress={dismissRoleLegend}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t.employerRoleFilterLegendDismiss}
+            >
+              <Text style={styles.legendDismiss}>{t.employerRoleFilterLegendDismiss}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
       {showingCache ? (
         <View style={styles.cacheBanner}>
           <InfoBanner message={t.offlineCachedHint} variant="warning" />
@@ -434,6 +475,7 @@ export function BrowseScreen() {
       ) : (
         <FlatList
           style={styles.list}
+          contentContainerStyle={styles.listContent}
           data={items}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
@@ -455,10 +497,25 @@ export function BrowseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.scaffold },
-  completionPad: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  headerPad: { paddingHorizontal: spacing.lg },
+  completionPad: { ...layoutStyles.screenHeaderWrap, paddingBottom: spacing.sm },
+  legendPad: { ...layoutStyles.screenHeaderWrap, paddingBottom: spacing.sm },
+  legendBox: {
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: colors.primaryTint,
+    borderRadius: layout.cardRadius,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: `${colors.primary}33`,
+  },
+  legendText: { ...typography.caption, color: colors.textSecondary, lineHeight: 18 },
+  legendDismiss: { ...typography.caption, fontWeight: '700', color: colors.primary },
+  headerPad: layoutStyles.screenHeaderWrap,
   list: { flex: 1 },
-  cacheBanner: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  listContent: {
+    paddingBottom: layout.screenPaddingBottom + layout.tabBarClearance,
+  },
+  cacheBanner: { ...layoutStyles.screenHeaderWrap, paddingBottom: spacing.sm },
   footerLoader: { paddingVertical: spacing.lg, alignItems: 'center' },
   backBtn: {
     alignItems: 'center',

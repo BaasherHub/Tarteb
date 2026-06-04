@@ -77,9 +77,6 @@ export function Step1Photo() {
       onPrimary={next}
       primaryLoading={uploading}
     >
-      <Text style={[styles.title, { textAlign: rtl.textAlignCenter }]}>
-        {t.onboardingStepPhotoTitle}
-      </Text>
       <Text style={[styles.intro, { textAlign: rtl.textAlignCenter }]}>
         {t.onboardingStepPhotoIntro}
       </Text>
@@ -107,7 +104,6 @@ export function Step1Photo() {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.h2, marginBottom: spacing.sm },
   intro: {
     ...typography.body,
     color: colors.textSecondary,

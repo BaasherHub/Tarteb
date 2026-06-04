@@ -8,17 +8,21 @@ import {
   Text,
   View,
 } from 'react-native';
+import { getCandidateCvSignedUrl } from '@/features/candidate/data/services/candidateCv';
+import { CommonActions } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { supabase } from '@/core/lib/supabase';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { VisaChip } from '@/shared/widgets/VisaChip';
+import { CandidateRolesDisplay } from '@/shared/widgets/CandidateRolesDisplay';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
@@ -42,10 +46,14 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
   const phone = candidate?.phone as string | undefined;
   const whatsapp = candidate?.whatsapp as string | undefined;
+  const cvPath = candidate?.cv_url as string | undefined;
+  const cvFileName = candidate?.cv_file_name as string | undefined;
+  const hasCv = Boolean(candidate?.has_cv) || Boolean(cvPath);
   const unlocked = phone != null;
   const visa = String(candidate?.visa_status ?? '');
   const nationality = String(candidate?.nationality ?? '');
-  const experience = candidate?.years_experience;
+  const experience =
+    typeof candidate?.years_experience === 'number' ? candidate.years_experience : null;
 
   const fetchCandidate = async () => {
     const { data } = await supabase
@@ -102,8 +110,19 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         message: t.toastUnlockSuccess,
         variant: 'success',
         actionLabel: t.myUnlocks,
-        onAction: () =>
-          navigation.navigate('EmployerShell', { screen: 'UnlocksTab' }),
+        onAction: () => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                {
+                  name: 'EmployerShell',
+                  state: { routes: [{ name: 'UnlocksTab' }], index: 0 },
+                },
+              ],
+            }),
+          );
+        },
       });
     } catch (e) {
       const msg = getErrorMessage(e, t.errorGeneric);
@@ -145,11 +164,16 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         <Text style={styles.name} numberOfLines={2}>
           {String(candidate.name ?? '')}
         </Text>
-        <Text style={styles.role} numberOfLines={2}>
-          {String(candidate.role ?? '')}
-        </Text>
+        <View style={styles.rolesBlock}>
+          <CandidateRolesDisplay
+            role={candidate.role}
+            additional_roles={candidate.additional_roles}
+            hiringRole={route.params.hiringRole}
+            layout="detail"
+          />
+        </View>
         <View style={[styles.chipRow, rtl.row]}>
-          {visa ? <VisaChip label={visa} /> : null}
+          {visa ? <VisaChip label={t.visaStatusLabel(visa)} /> : null}
         </View>
 
         {/* Metadata grid — left-aligned label / value pairs */}
@@ -157,8 +181,21 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
           {[
             { label: t.location, value: String(candidate.location ?? '') },
             nationality ? { label: t.nationalityLabel, value: nationality } : null,
-            experience != null ? { label: t.experienceLabel, value: `${experience} ${t.yearsExperience.toLowerCase()}` } : null,
-            candidate.salary_expectation != null ? { label: t.monthlySalary, value: t.salaryPerMonth(String(candidate.salary_expectation)) } : null,
+            experience != null
+              ? { label: t.experienceLabel, value: t.experienceBucketLabel(experience) }
+              : null,
+            unlocked && candidate.current_salary != null
+              ? {
+                  label: t.currentSalary,
+                  value: t.salaryPerMonth(String(candidate.current_salary)),
+                }
+              : null,
+            candidate.salary_expectation != null
+              ? {
+                  label: t.expectedSalary,
+                  value: t.salaryPerMonth(String(candidate.salary_expectation)),
+                }
+              : null,
           ]
             .filter(Boolean)
             .map((row) => (
@@ -192,6 +229,12 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
           </View>
         )}
 
+        {hasCv && !unlocked ? (
+          <Text style={[styles.cvHint, { textAlign: rtl.textAlign }]} numberOfLines={3}>
+            {t.cvEmployerHint}
+          </Text>
+        ) : null}
+
         {unlocked ? (
           <View style={styles.actions}>
             {phone && (
@@ -210,6 +253,19 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
                 }
               />
             )}
+            {cvPath ? (
+              <SecondaryButton
+                label={t.cvView}
+                onPress={async () => {
+                  try {
+                    const url = await getCandidateCvSignedUrl(cvPath);
+                    await Linking.openURL(url);
+                  } catch (e) {
+                    Alert.alert(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
+                  }
+                }}
+              />
+            ) : null}
           </View>
         ) : (
           <PrimaryButton
@@ -225,8 +281,12 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.scaffold },
-  scrollContent: { paddingVertical: spacing.xl, alignItems: 'center', paddingHorizontal: spacing.lg },
-  photo: { width: 160, height: 160, borderRadius: 16, alignSelf: 'center' },
+  scrollContent: {
+    ...layoutStyles.screenContent,
+    paddingTop: spacing.xl,
+    alignItems: 'center',
+  },
+  photo: { width: 160, height: 160, borderRadius: layout.cardRadius, alignSelf: 'center' },
   photoPh: {
     backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
@@ -234,7 +294,11 @@ const styles = StyleSheet.create({
   },
   initials: { fontSize: 48, fontWeight: '700', color: colors.primary },
   name: { ...typography.h1, marginTop: spacing.lg, textAlign: 'center' },
-  role: { ...typography.h3, marginTop: spacing.sm, textAlign: 'center', color: colors.textSecondary },
+  rolesBlock: {
+    marginTop: spacing.sm,
+    width: '100%',
+    alignSelf: 'stretch',
+  },
   chipRow: {
     justifyContent: 'center',
     marginTop: spacing.md,
@@ -243,7 +307,7 @@ const styles = StyleSheet.create({
   metaGrid: {
     width: '100%',
     marginTop: spacing.lg,
-    borderRadius: 12,
+    borderRadius: layout.cardRadius,
     borderWidth: 1,
     borderColor: colors.divider,
     backgroundColor: colors.surface,
@@ -267,7 +331,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     padding: spacing.lg,
     backgroundColor: colors.warningTint,
-    borderRadius: 12,
+    borderRadius: layout.cardRadius,
     borderWidth: 1,
     borderColor: '#FFE082',
     gap: spacing.md,
@@ -275,6 +339,13 @@ const styles = StyleSheet.create({
   },
   paywallTitle: { ...typography.h3, color: colors.textPrimary },
   paywallBody: { ...typography.caption, color: colors.textSecondary },
+  cvHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: spacing.lg,
+    lineHeight: 20,
+    width: '100%',
+  },
   actions: { width: '100%', gap: spacing.md, marginTop: spacing.xxl },
 });
 

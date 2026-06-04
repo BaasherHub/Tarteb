@@ -1,15 +1,16 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { visaChipColor } from '@/shared/utils/visa';
+import { colors } from '@/core/theme/colors';
+import { typography } from '@/core/theme/typography';
 
 type Props = { label: string };
 
+/** Compact visa label for cards — neutral, not status-colored. */
 export const VisaChip = memo(function VisaChip({ label }: Props) {
   if (!label) return null;
-  const color = visaChipColor(label);
   return (
-    <View style={[styles.chip, { borderColor: color, backgroundColor: `${color}18` }]}>
-      <Text style={[styles.text, { color }]} numberOfLines={1}>
+    <View style={styles.chip}>
+      <Text style={styles.text} numberOfLines={1}>
         {label}
       </Text>
     </View>
@@ -22,9 +23,14 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
     borderWidth: 1,
+    borderColor: colors.divider,
+    backgroundColor: colors.scaffold,
     alignSelf: 'flex-start',
   },
-  text: { fontSize: 11, fontWeight: '600' },
+  text: {
+    ...typography.caption,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
 });
-
-

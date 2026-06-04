@@ -1,26 +1,41 @@
 import React, { RefObject } from 'react';
 import {
-  Platform,
   ScrollView,
   StyleSheet,
+  Text,
   View,
   ViewStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { typography } from '@/core/theme/typography';
+import { layout, layoutStyles } from '@/core/theme/layout';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
+import { ScreenFooter } from '@/shared/widgets/ScreenFooter';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { OnboardingProgress } from '@/shared/widgets/OnboardingProgress';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 import { OnboardingDraftBanner } from '@/features/candidate/presentation/components/OnboardingDraftBanner';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
+
+export type OnboardingSelectionSummary = {
+  label: string;
+  value: string;
+};
+
+export type RoleSelectionSummary = {
+  primary: string;
+};
 
 type Props = {
   children: React.ReactNode;
   scroll?: boolean;
   contentStyle?: ViewStyle;
+  /** @deprecated Use roleSelectionSummary */
+  selectionSummary?: OnboardingSelectionSummary | null;
+  roleSelectionSummary?: RoleSelectionSummary | null;
   primaryLabel: string;
   onPrimary: () => void | Promise<void>;
   primaryLoading?: boolean;
@@ -47,16 +62,18 @@ export function CandidateOnboardingStep({
   backLabel,
   onBack,
   scrollRef,
+  selectionSummary,
+  roleSelectionSummary,
 }: Props) {
   const { step, totalSteps } = useCandidateOnboarding();
   const { t } = useLocale();
-  const insets = useSafeAreaInsets();
+  const rtl = useRtlStyles();
   const stepTitles = [
     t.onboardingStepPhotoTitle,
     t.onboardingStepRoleTitle,
-    t.onboardingStep2Title,
-    t.onboardingStep3Title,
-    t.onboardingStep4Title,
+    t.onboardingStepLocationTitle,
+    t.onboardingStepSalaryVisaTitle,
+    t.onboardingStepExperienceTitle,
   ];
 
   const body = scroll ? (
@@ -65,6 +82,7 @@ export function CandidateOnboardingStep({
       style={styles.scroll}
       contentContainerStyle={[styles.scrollContent, contentStyle]}
       keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled
     >
       {children}
     </ScrollView>
@@ -82,7 +100,35 @@ export function CandidateOnboardingStep({
         />
         <OnboardingDraftBanner />
         {body}
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+        <ScreenFooter>
+          {roleSelectionSummary ? (
+            <View style={[styles.selectionBar, rtl.row]}>
+              <Text style={[styles.selectionLabel, { textAlign: rtl.textAlign }]}>
+                {t.roleSelectedPrimary}
+              </Text>
+              <Text
+                style={[styles.selectionValue, { textAlign: rtl.textAlignEnd }]}
+                numberOfLines={1}
+              >
+                {roleSelectionSummary.primary}
+              </Text>
+            </View>
+          ) : selectionSummary ? (
+            <View style={[styles.selectionBar, rtl.row]}>
+              <Text
+                style={[styles.selectionLabel, { textAlign: rtl.textAlign }]}
+                numberOfLines={1}
+              >
+                {selectionSummary.label}
+              </Text>
+              <Text
+                style={[styles.selectionValue, { textAlign: rtl.textAlignEnd }]}
+                numberOfLines={1}
+              >
+                {selectionSummary.value}
+              </Text>
+            </View>
+          ) : null}
           {backLabel && onBack && step > 1 ? (
             <SecondaryButton label={backLabel} onPress={onBack} />
           ) : null}
@@ -99,7 +145,7 @@ export function CandidateOnboardingStep({
               disabled={secondaryDisabled || primaryLoading}
             />
           ) : null}
-        </View>
+        </ScreenFooter>
       </ContentWidth>
     </View>
   );
@@ -108,17 +154,33 @@ export function CandidateOnboardingStep({
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.scaffold },
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.xl, paddingBottom: spacing.xxl },
-  body: { flex: 1, padding: spacing.xl },
-  footer: {
-    padding: spacing.xl,
-    gap: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.scaffold,
-    ...(Platform.OS === 'web'
-      ? { position: 'relative' as const, zIndex: 10 }
-      : {}),
+  scrollContent: { ...layoutStyles.screenContent, paddingBottom: spacing.xxl },
+  body: { flex: 1, ...layoutStyles.screenContent },
+  selectionBar: {
+    backgroundColor: colors.primaryTint,
+    borderRadius: layout.cardRadius,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
+    marginBottom: spacing.xs,
+  },
+  selectionRow: {
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  selectionLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    flexShrink: 0,
+  },
+  selectionValue: {
+    ...typography.body,
+    color: colors.primary,
+    fontWeight: '700',
+    flex: 1,
   },
 });
 

@@ -1,125 +1,231 @@
+export type RoleCategoryId =
+  | 'food-beverage'
+  | 'cleaning-housekeeping'
+  | 'drivers-delivery'
+  | 'beauty-wellness'
+  | 'security'
+  | 'retail-sales'
+  | 'construction-trades'
+  | 'domestic-help'
+  | 'warehouse'
+  | 'office-support';
+
 export type RoleCategory = {
+  id: RoleCategoryId;
   label: string;
   labelAr: string;
+  /** Shorter label for horizontal category chips. */
+  shortLabel: string;
+  shortLabelAr: string;
   roles: string[];
 };
 
-export const ROLE_CATEGORIES: RoleCategory[] = [
+/** Onboarding Step 2 category chips (order matters). */
+export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
+    id: 'food-beverage',
     label: 'Food & Beverage',
     labelAr: 'الأغذية والمشروبات',
+    shortLabel: 'Food',
+    shortLabelAr: 'مطاعم',
     roles: [
-      'Barista', 'Waiter', 'Waitress', 'Cook', 'Kitchen Helper',
-      'Commis Chef', 'Dishwasher', 'Cashier', 'Host/Hostess',
+      'Barista',
+      'Waiter',
+      'Waitress',
+      'Cook',
+      'Kitchen Helper',
+      'Commis Chef',
+      'Dishwasher',
+      'Cashier',
+      'Host/Hostess',
     ],
   },
   {
-    label: 'Retail & Sales',
-    labelAr: 'التجزئة والمبيعات',
+    id: 'cleaning-housekeeping',
+    label: 'Cleaning & Housekeeping',
+    labelAr: 'النظافة والتدبير',
+    shortLabel: 'Cleaning',
+    shortLabelAr: 'نظافة',
     roles: [
-      'Sales Associate', 'Retail Cashier', 'Stock Room Assistant',
-      'Visual Merchandiser', 'Promoter',
+      'Office Cleaner',
+      'Residential Cleaner',
+      'Housekeeper',
+      'Laundry Attendant',
+      'Window Cleaner',
+      'Janitor',
     ],
   },
   {
-    label: 'Cleaning & Facility',
-    labelAr: 'النظافة والمرافق',
+    id: 'drivers-delivery',
+    label: 'Drivers & Delivery',
+    labelAr: 'السائقون والتوصيل',
+    shortLabel: 'Drivers',
+    shortLabelAr: 'سائقون',
     roles: [
-      'Office Cleaner', 'Residential Cleaner', 'Housekeeper',
-      'Laundry Attendant', 'Window Cleaner', 'Janitor',
+      'Personal Driver',
+      'Delivery Driver',
+      'Truck Driver',
+      'Heavy Vehicle Driver',
+      'Forklift Operator',
+      'Courier',
     ],
   },
   {
-    label: 'Drivers & Transport',
-    labelAr: 'السائقون والنقل',
+    id: 'beauty-wellness',
+    label: 'Beauty & Wellness',
+    labelAr: 'الجمال والعافية',
+    shortLabel: 'Beauty',
+    shortLabelAr: 'جمال',
     roles: [
-      'Personal Driver', 'Delivery Driver', 'Truck Driver',
-      'Heavy Vehicle Driver', 'Forklift Operator', 'Courier',
+      'Barber',
+      'Hairdresser',
+      'Nail Technician',
+      'Beautician',
+      'Massage Therapist',
+      'Spa Attendant',
     ],
   },
   {
-    label: 'Domestic & Personal',
-    labelAr: 'الخدمات المنزلية',
-    roles: [
-      'Nanny/Babysitter', 'Home Cook', 'Housemaid',
-      'Gardener', 'Caretaker',
-    ],
-  },
-  {
-    label: 'Warehouse & Logistics',
-    labelAr: 'المستودعات والخدمات اللوجستية',
-    roles: [
-      'Warehouse Worker', 'Storekeeper', 'Packer',
-      'Picker', 'Loading Staff', 'Inventory Clerk',
-    ],
-  },
-  {
+    id: 'security',
     label: 'Security',
     labelAr: 'الأمن',
+    shortLabel: 'Security',
+    shortLabelAr: 'أمن',
     roles: ['Security Guard', 'CCTV Operator', 'Bouncer'],
   },
   {
+    id: 'retail-sales',
+    label: 'Retail & Sales',
+    labelAr: 'التجزئة والمبيعات',
+    shortLabel: 'Retail',
+    shortLabelAr: 'تجزئة',
+    roles: [
+      'Sales Associate',
+      'Retail Cashier',
+      'Stock Room Assistant',
+      'Visual Merchandiser',
+      'Promoter',
+      'Event Staff',
+      'Usher',
+      'Exhibition Staff',
+      'Brand Ambassador',
+    ],
+  },
+  {
+    id: 'construction-trades',
     label: 'Construction & Trades',
     labelAr: 'البناء والمهن',
+    shortLabel: 'Trades',
+    shortLabelAr: 'مهن',
     roles: [
-      'General Laborer', 'Painter', 'Plumber', 'Electrician Helper',
-      'AC Technician', 'Carpenter Helper', 'Mason', 'Tiler', 'Handyman',
+      'General Laborer',
+      'Painter',
+      'Plumber',
+      'Electrician',
+      'Electrician Helper',
+      'AC Technician',
+      'Carpenter Helper',
+      'Mason',
+      'Tiler',
+      'Handyman',
+      'Lift Technician',
+      'Facilities Maintenance',
     ],
   },
   {
+    id: 'domestic-help',
+    label: 'Domestic Help',
+    labelAr: 'الخدمة المنزلية',
+    shortLabel: 'Domestic',
+    shortLabelAr: 'منزلي',
+    roles: [
+      'Nanny/Babysitter',
+      'Home Cook',
+      'Housemaid',
+      'Gardener',
+      'Caretaker',
+      'Nursing Assistant',
+      'Patient Care Assistant',
+      'Hospital Orderly',
+    ],
+  },
+  {
+    id: 'warehouse',
+    label: 'Warehouse',
+    labelAr: 'المستودعات',
+    shortLabel: 'Warehouse',
+    shortLabelAr: 'مستودع',
+    roles: [
+      'Warehouse Worker',
+      'Storekeeper',
+      'Packer',
+      'Picker',
+      'Loading Staff',
+      'Inventory Clerk',
+    ],
+  },
+  {
+    id: 'office-support',
     label: 'Office Support',
     labelAr: 'الدعم المكتبي',
+    shortLabel: 'Office',
+    shortLabelAr: 'مكتب',
     roles: [
-      'Office Boy', 'Tea Boy/Girl', 'Receptionist',
-      'Data Entry Clerk', 'Runner/Peon', 'PRO Assistant',
-    ],
-  },
-  {
-    label: 'Beauty & Wellness',
-    labelAr: 'الجمال والعافية',
-    roles: [
-      'Barber', 'Hairdresser', 'Nail Technician',
-      'Beautician', 'Massage Therapist', 'Spa Attendant',
-    ],
-  },
-  {
-    label: 'Events & Promotions',
-    labelAr: 'الفعاليات والترويج',
-    roles: ['Event Staff', 'Usher', 'Exhibition Staff', 'Brand Ambassador'],
-  },
-  {
-    label: 'Healthcare Support',
-    labelAr: 'الدعم الصحي',
-    roles: [
-      'Nursing Assistant', 'Hospital Orderly',
-      'Patient Care Assistant', 'Pharmacy Helper',
-    ],
-  },
-  {
-    label: 'Maintenance',
-    labelAr: 'الصيانة',
-    roles: [
-      'AC Technician', 'Plumber', 'Electrician',
-      'Lift Technician', 'Facilities Maintenance',
+      'Office Boy',
+      'Tea Boy/Girl',
+      'Receptionist',
+      'Data Entry Clerk',
+      'Runner/Peon',
+      'PRO Assistant',
+      'Pharmacy Helper',
     ],
   },
 ];
 
+/** Full taxonomy including categories not shown as onboarding chips. */
+export const ROLE_CATEGORIES: RoleCategory[] = ONBOARDING_ROLE_CATEGORIES;
+
+export function getRoleCategoryLabel(
+  category: RoleCategory,
+  lang: 'en' | 'ar',
+): string {
+  return lang === 'ar' ? category.labelAr : category.label;
+}
+
+export function getRoleCategoryChipLabel(
+  category: RoleCategory,
+  lang: 'en' | 'ar',
+): string {
+  return lang === 'ar' ? category.shortLabelAr : category.shortLabel;
+}
+
+export function getCategoryById(id: RoleCategoryId): RoleCategory | undefined {
+  return ONBOARDING_ROLE_CATEGORIES.find((c) => c.id === id);
+}
+
+const roleToCategoryId = new Map<string, RoleCategoryId>(
+  ONBOARDING_ROLE_CATEGORIES.flatMap((c) =>
+    c.roles.map((role) => [role, c.id] as const),
+  ),
+);
+
+export function getRoleCategoryId(role: string): RoleCategoryId | undefined {
+  return roleToCategoryId.get(role);
+}
+
 export const CANDIDATE_ROLES: string[] = [
-  ...new Set(ROLE_CATEGORIES.flatMap((c) => c.roles)),
+  ...new Set(ONBOARDING_ROLE_CATEGORIES.flatMap((c) => c.roles)),
 ];
 
 export const SORTED_CANDIDATE_ROLES = [...CANDIDATE_ROLES].sort((a, b) =>
   a.localeCompare(b),
 );
 
-export const POPULAR_ROLES = [
-  'Barista', 'Waiter', 'Personal Driver', 'Office Cleaner',
-  'Security Guard', 'Retail Cashier', 'Cook', 'Housekeeper',
-];
-
 export const VISA_STATUSES = [
-  'Employment Visa', 'Visit Visa', 'Own Visa', 'Cancelled Visa',
+  'Employment Visa',
+  'Visit Visa',
+  'Own Visa',
+  'Cancelled Visa',
 ];
 
 /** @deprecated Use UAE_EMIRATES from uaeLocations.ts */
@@ -142,16 +248,30 @@ export const LANGUAGE_OPTIONS = [
   'French',
   'Russian',
   'Mandarin',
-  'Other',
 ];
 
 /** @deprecated Use LANGUAGE_OPTIONS directly */
 export const POPULAR_LANGUAGES = LANGUAGE_OPTIONS;
 
+export const CORE_LANGUAGE_OPTIONS = [
+  'English',
+  'Arabic',
+  'Hindi',
+  'Urdu',
+  'Tagalog',
+  'Bengali',
+  'Malayalam',
+] as const;
+
+const coreLanguageSet = new Set<string>(CORE_LANGUAGE_OPTIONS);
+
+export const MORE_LANGUAGE_OPTIONS = LANGUAGE_OPTIONS.filter((l) => !coreLanguageSet.has(l));
+
+/** Experience buckets (stored `years` value). Used in onboarding + employer filters. */
 export const EXPERIENCE_OPTIONS = [
-  { label: 'No experience', years: 0 },
-  { label: '1 year', years: 1 },
-  { label: '2-3 years', years: 2 },
-  { label: '4-5 years', years: 4 },
-  { label: '5+ years', years: 5 },
-];
+  { years: 0 },
+  { years: 1 },
+  { years: 2 },
+  { years: 4 },
+  { years: 5 },
+] as const;

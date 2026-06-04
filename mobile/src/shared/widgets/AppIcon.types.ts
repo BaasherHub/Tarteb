@@ -1,5 +1,6 @@
 export type AppIconName =
   | 'person'
+  | 'person-outline'
   | 'business'
   | 'settings'
   | 'camera'
@@ -8,7 +9,13 @@ export type AppIconName =
   | 'chevron-forward'
   | 'chevron-back'
   | 'home'
+  | 'home-outline'
   | 'search'
+  | 'search-outline'
+  | 'document-text-outline'
+  | 'settings-outline'
   | 'checkmark-circle'
   | 'time'
-  | 'logo-whatsapp';
+  | 'logo-whatsapp'
+  | 'document-text-outline'
+  | 'document';

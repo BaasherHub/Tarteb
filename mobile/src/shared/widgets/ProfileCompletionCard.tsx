@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
@@ -78,9 +79,9 @@ export function ProfileCompletionCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
+    borderRadius: layout.cardRadius,
+    padding: layout.cardPadding,
+    marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.divider,
   },

@@ -9,41 +9,87 @@ import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 
 type Props = {
   title: string;
+  onBack?: () => void;
   onSettings?: () => void;
   right?: React.ReactNode;
 };
 
-export function ScreenHeader({ title, onSettings, right }: Props) {
+export function ScreenHeader({ title, onBack, onSettings, right }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
+
+  if (onBack) {
+    return (
+      <View style={styles.stack}>
+        <Pressable
+          onPress={onBack}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel={t.back}
+        >
+          <AppIcon
+            name={rtl.isRtl ? 'chevron-forward' : 'chevron-back'}
+            size={24}
+            color={colors.textPrimary}
+          />
+        </Pressable>
+        <Text style={[styles.titleBlock, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+          {title}
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.row, rtl.rowBetween]}>
-      <Text style={[styles.title, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+    <View style={[styles.inline, rtl.rowBetween]}>
+      <Text style={[styles.titleInline, { textAlign: rtl.textAlign }]} numberOfLines={2}>
         {title}
       </Text>
-      <View style={[styles.right, rtl.row]}>
-        {right}
-        {onSettings ? (
-          <Pressable
-            onPress={onSettings}
-            style={styles.iconBtn}
-            accessibilityRole="button"
-            accessibilityLabel={t.settings}
-          >
-            <AppIcon name="settings" size={24} color={colors.textPrimary} />
-          </Pressable>
-        ) : null}
-      </View>
+      {onSettings || right ? (
+        <View style={[styles.right, rtl.row]}>
+          {right}
+          {onSettings ? (
+            <Pressable
+              onPress={onSettings}
+              style={styles.iconBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t.settings}
+            >
+              <AppIcon name="settings" size={24} color={colors.textPrimary} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  stack: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    width: '100%',
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  titleBlock: {
+    ...typography.h1,
+    color: colors.textPrimary,
+    width: '100%',
+  },
+  inline: {
     paddingVertical: spacing.md,
     minHeight: 48,
+    alignItems: 'center',
+    width: '100%',
   },
-  title: {
+  titleInline: {
     ...typography.h1,
     color: colors.textPrimary,
     flex: 1,

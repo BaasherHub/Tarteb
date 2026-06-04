@@ -44,12 +44,6 @@ export const colors = {
   errorTint: '#FEF2F2',
   warning: '#F59E0B',
   warningTint: '#FFFBEB',
-
-  // ── Visa status ─────────────────────────────────────────
-  visaEmployment: '#1A6FFF',
-  visaVisit: '#00C853',
-  visaOwn: '#7C3AED',
-  visaCancelled: '#F59E0B',
 } as const;
 
 export type ColorKey = keyof typeof colors;

@@ -68,6 +68,7 @@ import { useFormattedPhoneInput } from '@/shared/hooks/useFormattedPhoneInput';
 
 import { colors } from '@/core/theme/colors';
 
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 
 import { typography } from '@/core/theme/typography';
@@ -713,9 +714,9 @@ const styles = StyleSheet.create({
 
     backgroundColor: colors.surface,
 
-    borderRadius: 16,
+    borderRadius: layout.cardRadius,
 
-    padding: spacing.xl,
+    padding: layout.cardPadding,
 
     gap: spacing.lg,
 

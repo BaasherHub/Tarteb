@@ -1,4 +1,5 @@
 import { supabase } from '@/core/lib/supabase';
+import { postgrestRoleOrFilter } from '@/shared/utils/candidateRoles';
 
 export const PAGE_SIZE = 20;
 export const SALARY_FILTER_MAX = 10000;
@@ -52,14 +53,21 @@ export function hasRefineFilters(filters: BrowseFilters): boolean {
 export async function fetchRoleCounts(): Promise<Record<string, number>> {
   const { data, error } = await supabase
     .from('candidates')
-    .select('role')
+    .select('role, additional_roles')
     .eq('is_active', true);
 
   if (error || !data) return {};
 
   return data.reduce<Record<string, number>>((acc, row) => {
-    const role = row.role as string;
-    acc[role] = (acc[role] ?? 0) + 1;
+    const primary = row.role as string;
+    if (primary) acc[primary] = (acc[primary] ?? 0) + 1;
+    const extra = row.additional_roles;
+    if (Array.isArray(extra)) {
+      for (const r of extra) {
+        const role = String(r);
+        if (role) acc[role] = (acc[role] ?? 0) + 1;
+      }
+    }
     return acc;
   }, {});
 }
@@ -70,7 +78,9 @@ export async function fetchCandidatesPage(
 ): Promise<Record<string, unknown>[]> {
   let query = supabase.from('candidate_browse').select('*');
 
-  if (filters.roles.length) query = query.in('role', filters.roles);
+  if (filters.roles.length) {
+    query = query.or(postgrestRoleOrFilter(filters.roles));
+  }
   if (filters.visaStatuses.length) query = query.in('visa_status', filters.visaStatuses);
   if (filters.locations.length) {
     const clauses: string[] = [];

@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
 import { interaction } from '@/core/theme/interaction';
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export const UnlockListRow = memo(function UnlockListRow({ item, onOpen }: Props) {
+  const { t } = useLocale();
   const rtl = useRtlStyles();
   const c = item.candidates;
 
@@ -53,7 +55,7 @@ export const UnlockListRow = memo(function UnlockListRow({ item, onOpen }: Props
             style={[styles.visa, { textAlign: rtl.textAlign }]}
             numberOfLines={1}
           >
-            {String(c.visa_status)}
+            {t.visaStatusLabel(String(c.visa_status))}
           </Text>
         ) : null}
       </View>

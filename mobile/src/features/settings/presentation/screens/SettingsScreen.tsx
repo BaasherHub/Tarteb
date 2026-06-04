@@ -1,14 +1,17 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
 import { clearPushToken } from '@/core/services/notifications';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
 import { useLocale } from '@/core/i18n/LocaleContext';
-
+import { colors } from '@/core/theme/colors';
+import { TabScreenScroll } from '@/shared/widgets/TabScreenScroll';
+import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -21,16 +24,37 @@ export function SettingsScreen({ navigation }: Props) {
     navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
   };
 
+  const openEditProfile = async () => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+    const { data: row } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!row) return;
+    navigation.navigate('CandidateOnboarding', {
+      initial: onboardingFromRow(row as Record<string, unknown>),
+      startStep: 3,
+    });
+  };
+
   return (
     <Screen>
-      <ContentWidth>
-        <Text style={styles.title}>{t.settings}</Text>
-        <SettingsPanel onLogout={logout} />
+      <ContentWidth style={styles.flex}>
+        <TabScreenScroll>
+          <ScreenHeader title={t.settings} onBack={() => navigation.goBack()} />
+          <SettingsPanel
+            onLogout={logout}
+            onEditProfile={openEditProfile}
+            onOpenPrivacy={() => navigation.navigate('PrivacyPolicy')}
+          />
+        </TabScreenScroll>
       </ContentWidth>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '600', marginVertical: 16 },
+  flex: { flex: 1, backgroundColor: colors.scaffold },
 });

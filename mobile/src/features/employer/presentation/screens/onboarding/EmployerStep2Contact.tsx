@@ -9,6 +9,7 @@ import { EmployerOnboardingStep } from '@/features/employer/presentation/compone
 import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnboardingContext';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { typography } from '@/core/theme/typography';
 import {
   formatUaePhoneInput,
@@ -114,7 +115,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
         </View>
       ) : null}
 
-      <View style={styles.card}>
+      <SurfaceCard inset>
         <FormField
           label={t.contactName}
           value={data.contactName}
@@ -155,7 +156,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
           error={errors.location}
           areaHint={t.employerLocationAreaHint}
         />
-      </View>
+      </SurfaceCard>
     </EmployerOnboardingStep>
   );
 }
@@ -168,12 +169,4 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   bannerWrap: { marginBottom: spacing.md },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    gap: spacing.xs,
-  },
 });

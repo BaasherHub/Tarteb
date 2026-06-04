@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
@@ -26,7 +27,7 @@ export function CompanyLogoPicker({ imageUri, companyInitial = 'C', onPressGalle
           {
             width: size,
             height: size,
-            borderRadius: 16,
+            borderRadius: layout.cardRadius,
             borderColor: imageUri ? colors.secondary : colors.primary,
             borderStyle: imageUri ? 'solid' : 'dashed',
           },

@@ -1,329 +1,833 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import {
+
   Alert,
+
   Image,
+
+  Pressable,
+
   RefreshControl,
-  ScrollView,
+
   StyleSheet,
+
   Switch,
+
   Text,
+
   View,
+
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import { supabase } from '@/core/lib/supabase';
+
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
+
 import { colors } from '@/core/theme/colors';
+
 import { spacing } from '@/core/theme/spacing';
+
 import { typography } from '@/core/theme/typography';
+
 import { RootStackParamList } from '@/core/navigation/types';
+
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
-import { ContentWidth } from '@/shared/widgets/ContentWidth';
+
+import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
+
 import { VisaChip } from '@/shared/widgets/VisaChip';
+
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
+import { SectionLabel } from '@/shared/widgets/SectionLabel';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
+import { CandidateTabLayout } from '@/features/candidate/presentation/components/CandidateTabLayout';
+
 import { DashboardSkeleton } from '@/shared/widgets/DashboardSkeleton';
+
+import { ProfileFactRow } from '@/shared/widgets/ProfileFactRow';
+
 import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
-import { registerPushTokenIfGranted } from '@/core/services/notifications';
+
+import {
+
+  promptForPushOnFirstDashboardVisit,
+
+  registerPushTokenIfGranted,
+
+} from '@/core/services/notifications';
+
 import { getErrorMessage } from '@/shared/utils/errors';
+
 import { ProfileCompletionCard } from '@/shared/widgets/ProfileCompletionCard';
+
 import { candidateProfileCompletion } from '@/shared/utils/profileCompletion';
+
+import { parseAdditionalRoles } from '@/shared/utils/candidateRoles';
+
+import {
+
+  formatLanguagesSummary,
+
+  sanitizeLanguages,
+
+} from '@/shared/utils/languages';
+
+import { layout } from '@/core/theme/layout';
+import { interaction } from '@/core/theme/interaction';
+import { CandidateCvSection } from '@/features/candidate/presentation/components/CandidateCvSection';
+
 
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
+
+
 export function CandidateDashboardScreen() {
+
   const { t } = useLocale();
+
   const rtl = useRtlStyles();
+
   const navigation = useNavigation<Nav>();
+
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
+
   const [unlocks, setUnlocks] = useState(0);
+
   const [loading, setLoading] = useState(true);
+
   const [refreshing, setRefreshing] = useState(false);
 
+
+
   const inShell = Boolean(
+
     navigation.getParent()?.getState?.()?.routeNames?.includes('SettingsTab'),
+
   );
+
+
+
+  const pushPromptDone = useRef(false);
+
+  const fetchCandidate = useCallback(async () => {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+
+    const { data: row } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!row) {
+      navigation.navigate('CandidateOnboarding', {});
+      return;
+    }
+
+    let candidateRow = row as Record<string, unknown>;
+
+    const { data: unlockRows } = await supabase
+      .from('unlocks')
+      .select('id')
+      .eq('candidate_id', candidateRow.id as string);
+
+    const sanitizedLangs = sanitizeLanguages(candidateRow.languages);
+    if (
+      Array.isArray(candidateRow.languages) &&
+      sanitizedLangs.length !== (candidateRow.languages as string[]).length
+    ) {
+      await supabase
+        .from('candidates')
+        .update({ languages: sanitizedLangs })
+        .eq('user_id', userId);
+      candidateRow = { ...candidateRow, languages: sanitizedLangs };
+    }
+
+    setCandidate(candidateRow);
+    setUnlocks(unlockRows?.length ?? 0);
+
+    await supabase
+      .from('candidates')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('user_id', userId);
+
+    registerPushTokenIfGranted().catch(() => {});
+  }, [navigation]);
 
   const load = useCallback(async () => {
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
-
-      const { data: row } = await supabase
-        .from('candidates')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (!row) {
-        navigation.navigate('CandidateOnboarding', {});
-        return;
-      }
-
-      const { data: unlockRows } = await supabase
-        .from('unlocks')
-        .select('id')
-        .eq('candidate_id', row.id as string);
-
-      setCandidate(row as Record<string, unknown>);
-      setUnlocks(unlockRows?.length ?? 0);
-
-      // Stamp last_active_at so the candidate appears fresh in employer browse.
-      await supabase
-        .from('candidates')
-        .update({ last_active_at: new Date().toISOString() })
-        .eq('user_id', userId);
-
-      // Register push token silently — no-op if permission denied.
-      registerPushTokenIfGranted().catch(() => {});
+      await fetchCandidate();
     } catch (e) {
       Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [navigation, t.errorGeneric]);
+  }, [fetchCandidate, t]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (loading || !candidate || pushPromptDone.current) return;
+    pushPromptDone.current = true;
+    void promptForPushOnFirstDashboardVisit(t);
+  }, [loading, candidate, t]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) {
+        void fetchCandidate().catch((e) => {
+          Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+        });
+      }
+    }, [fetchCandidate, loading, t]),
+  );
+
+
+
   const toggleActive = async (value: boolean) => {
+
     const userId = (await supabase.auth.getUser()).data.user?.id;
+
     if (!userId) return;
+
     await supabase
+
       .from('candidates')
+
       .update({
+
         is_active: value,
+
         availability_status: value ? 'looking' : 'paused',
+
       })
+
       .eq('user_id', userId);
+
     load();
+
   };
+
+
 
   const markHired = () => {
+
     Alert.alert(t.hiredAlertTitle, t.hiredAlertMessage, [
+
       { text: t.cancel, style: 'cancel' },
+
       {
+
         text: t.hiredAlertConfirm,
+
         onPress: async () => {
-            const userId = (await supabase.auth.getUser()).data.user?.id;
-            if (!userId) return;
-            await supabase
-              .from('candidates')
-              .update({ is_active: false, availability_status: 'hired' })
-              .eq('user_id', userId);
-            load();
-          },
+
+          const userId = (await supabase.auth.getUser()).data.user?.id;
+
+          if (!userId) return;
+
+          await supabase
+
+            .from('candidates')
+
+            .update({ is_active: false, availability_status: 'hired' })
+
+            .eq('user_id', userId);
+
+          load();
+
         },
-      ],
-    );
+
+      },
+
+    ]);
+
   };
 
+
+
   if (loading) {
+
     return (
-      <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent}>
-        <ContentWidth grow={false}>
-          <ScreenHeader title={t.home} />
+
+      <CandidateTabLayout>
+        <ScreenHeader title={t.home} />
+        <View style={styles.sections}>
           <DashboardSkeleton />
-        </ContentWidth>
-      </ScrollView>
+        </View>
+      </CandidateTabLayout>
+
     );
+
   }
+
+
 
   if (!candidate) return null;
 
+
+
   const isActive = candidate.is_active !== false;
+
   const availabilityStatus = String(candidate.availability_status ?? 'looking');
+
   const isHired = availabilityStatus === 'hired';
+
   const photoUrl = candidate.photo_url as string | undefined;
+
   const visa = String(candidate.visa_status ?? '');
-  const salary = candidate.salary_expectation;
+  const visaLabel = visa ? t.visaStatusLabel(visa) : '';
+  const profileViews =
+    typeof candidate.profile_view_count === 'number' ? candidate.profile_view_count : 0;
+
+  const currentSalary = candidate.current_salary;
+
+  const expectedSalary = candidate.salary_expectation;
+
   const completion = candidateProfileCompletion(candidate);
 
-  const openProfileEditor = () => {
+  const showCompletionProminent = completion.percent < 90;
+
+
+
+  const openProfileEditorAt = (startStep: number) => {
     navigation.navigate('CandidateOnboarding', {
       initial: onboardingFromRow(candidate),
+      startStep,
     });
   };
 
-  return (
-    <ScrollView
-      style={styles.flex}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => {
-            setRefreshing(true);
-            load();
-          }}
-        />
+  const openProfileEditor = () => openProfileEditorAt(1);
+
+
+
+  const openAdditionalRoles = () => {
+
+    navigation.navigate('CandidateAdditionalRoles', undefined);
+
+  };
+
+
+
+  const primaryRole = String(candidate.role ?? '');
+
+  const alsoRoles = parseAdditionalRoles(candidate.additional_roles).filter(
+
+    (r) => r !== primaryRole,
+
+  );
+
+  const languages = sanitizeLanguages(candidate.languages);
+
+  const languagesLine = formatLanguagesSummary(
+
+    languages,
+
+    (l) => t.languageLabel(l),
+
+    (n) => t.homeLanguagesMore(n),
+
+  );
+
+  const yearsExperience =
+
+    typeof candidate.years_experience === 'number' ? candidate.years_experience : null;
+
+  const location = String(candidate.location ?? '');
+
+
+
+  const completionCard = (
+
+    <ProfileCompletionCard
+
+      completion={completion}
+
+      onImprove={
+
+        completion.percent < 100
+
+          ? completion.nextItem?.id === 'alsoRoles'
+            ? openAdditionalRoles
+            : openProfileEditor
+          : undefined
+
       }
+
+      variant="candidate"
+
+    />
+
+  );
+
+
+
+  return (
+
+    <CandidateTabLayout
+
+      refreshControl={
+
+        <RefreshControl
+
+          refreshing={refreshing}
+
+          onRefresh={() => {
+
+            setRefreshing(true);
+
+            load();
+
+          }}
+
+        />
+
+      }
+
     >
-      <ContentWidth grow={false}>
-        <ScreenHeader
-          title={t.home}
-          onSettings={
-            inShell
-              ? undefined
-              : () => navigation.navigate('Settings', undefined)
-          }
-        />
+      <ScreenHeader
+        title={t.home}
+        onSettings={
+          inShell ? undefined : () => navigation.navigate('Settings', undefined)
+        }
+      />
 
-        {isHired && (
+      <View style={styles.sections}>
+        {isHired ? (
+
           <View style={[styles.banner, styles.bannerHired]}>
+
             <Text style={styles.bannerTextHired}>{t.hiredBanner}</Text>
+
           </View>
-        )}
-        {!isActive && !isHired && (
+
+        ) : null}
+
+        {!isActive && !isHired ? (
+
           <View style={styles.banner}>
+
             <Text style={styles.bannerText}>{t.profilePaused}</Text>
+
           </View>
-        )}
 
-        <ProfileCompletionCard
-          completion={completion}
-          onImprove={completion.percent < 100 ? openProfileEditor : undefined}
-          variant="candidate"
-        />
+        ) : null}
 
-        <View style={styles.card}>
-          {photoUrl ? (
-            <Image source={{ uri: photoUrl }} style={styles.photo} />
-          ) : (
-            <View style={[styles.photo, styles.photoPh]}>
-              <Text style={styles.initials}>
-                {String(candidate.name ?? '?').charAt(0).toUpperCase()}
+
+
+        {showCompletionProminent ? completionCard : null}
+
+        <SurfaceCard inset>
+          <View style={[styles.profileToolbar, rtl.row]}>
+            <View style={[styles.activeInline, rtl.row]}>
+              <Text style={[styles.activeLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+                {t.profileActive}
+              </Text>
+              <Switch
+                value={isActive}
+                onValueChange={toggleActive}
+                accessibilityLabel={t.profileActive}
+                disabled={isHired}
+              />
+            </View>
+            <Pressable
+              onPress={openProfileEditor}
+              accessibilityRole="button"
+              accessibilityLabel={t.editProfile}
+              hitSlop={8}
+              style={styles.editPressable}
+            >
+              <Text style={[styles.editLink, { textAlign: rtl.textAlignEnd }]}>{t.editProfile}</Text>
+            </Pressable>
+          </View>
+
+
+
+          <View style={styles.profileHero}>
+
+            {photoUrl ? (
+
+              <Image source={{ uri: photoUrl }} style={styles.photo} />
+
+            ) : (
+
+              <Pressable
+
+                onPress={openProfileEditor}
+
+                style={[styles.photo, styles.photoPh]}
+
+                accessibilityRole="button"
+
+                accessibilityLabel={t.dashboardPhotoNagAction}
+
+              >
+
+                <Text style={styles.initials}>
+                  {String(candidate.name ?? '?').charAt(0).toUpperCase()}
+                </Text>
+                <Text style={[styles.photoCta, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+                  {t.dashboardPhotoNagAction}
+                </Text>
+              </Pressable>
+
+            )}
+
+            <Text style={[styles.name, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+
+              {String(candidate.name ?? '')}
+
+            </Text>
+
+            {primaryRole ? (
+
+              <Text style={[styles.roleLine, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+
+                {primaryRole}
+
+              </Text>
+
+            ) : null}
+
+            {alsoRoles.length > 0 ? (
+
+              <Text style={[styles.alsoLine, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+
+                {t.homeAlsoOpenTo}: {alsoRoles.join(', ')}
+
+              </Text>
+
+            ) : null}
+
+            {visa ? (
+
+              <View style={styles.chipWrap}>
+
+                <VisaChip label={visaLabel} />
+
+              </View>
+
+            ) : null}
+
+          </View>
+
+
+
+          <View style={styles.facts}>
+
+            <ProfileFactRow label={t.homeLocationLabel} value={location} />
+
+            {yearsExperience != null ? (
+
+              <ProfileFactRow
+
+                label={t.homeExperienceLabel}
+
+                value={t.experienceBucketLabel(yearsExperience)}
+
+              />
+
+            ) : null}
+
+            {languagesLine ? (
+              <ProfileFactRow label={t.homeLanguagesLabel} value={languagesLine} />
+            ) : null}
+
+            {expectedSalary != null ? (
+              <ProfileFactRow
+                label={t.homeExpectedSalaryLabel}
+                value={t.salaryPerMonth(String(expectedSalary))}
+              />
+            ) : null}
+
+            {currentSalary != null ? (
+              <ProfileFactRow
+                label={t.homeCurrentSalaryLabel}
+                value={t.salaryPerMonth(String(currentSalary))}
+                variant="secondary"
+              />
+            ) : null}
+
+          </View>
+
+          <CandidateCvSection
+            cvPath={candidate.cv_url as string | undefined}
+            cvFileName={candidate.cv_file_name as string | undefined}
+            onUpdated={() => void load()}
+          />
+
+          {currentSalary != null ? (
+
+            <Text style={[styles.salaryPrivate, { textAlign: rtl.textAlign }]}>
+
+              {t.homeCurrentSalaryPrivate}
+
+            </Text>
+
+          ) : null}
+
+        </SurfaceCard>
+
+        <SectionLabel variant="group">{t.contactUnlocks}</SectionLabel>
+        <SurfaceCard inset>
+          <View style={[styles.statusRow, rtl.row]}>
+            <View style={styles.metricBlock}>
+              <Text style={styles.unlockValue}>{unlocks}</Text>
+              <Text style={[styles.unlockLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+                {t.contactUnlocks}
               </Text>
             </View>
-          )}
-          <Text style={styles.name} numberOfLines={2}>
-            {String(candidate.name ?? '')}
-          </Text>
-          <Text style={styles.role} numberOfLines={2}>
-            {String(candidate.role ?? '')}
-          </Text>
-          {visa ? (
-            <View style={styles.chipWrap}>
-              <VisaChip label={visa} />
+            <View style={styles.statusDivider} />
+            <View style={styles.metricBlock}>
+              <Text style={styles.unlockValue}>{profileViews}</Text>
+              <Text style={[styles.unlockLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+                {t.profileViews}
+              </Text>
             </View>
-          ) : null}
-          <Text style={[styles.meta, { textAlign: rtl.textAlignCenter }]} numberOfLines={2}>
-            {String(candidate.location ?? '')}
-          </Text>
-          {salary != null ? (
-            <Text style={styles.salary}>
-              {t.salaryPerMonth(String(salary))}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.statLabel}>{t.contactUnlocks}</Text>
-          <Text style={styles.statHint}>{t.contactUnlocksHint}</Text>
-          <Text style={styles.statValue}>{unlocks}</Text>
-          {unlocks === 0 ? (
-            <Text style={styles.hint}>{t.contactUnlocksEmpty}</Text>
-          ) : (
-            <Text style={styles.hint}>{t.profileLive}</Text>
-          )}
-        </View>
-
-        <View style={[styles.card, styles.row, rtl.rowBetween]}>
-          <Text style={[styles.activeLabel, { textAlign: rtl.textAlign }]} numberOfLines={2}>
-            {t.profileActive}
-          </Text>
-          <Switch
-            value={isActive}
-            onValueChange={toggleActive}
-            accessibilityLabel={t.profileActive}
-            disabled={isHired}
-          />
-        </View>
-
-        {isActive && !isHired && (
-          <View style={[styles.hiredWrap, rtl.row]}>
-            <Switch
-              value={false}
-              onValueChange={markHired}
-              accessibilityLabel={t.markHiredA11y}
-            />
-            <Text style={[styles.hiredLabel, { textAlign: rtl.textAlign }]} numberOfLines={3}>
-              {t.markHiredLabel}
-            </Text>
           </View>
-        )}
+          <Text style={[styles.statusHint, { textAlign: rtl.textAlign }]} numberOfLines={2}>
+            {unlocks === 0 ? t.contactUnlocksEmpty : t.contactUnlocksHint}
+          </Text>
+        </SurfaceCard>
 
-        <View style={styles.editWrap}>
-          <PrimaryButton label={t.editProfile} onPress={openProfileEditor} />
-        </View>
-      </ContentWidth>
-    </ScrollView>
+        {!showCompletionProminent && completion.percent < 100 ? completionCard : null}
+
+
+
+        <SectionLabel variant="group">{t.candidateAdditionalRolesTitle}</SectionLabel>
+
+        <Pressable
+
+          onPress={openAdditionalRoles}
+
+          style={({ pressed }) => pressed && styles.pressed}
+
+          accessibilityRole="button"
+
+          accessibilityLabel={t.candidateAdditionalRolesCta}
+
+        >
+
+          <SurfaceCard inset>
+
+            <Text style={[styles.alsoCardSub, { textAlign: rtl.textAlign }]}>
+
+              {alsoRoles.length > 0
+
+                ? t.candidateAdditionalRolesCount(alsoRoles.length, 2)
+
+                : t.candidateAdditionalRolesHint}
+
+            </Text>
+
+            <Text style={[styles.alsoCardCta, { textAlign: rtl.textAlignEnd }]}>
+
+              {alsoRoles.length > 0
+
+                ? t.candidateAdditionalRolesEdit
+
+                : t.candidateAdditionalRolesCta}
+
+            </Text>
+
+          </SurfaceCard>
+
+        </Pressable>
+
+
+
+        {isActive && !isHired ? (
+
+          <SecondaryButton
+
+            label={t.homeGotHired}
+
+            onPress={markHired}
+
+            accessibilityHint={t.markHiredA11y}
+
+          />
+
+        ) : null}
+
+      </View>
+
+    </CandidateTabLayout>
+
   );
+
 }
 
+
+
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.scaffold },
-  scrollContent: { paddingBottom: spacing.xxxl, paddingHorizontal: spacing.lg },
-  chipWrap: { marginTop: spacing.sm },
+
+  sections: { gap: spacing.xs },
+
   banner: {
+
     padding: spacing.md,
+
     backgroundColor: colors.warningTint,
-    borderRadius: 12,
+
+    borderRadius: layout.cardRadius,
+
     marginBottom: spacing.md,
+
   },
-  bannerText: { color: '#B45309', lineHeight: 20 },
+
+  bannerText: { color: colors.warning, lineHeight: 20, fontWeight: '500' },
+
   bannerHired: { backgroundColor: colors.secondaryTint },
+
   bannerTextHired: { color: colors.secondary, fontWeight: '600', lineHeight: 20 },
-  hiredWrap: {
+
+  profileToolbar: {
+    width: '100%',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: spacing.md,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    marginBottom: 16,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
-  hiredLabel: { flex: 1, fontSize: 14, color: colors.textSecondary },
-  card: {
-    marginBottom: spacing.lg,
-    padding: spacing.xl,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
+  editPressable: { alignSelf: 'flex-end' },
+
+  activeInline: {
+    flex: 1.2,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.divider,
+    gap: spacing.sm,
+    minWidth: 0,
   },
-  photo: { width: 100, height: 100, borderRadius: 50 },
+
+  activeLabel: { ...typography.caption, fontWeight: '600', color: colors.textPrimary },
+
+  editLink: {
+
+    ...typography.caption,
+
+    fontWeight: '700',
+
+    color: colors.primary,
+
+  },
+
+  profileHero: { alignItems: 'center', marginBottom: spacing.md },
+
+  photo: { width: 88, height: 88, borderRadius: 44 },
+
   photoPh: {
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: colors.primaryTint,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: spacing.sm,
   },
-  initials: { fontSize: 36, fontWeight: '700', color: colors.primary },
-  name: { ...typography.h2, marginTop: spacing.md, textAlign: 'center' },
-  role: { ...typography.body, marginTop: spacing.xs, textAlign: 'center', color: colors.textSecondary },
-  meta: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
-  salary: { marginTop: spacing.sm, fontWeight: '600', color: colors.primary, textAlign: 'center' },
-  statLabel: { ...typography.h3, color: colors.textPrimary, textAlign: 'center' },
-  statHint: {
+
+  initials: { fontSize: 32, fontWeight: '700', color: colors.primary },
+  photoCta: {
+    ...typography.caption,
+    fontWeight: '700',
+    color: colors.primary,
     marginTop: spacing.xs,
+    paddingHorizontal: spacing.xs,
+  },
+
+  name: { ...typography.h2, marginTop: spacing.sm },
+
+  roleLine: {
+
+    ...typography.body,
+
+    fontWeight: '700',
+
+    color: colors.textPrimary,
+
+    marginTop: spacing.xs,
+
+  },
+
+  alsoLine: {
+
+    ...typography.caption,
+
+    color: colors.textSecondary,
+
+    marginTop: spacing.xs,
+
+    lineHeight: 18,
+
+  },
+
+  chipWrap: { marginTop: spacing.sm },
+
+  facts: { width: '100%', gap: spacing.xs },
+
+  salaryPrivate: {
+
+    ...typography.caption,
+
+    color: colors.placeholder,
+
+    marginTop: spacing.sm,
+
+    lineHeight: 18,
+
+  },
+
+  statusRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  statusDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: colors.divider,
+  },
+  statusHint: {
     ...typography.caption,
     color: colors.textSecondary,
-    textAlign: 'center',
+    marginTop: spacing.md,
+    lineHeight: 18,
   },
-  statValue: { fontSize: 32, fontWeight: '700', marginTop: spacing.md, textAlign: 'center' },
-  hint: {
-    ...typography.body,
-    marginTop: spacing.sm,
-    textAlign: 'center',
-    color: colors.secondary,
+  metricBlock: { alignItems: 'center', minWidth: 72, flex: 1, flexShrink: 1 },
+  unlockValue: { fontSize: 28, fontWeight: '800', color: colors.primary, lineHeight: 32 },
+  unlockLabel: { ...typography.caption, fontWeight: '600', color: colors.textSecondary, marginTop: 2 },
+
+  alsoCardSub: {
+
+    ...typography.caption,
+
+    color: colors.textSecondary,
+
+    lineHeight: 20,
+
+    marginBottom: spacing.sm,
+
   },
-  row: { alignItems: 'center', width: '100%' },
-  activeLabel: { ...typography.h3, flex: 1, flexShrink: 1 },
-  editWrap: { marginBottom: spacing.lg },
+
+  alsoCardCta: {
+
+    ...typography.caption,
+
+    fontWeight: '700',
+
+    color: colors.primary,
+
+  },
+
+  pressed: { opacity: interaction.pressed },
+
 });
+
+

@@ -10,6 +10,7 @@ import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnb
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { FormField } from '@/shared/widgets/FormField';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
@@ -78,7 +79,7 @@ export function EmployerStep1Company() {
         {isEditMode ? t.employerOnboardingEditStep1Intro : t.employerOnboardingStep1Intro}
       </Text>
 
-      <View style={styles.card}>
+      <SurfaceCard inset>
         <Text style={[styles.cardTitle, { textAlign: rtl.textAlign }]}>
           {t.companyLogo}
         </Text>
@@ -108,7 +109,7 @@ export function EmployerStep1Company() {
         <Text style={[styles.hint, { textAlign: rtl.textAlign }]} numberOfLines={3}>
           {t.tradeLicenseHint}
         </Text>
-      </View>
+      </SurfaceCard>
     </EmployerOnboardingStep>
   );
 }
@@ -127,14 +128,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
     marginBottom: spacing.lg,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    gap: spacing.xs,
   },
   cardTitle: { ...typography.h3, marginBottom: spacing.sm },
   hint: { ...typography.caption, color: colors.textSecondary },

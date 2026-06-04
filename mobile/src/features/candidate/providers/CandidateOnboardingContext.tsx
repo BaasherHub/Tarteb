@@ -32,18 +32,36 @@ type Ctx = {
 
 const CandidateOnboardingContext = createContext<Ctx | null>(null);
 
+function mergeOnboardingData(
+  patch?: Partial<CandidateOnboardingData>,
+): CandidateOnboardingData {
+  const base = emptyOnboardingData();
+  if (!patch) return base;
+  return {
+    ...base,
+    ...patch,
+    additionalRoles: Array.isArray(patch.additionalRoles)
+      ? patch.additionalRoles
+      : base.additionalRoles,
+    languages: Array.isArray(patch.languages) ? patch.languages : base.languages,
+  };
+}
+
 export function CandidateOnboardingProvider({
   children,
   initial,
+  startStep,
 }: {
   children: React.ReactNode;
   initial?: CandidateOnboardingData;
+  startStep?: number;
 }) {
   const isEditMode = Boolean(initial?.candidateId);
-  const [data, setData] = useState<CandidateOnboardingData>(
-    initial ?? emptyOnboardingData(),
+  const [data, setData] = useState<CandidateOnboardingData>(() =>
+    mergeOnboardingData(initial),
   );
-  const [step, setStepState] = useState(1);
+  const initialStep = Math.min(Math.max(startStep ?? 1, 1), 5);
+  const [step, setStepState] = useState(isEditMode ? initialStep : 1);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const hydrated = useRef(false);
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,7 +72,7 @@ export function CandidateOnboardingProvider({
     hydrated.current = true;
     loadOnboardingDraft().then((draft) => {
       if (!draft) return;
-      setData(draft.data);
+      setData(mergeOnboardingData(draft.data));
       setStepState(Math.min(Math.max(draft.step, 1), totalSteps));
       setDraftSavedAt(draft.savedAt);
     });
@@ -83,7 +101,7 @@ export function CandidateOnboardingProvider({
   const update = useCallback(
     (patch: Partial<CandidateOnboardingData>) => {
       setData((d) => {
-        const next = { ...d, ...patch };
+        const next = mergeOnboardingData({ ...d, ...patch });
         if (!isEditMode) persistDraft(next, step);
         return next;
       });
@@ -92,7 +110,7 @@ export function CandidateOnboardingProvider({
   );
 
   const reset = useCallback((init?: CandidateOnboardingData) => {
-    setData(init ?? emptyOnboardingData());
+    setData(mergeOnboardingData(init));
     setStepState(1);
   }, []);
 

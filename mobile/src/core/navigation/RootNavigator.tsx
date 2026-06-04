@@ -58,7 +58,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateDetail"
           component={CandidateDetailScreen}
-          options={{ title: t.browse }}
+          options={{ title: t.candidateProfileTitle }}
         />
         <Stack.Screen
           name="Subscription"
@@ -68,6 +68,11 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateOnboarding"
           component={CandidateOnboardingScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CandidateAdditionalRoles"
+          component={CandidateAdditionalRolesScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -85,6 +90,11 @@ export function RootNavigator() {
           component={SettingsScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -99,6 +109,8 @@ import { EmployerShellScreen } from '@/features/employer/presentation/screens/Em
 import { CandidateDetailScreen } from '@/features/employer/presentation/screens/CandidateDetailScreen';
 import { SubscriptionScreen } from '@/features/employer/presentation/screens/SubscriptionScreen';
 import { CandidateOnboardingScreen } from '@/features/candidate/presentation/screens/CandidateOnboardingScreen';
+import { CandidateAdditionalRolesScreen } from '@/features/candidate/presentation/screens/CandidateAdditionalRolesScreen';
 import { CandidateShellScreen } from '@/features/candidate/presentation/screens/CandidateShellScreen';
 import { CandidateDashboardScreen } from '@/features/candidate/presentation/screens/CandidateDashboardScreen';
 import { SettingsScreen } from '@/features/settings/presentation/screens/SettingsScreen';
+import { PrivacyPolicyScreen } from '@/features/settings/presentation/screens/PrivacyPolicyScreen';

@@ -1,3 +1,5 @@
+import { formatSalaryAmount } from '@/shared/utils/salary';
+
 export type Lang = 'en' | 'ar';
 
 export interface Strings {
@@ -55,7 +57,6 @@ export interface Strings {
   companyLogoTap: string;
   companyLogoHint: string;
   previousEmployerPlaceholder: string;
-  nationalityExamplesHint: string;
   browse: string;
   myUnlocks: string;
   subscribe: string;
@@ -72,7 +73,21 @@ export interface Strings {
   subscriptionBullet3: string;
   subscriptionValidUntil: (date: string) => string;
   settings: string;
+  settingsSectionAccount: string;
+  settingsSectionPreferences: string;
+  settingsSectionHelp: string;
+  settingsSectionAccountType: string;
+  settingsLanguageHint: string;
+  settingsRtlReloadHint: string;
+  settingsEditProfile: string;
+  settingsEditCompany: string;
+  candidateProfileTitle: string;
+  settingsOpensInBrowser: string;
+  settingsLogoutConfirmTitle: string;
+  settingsLogoutConfirmMessage: string;
+  settingsLogoutConfirm: string;
   settingsPhoneLabel: string;
+  settingsNameLabel: string;
   settingsMemberSince: string;
   uaePassTitle: string;
   uaePassSub: string;
@@ -99,6 +114,10 @@ export interface Strings {
   nationality: string;
   location: string;
   monthlySalary: string;
+  currentSalary: string;
+  expectedSalary: string;
+  salarySectionTitle: string;
+  contactsSectionTitle: string;
   phoneNumber: string;
   whatsappOptional: string;
   yearsExperience: string;
@@ -108,6 +127,19 @@ export interface Strings {
   no: string;
   previousEmployer: string;
   fullName: string;
+  fullNameOnId: string;
+  experienceBucketLabel: (years: number) => string;
+  languageLabel: (lang: string) => string;
+  visaStatusLabel: (status: string) => string;
+  homeAlsoOpenTo: string;
+  experienceSelectOne: string;
+  languagesSelectAll: string;
+  onboardingOptionalSection: string;
+  errPhotoGoBackStep1: string;
+  errNameGoBackStep3: string;
+  errSalaryVisaGoBackStep4: string;
+  availableFromOptional: string;
+  availableFromOptionalHint: string;
   availableFrom: string;
   submitProfile: string;
   saveProfile: string;
@@ -117,10 +149,10 @@ export interface Strings {
   onboardingStepPhotoTitle: string;
   onboardingStepPhotoIntro: string;
   onboardingStepRoleTitle: string;
-  onboardingStep2Title: string;
-  onboardingStep3Title: string;
-  onboardingStep4Title: string;
-  onboardingStep5Title: string;
+  onboardingStepLocationTitle: string;
+  onboardingStepSalaryVisaTitle: string;
+  onboardingStepExperienceTitle: string;
+  errLocationArea: string;
   onboardingPhotoIntro: string;
   profileCompletionHeadline: (percent: number) => string;
   profileCompletionNext: (milestone: string) => string;
@@ -151,14 +183,72 @@ export interface Strings {
   profileViews: string;
   profileLive: string;
   profileActive: string;
+  homeOverviewSection: string;
+  homeYourProfile: string;
+  homeProfileViews: (count: number) => string;
+  homeGotHired: string;
+  homeLocationLabel: string;
+  homeExperienceLabel: string;
+  homeLanguagesLabel: string;
+  homeLanguagesMore: (extra: number) => string;
+  homeExpectedSalaryLabel: string;
+  homeCurrentSalaryLabel: string;
+  homeCurrentSalaryPrivate: string;
+  cvSectionTitle: string;
+  cvSectionHint: string;
+  cvUpload: string;
+  cvReplace: string;
+  cvAttached: string;
+  cvView: string;
+  cvViewA11y: string;
+  cvRemoveTitle: string;
+  cvRemoveMessage: string;
+  cvRemoveConfirm: string;
+  cvInvalidFile: string;
+  cvUploadFailed: string;
+  cvOpenFailed: string;
+  cvBadge: string;
+  cvEmployerHint: string;
   editProfile: string;
   filters: string;
   candidatePickRole: string;
   candidatePickRoleHint: string;
   jobRoleSearchPlaceholder: string;
+  jobRoleCategories: string;
+  jobRoleAllCategories: string;
   allJobRoles: string;
   jobRoleNoMatch: string;
+  jobRoleNoMatchDetail: (opts: {
+    query?: string;
+    categoryLabel?: string;
+  }) => string;
+  jobRoleClearSearch: string;
+  jobRoleClearCategory: string;
   roleSelected: string;
+  candidatePrimaryRoleTitle: string;
+  candidatePrimaryRoleHint: string;
+  candidatePrimaryRoleEditNote: string;
+  candidateAdditionalRolesTitle: string;
+  candidateAdditionalRolesHint: string;
+  candidateAdditionalRolesScreenTitle: string;
+  candidateAdditionalRolesScreenIntro: string;
+  candidateAdditionalRolesCta: string;
+  candidateAdditionalRolesEdit: string;
+  candidateAdditionalRolesCount: (n: number, max: number) => string;
+  candidatePrimaryRoleBadge: string;
+  candidateSecondaryRoleBadge: string;
+  candidateAlsoOpenTo: string;
+  roleSelectedPrimary: string;
+  candidateAdditionalRolesEmpty: string;
+  jobRoleAdditionalCap: string;
+  removeRole: (role: string) => string;
+  employerPrimaryRoleBadge: string;
+  employerSecondaryRoleBadge: string;
+  employerAlsoOpenTo: string;
+  employerMatchPrimaryShort: string;
+  employerMatchSecondaryShort: (role: string) => string;
+  employerRoleFilterLegend: string;
+  employerRoleFilterLegendDismiss: string;
   browsePickRole: string;
   browsePickRoleHint: string;
   browseRefine: string;
@@ -187,6 +277,8 @@ export interface Strings {
   searchPlaceholder: string;
   unlockedBadge: string;
   salaryPerMonth: (amount: string) => string;
+  currentSalaryPerMonth: (amount: string) => string;
+  expectedSalaryPerMonth: (amount: string) => string;
   subscribeToUnlock: string;
   viewSubscription: string;
   call: string;
@@ -205,7 +297,6 @@ export interface Strings {
   emailPlaceholder: string;
   back: string;
   nationalityPlaceholder: string;
-  nationalityHint: string;
   locationEmirate: string;
   locationArea: string;
   locationAreaHint: string;
@@ -240,6 +331,8 @@ export interface Strings {
   popularRoles: string;
   moreRoles: string;
   moreLanguages: string;
+  showMoreLanguages: string;
+  hideMoreLanguages: string;
   home: string;
   roleConfirmTitle: string;
   roleConfirmMessage: string;
@@ -262,6 +355,8 @@ export interface Strings {
   errLocation: string;
   errAvailableFrom: string;
   errSalary: string;
+  errCurrentSalary: string;
+  errExpectedSalary: string;
   errPhone: string;
   errExperience: string;
   errLanguages: string;
@@ -317,6 +412,7 @@ export interface Strings {
   toastProfileViewed: string;
   a11yDismissToast: string;
   privacyPolicy: string;
+  privacyPolicyUpdated: string;
 }
 
 const en: Strings = {
@@ -401,8 +497,7 @@ const en: Strings = {
   hiredAlertConfirm: 'Yes, I got hired',
   markHiredLabel: 'I got hired — hide my profile',
   markHiredA11y: 'Mark profile as hired',
-  previousEmployerPlaceholder: 'Previous company name (optional)',
-  nationalityExamplesHint: 'Examples: United Arab Emirates, Egypt, India, Philippines…',
+  previousEmployerPlaceholder: 'Company name',
   signingUpAsRole: (role) => `Creating your account as ${role}`,
   roleCandidate: 'Job seeker',
   roleEmployer: 'Employer',
@@ -435,7 +530,21 @@ const en: Strings = {
   subscriptionBullet3: 'Cancel anytime — no per-CV fees',
   subscriptionValidUntil: (date) => `Valid until ${date}`,
   settings: 'Settings',
+  settingsSectionAccount: 'Account',
+  settingsSectionPreferences: 'Preferences',
+  settingsSectionHelp: 'Help & legal',
+  settingsSectionAccountType: 'Account type',
+  settingsLanguageHint: 'App language',
+  settingsRtlReloadHint: 'If the layout looks wrong, close and reopen the app.',
+  settingsEditProfile: 'Edit profile',
+  settingsEditCompany: 'Edit company profile',
+  candidateProfileTitle: 'Candidate profile',
+  settingsOpensInBrowser: 'Opens in browser',
+  settingsLogoutConfirmTitle: 'Sign out?',
+  settingsLogoutConfirmMessage: 'You will need your phone number to sign in again.',
+  settingsLogoutConfirm: 'Sign out',
   settingsPhoneLabel: 'Phone',
+  settingsNameLabel: 'Name',
   settingsMemberSince: 'Member since',
   uaePassTitle: 'UAE Pass verification',
   uaePassSub: 'Verify your identity with UAE Pass',
@@ -462,6 +571,10 @@ const en: Strings = {
   nationality: 'Nationality',
   location: 'Location',
   monthlySalary: 'Monthly salary (AED)',
+  currentSalary: 'Current salary',
+  expectedSalary: 'Expected salary',
+  salarySectionTitle: 'Salary',
+  contactsSectionTitle: 'Contact',
   phoneNumber: 'Phone number',
   whatsappOptional: 'WhatsApp (optional)',
   yearsExperience: 'Years of experience',
@@ -469,8 +582,55 @@ const en: Strings = {
   uaeExperience: 'Worked in UAE before?',
   yes: 'Yes',
   no: 'No',
-  previousEmployer: 'Previous company (optional)',
+  previousEmployer: 'Previous company',
   fullName: 'Full name',
+  fullNameOnId: 'Full name (as on ID)',
+  experienceBucketLabel: (years) => {
+    if (years === 0) return 'No experience';
+    if (years === 1) return '1 year';
+    if (years === 2) return '2–3 years';
+    if (years === 4) return '4–5 years';
+    if (years === 5) return '5+ years';
+    return `${years} years`;
+  },
+  languageLabel: (lang) => {
+    const labels: Record<string, string> = {
+      English: 'English',
+      Arabic: 'Arabic',
+      Hindi: 'Hindi',
+      Urdu: 'Urdu',
+      Tagalog: 'Tagalog',
+      Bengali: 'Bengali',
+      Malayalam: 'Malayalam',
+      Tamil: 'Tamil',
+      Nepali: 'Nepali',
+      Sinhala: 'Sinhala',
+      Punjabi: 'Punjabi',
+      Pashto: 'Pashto',
+      French: 'French',
+      Russian: 'Russian',
+      Mandarin: 'Mandarin',
+    };
+    return labels[lang] ?? lang;
+  },
+  visaStatusLabel: (status) => {
+    const labels: Record<string, string> = {
+      'Employment Visa': 'Employment visa',
+      'Visit Visa': 'Visit visa',
+      'Own Visa': 'Own visa',
+      'Cancelled Visa': 'Cancelled visa',
+    };
+    return labels[status] ?? status;
+  },
+  homeAlsoOpenTo: 'Also open to',
+  experienceSelectOne: 'Choose one',
+  languagesSelectAll: 'Choose all that apply',
+  onboardingOptionalSection: 'Optional',
+  errPhotoGoBackStep1: 'Add your photo — tap Back to go to step 1.',
+  errNameGoBackStep3: 'Add your full name — tap Back to Location & contact.',
+  errSalaryVisaGoBackStep4: 'Complete salary and visa — tap Back to the previous step.',
+  availableFromOptional: 'Available from (optional)',
+  availableFromOptionalHint: 'Leave blank if you can start anytime.',
   availableFrom: 'Available from',
   submitProfile: 'Submit profile',
   saveProfile: 'Save profile',
@@ -481,10 +641,9 @@ const en: Strings = {
   onboardingStepPhotoIntro:
     'A clear face photo helps employers trust your profile and contact you faster.',
   onboardingStepRoleTitle: 'Your job role',
-  onboardingStep2Title: 'Visa & location',
-  onboardingStep3Title: 'Salary & contacts',
-  onboardingStep4Title: 'Experience & finish',
-  onboardingStep5Title: 'Experience & finish',
+  onboardingStepLocationTitle: 'Location & contact',
+  onboardingStepSalaryVisaTitle: 'Salary & visa',
+  onboardingStepExperienceTitle: 'Experience',
   onboardingPhotoIntro:
     'Employers see your photo first. Use a clear face picture in good light.',
   profileCompletionHeadline: (percent) => `Profile ${percent}% complete`,
@@ -508,11 +667,12 @@ const en: Strings = {
       visa: 'Add visa status',
       nationality: 'Add nationality',
       location: 'Add your location',
-      salary: 'Add expected salary',
+      salary: 'Add current and expected salary',
       phone: 'Add phone number',
       name: 'Add your full name',
       available: 'Set availability date',
       experience: 'Add experience & languages',
+      alsoRoles: 'Add roles you are also open to',
       company: 'Add company name',
       contact: 'Add contact person',
       email: 'Add business email',
@@ -564,20 +724,92 @@ const en: Strings = {
   profileViews: 'Profile views',
   profileLive: 'Your profile is live — employers can find you',
   profileActive: 'Profile active',
-  editProfile: 'Edit profile',
+  homeOverviewSection: 'Overview',
+  homeYourProfile: 'Your profile',
+  homeProfileViews: (count) =>
+    count === 1 ? '1 profile view' : `${count} profile views`,
+  homeGotHired: 'I got a job',
+  homeLocationLabel: 'Location',
+  homeExperienceLabel: 'Experience',
+  homeLanguagesLabel: 'Languages',
+  homeLanguagesMore: (extra) => `+${extra} more`,
+  homeExpectedSalaryLabel: 'Expected salary',
+  homeCurrentSalaryLabel: 'Current salary',
+  homeCurrentSalaryPrivate: 'Only visible to you until an employer unlocks you',
+  cvSectionTitle: 'CV / resume',
+  cvSectionHint: 'Optional. PDF or Word, up to 8 MB. Employers see it after they unlock you.',
+  cvUpload: 'Upload CV',
+  cvReplace: 'Replace',
+  cvAttached: 'CV attached',
+  cvView: 'View CV',
+  cvViewA11y: 'Open your CV',
+  cvRemoveTitle: 'Remove CV?',
+  cvRemoveMessage: 'Employers who already unlocked you may have saved a copy.',
+  cvRemoveConfirm: 'Remove',
+  cvInvalidFile: 'Use a PDF or Word file under 8 MB.',
+  cvUploadFailed: 'Could not upload CV. Try again.',
+  cvOpenFailed: 'Could not open CV. Try again.',
+  cvBadge: 'CV',
+  cvEmployerHint: 'Unlock contact to view or download their CV.',
+  editProfile: 'Edit',
+  candidateAdditionalRolesEdit: 'Edit extra roles',
   filters: 'Filters',
   candidatePickRole: 'Your job role',
-  candidatePickRoleHint: 'Choose the role you want to work in.',
+  candidatePickRoleHint: 'Choose the job you want most. You can add more roles from your profile later.',
+  candidatePrimaryRoleTitle: 'Primary job role',
+  candidatePrimaryRoleHint: 'This is the role employers see first.',
+  candidatePrimaryRoleEditNote: 'To change your primary role, use Edit profile.',
+  candidateAdditionalRolesTitle: 'Also open to',
+  candidateAdditionalRolesHint:
+    'Add up to 2 more roles. Employers can find you when they search for these jobs.',
+  candidateAdditionalRolesScreenTitle: 'Also open to',
+  candidateAdditionalRolesScreenIntro:
+    'Get discovered for more jobs. You can change these anytime.',
+  candidateAdditionalRolesCta: 'Add or edit extra roles',
+  candidateAdditionalRolesCount: (n, max) =>
+    `${n} of ${max} extra roles added — tap to edit`,
+  candidatePrimaryRoleBadge: 'Primary',
+  candidateSecondaryRoleBadge: 'Also',
+  candidateAlsoOpenTo: 'Also open to',
+  roleSelectedPrimary: 'Primary role',
+  employerPrimaryRoleBadge: 'Primary',
+  employerSecondaryRoleBadge: 'Secondary',
+  employerAlsoOpenTo: 'Also open to',
+  candidateAdditionalRolesEmpty: 'None added yet',
+  jobRoleAdditionalCap: 'Maximum 2 additional roles. Remove one to add another.',
+  removeRole: (role) => `Remove ${role}`,
+  employerMatchPrimaryShort: 'Matches your filter (primary role)',
+  employerMatchSecondaryShort: (role) =>
+    `Matches your filter as secondary — primary role is not ${role}`,
+  employerRoleFilterLegend:
+    'Primary = main job on profile. Secondary = also open to. Both count when they match your filter.',
+  employerRoleFilterLegendDismiss: 'Got it',
   jobRoleSearchPlaceholder: 'Search job role…',
+  jobRoleCategories: 'Browse by category',
+  jobRoleAllCategories: 'All categories',
   allJobRoles: 'All roles',
-  jobRoleNoMatch: 'No roles match your search.',
+  jobRoleNoMatch: 'No roles found.',
+  jobRoleNoMatchDetail: ({ query, categoryLabel }) => {
+    if (query && categoryLabel) {
+      return `No roles in ${categoryLabel} match “${query}”. Try All categories or change your search.`;
+    }
+    if (query) {
+      return `No roles match “${query}”. Check spelling or try another term.`;
+    }
+    if (categoryLabel) {
+      return `No roles in ${categoryLabel}. Try All categories.`;
+    }
+    return 'No roles found.';
+  },
+  jobRoleClearSearch: 'Clear search',
+  jobRoleClearCategory: 'Clear category',
   roleSelected: 'Selected',
   browsePickRole: 'What role are you hiring for?',
   browsePickRoleHint:
     'Pick a job title first — then refine by nationality, location, salary, experience, and more. Use only the filters that matter to you.',
   browseRefine: 'Refine',
   browseBackToRoles: 'All roles',
-  candidatesForRole: (role) => role,
+  candidatesForRole: (role) => `Hiring for: ${role}`,
   filterOptionalHint: 'All filters are optional — leave blank to see everyone in this role.',
   filterSalaryRange: 'Salary range (AED / month)',
   filterExperience: 'Experience',
@@ -600,7 +832,9 @@ const en: Strings = {
   email: 'Email',
   searchPlaceholder: 'Search nationality...',
   unlockedBadge: 'Unlocked',
-  salaryPerMonth: (amount) => `AED ${amount}/mo`,
+  salaryPerMonth: (amount) => `AED ${formatSalaryAmount(amount)}/mo`,
+  currentSalaryPerMonth: (amount) => `Current: AED ${formatSalaryAmount(amount)}/mo`,
+  expectedSalaryPerMonth: (amount) => `Expected: AED ${formatSalaryAmount(amount)}/mo`,
   subscribeToUnlock: 'Subscribe to unlock phone & WhatsApp',
   viewSubscription: 'View plans',
   call: 'Call',
@@ -619,7 +853,6 @@ const en: Strings = {
   emailPlaceholder: 'Work or personal email',
   back: 'Back',
   nationalityPlaceholder: 'Search your nationality…',
-  nationalityHint: 'Type to search, then pick your country from the list.',
   locationEmirate: 'Emirate',
   locationArea: 'Area or district',
   locationAreaHint: 'Optional — helps employers find people near their business.',
@@ -637,7 +870,7 @@ const en: Strings = {
   phoneExampleLabel: (example) => `Example: ${example}`,
   errPhoneInvalid:
     'Enter a valid UAE mobile: +971 5X XXX XXXX (9 digits after +971).',
-  whatsappEmptyPlaceholder: 'WhatsApp number (optional)',
+  whatsappEmptyPlaceholder: '',
   fullNamePlaceholder: 'As on your ID',
   companyPlaceholder: 'Your registered business name',
   contactPlaceholder: 'Person we can reach',
@@ -651,7 +884,9 @@ const en: Strings = {
   popularRoles: 'Popular roles',
   moreRoles: 'More roles',
   moreLanguages: 'More languages',
-  home: 'Home',
+  showMoreLanguages: 'More languages',
+  hideMoreLanguages: 'Show fewer',
+  home: 'Profile',
   roleConfirmTitle: 'Confirm account type',
   roleConfirmMessage:
     'You cannot switch between job seeker and employer in the app. Our support team can help if you chose the wrong type.',
@@ -659,7 +894,7 @@ const en: Strings = {
   roleSelectDifferent: 'Choose a different type',
   contactUnlocks: 'Contact unlocks',
   contactUnlocksHint: 'Employers who unlocked your phone or WhatsApp',
-  contactUnlocksEmpty: 'No employer has unlocked your contact yet. Keep your profile active.',
+  contactUnlocksEmpty: 'No unlocks yet — keep your profile active.',
   subStep1Title: 'Message us on WhatsApp',
   subStep1Desc: 'Tap Subscribe — we send payment details',
   subStep2Title: 'We confirm payment',
@@ -672,8 +907,11 @@ const en: Strings = {
   errNationality: 'Enter your nationality',
   errNationalityPick: 'Choose a nationality from the list',
   errLocation: 'Select your location',
+  errLocationArea: 'Pick your district from the list',
   errAvailableFrom: 'Select when you are available to start',
   errSalary: 'Enter expected monthly salary',
+  errCurrentSalary: 'Enter your current monthly salary',
+  errExpectedSalary: 'Enter your expected monthly salary',
   errPhone: 'Enter your phone number',
   errExperience: 'Select years of experience',
   errLanguages: 'Select at least one language',
@@ -734,6 +972,7 @@ const en: Strings = {
   toastProfileViewed: 'An employer viewed your profile.',
   a11yDismissToast: 'Dismiss notification',
   privacyPolicy: 'Privacy policy',
+  privacyPolicyUpdated: 'Last updated June 2026',
   otpSending: 'Sending verification code…',
   otpVerified: 'Phone verified',
   otpVerifiedEmail: 'Email verified',
@@ -825,8 +1064,7 @@ const ar: Strings = {
   hiredAlertConfirm: 'نعم، حصلت على عمل',
   markHiredLabel: 'حصلت على عمل — إخفاء ملفي',
   markHiredA11y: 'تسجيل الملف كموظّف',
-  previousEmployerPlaceholder: 'اسم الشركة السابقة (اختياري)',
-  nationalityExamplesHint: 'أمثلة: الإمارات، مصر، الهند، الفلبين…',
+  previousEmployerPlaceholder: 'اسم الشركة',
   signingUpAsRole: (role) => `إنشاء حسابك كـ ${role}`,
   roleCandidate: 'باحث عن عمل',
   roleEmployer: 'صاحب عمل',
@@ -859,7 +1097,21 @@ const ar: Strings = {
   subscriptionBullet3: 'إلغاء في أي وقت — بدون رسوم لكل سيرة',
   subscriptionValidUntil: (date) => `صالح حتى ${date}`,
   settings: 'الإعدادات',
+  settingsSectionAccount: 'الحساب',
+  settingsSectionPreferences: 'التفضيلات',
+  settingsSectionHelp: 'المساعدة والقانونية',
+  settingsSectionAccountType: 'نوع الحساب',
+  settingsLanguageHint: 'لغة التطبيق',
+  settingsRtlReloadHint: 'إذا لم يتغيّر اتجاه الشاشة، أغلق التطبيق ثم افتحه من جديد.',
+  settingsEditProfile: 'تعديل الملف',
+  settingsEditCompany: 'تعديل ملف الشركة',
+  candidateProfileTitle: 'ملف المرشح',
+  settingsOpensInBrowser: 'يفتح في المتصفح',
+  settingsLogoutConfirmTitle: 'تسجيل الخروج؟',
+  settingsLogoutConfirmMessage: 'ستحتاج رقم هاتفك لتسجيل الدخول مرة أخرى.',
+  settingsLogoutConfirm: 'خروج',
   settingsPhoneLabel: 'الهاتف',
+  settingsNameLabel: 'الاسم',
   settingsMemberSince: 'عضو منذ',
   uaePassTitle: 'التحقق عبر الهوية الرقمية',
   uaePassSub: 'تحقق من هويتك عبر UAE Pass',
@@ -886,6 +1138,10 @@ const ar: Strings = {
   nationality: 'الجنسية',
   location: 'الموقع',
   monthlySalary: 'الراتب الشهري (درهم)',
+  currentSalary: 'الراتب الحالي',
+  expectedSalary: 'الراتب المتوقع',
+  salarySectionTitle: 'الراتب',
+  contactsSectionTitle: 'التواصل',
   phoneNumber: 'رقم الهاتف',
   whatsappOptional: 'واتساب (اختياري)',
   yearsExperience: 'سنوات الخبرة',
@@ -893,8 +1149,55 @@ const ar: Strings = {
   uaeExperience: 'هل عملت في الإمارات؟',
   yes: 'نعم',
   no: 'لا',
-  previousEmployer: 'شركة سابقة (اختياري)',
+  previousEmployer: 'شركة سابقة',
   fullName: 'الاسم الكامل',
+  fullNameOnId: 'الاسم الكامل (كما في الهوية)',
+  experienceBucketLabel: (years) => {
+    if (years === 0) return 'بدون خبرة';
+    if (years === 1) return 'سنة واحدة';
+    if (years === 2) return '2–3 سنوات';
+    if (years === 4) return '4–5 سنوات';
+    if (years === 5) return '+5 سنوات';
+    return `${years} سنوات`;
+  },
+  languageLabel: (lang) => {
+    const labels: Record<string, string> = {
+      English: 'الإنجليزية',
+      Arabic: 'العربية',
+      Hindi: 'الهندية',
+      Urdu: 'الأردية',
+      Tagalog: 'تاغالوغ',
+      Bengali: 'البنغالية',
+      Malayalam: 'المالايالامية',
+      Tamil: 'التاميلية',
+      Nepali: 'النيبالية',
+      Sinhala: 'السنهالية',
+      Punjabi: 'البنجابية',
+      Pashto: 'البشتو',
+      French: 'الفرنسية',
+      Russian: 'الروسية',
+      Mandarin: 'الماندرين',
+    };
+    return labels[lang] ?? lang;
+  },
+  visaStatusLabel: (status) => {
+    const labels: Record<string, string> = {
+      'Employment Visa': 'تأشيرة عمل',
+      'Visit Visa': 'تأشيرة زيارة',
+      'Own Visa': 'تأشيرة خاصة',
+      'Cancelled Visa': 'تأشيرة ملغاة',
+    };
+    return labels[status] ?? status;
+  },
+  homeAlsoOpenTo: 'مفتوح أيضاً لـ',
+  experienceSelectOne: 'اختر واحدة',
+  languagesSelectAll: 'اختر كل ما ينطبق',
+  onboardingOptionalSection: 'اختياري',
+  errPhotoGoBackStep1: 'أضف صورتك — اضغط رجوع للخطوة 1.',
+  errNameGoBackStep3: 'أضف اسمك الكامل — اضغط رجوع إلى الموقع والتواصل.',
+  errSalaryVisaGoBackStep4: 'أكمل الراتب والتأشيرة — اضغط رجوع للخطوة السابقة.',
+  availableFromOptional: 'متاح من (اختياري)',
+  availableFromOptionalHint: 'اتركه فارغاً إن كنت متاحاً فوراً.',
   availableFrom: 'متاح من',
   submitProfile: 'إرسال الملف',
   saveProfile: 'حفظ الملف',
@@ -905,10 +1208,9 @@ const ar: Strings = {
   onboardingStepPhotoIntro:
     'صورة واضحة للوجه تساعد أصحاب العمل على الوثوق بملفك والتواصل معك أسرع.',
   onboardingStepRoleTitle: 'مهنتك',
-  onboardingStep2Title: 'التأشيرة والموقع',
-  onboardingStep3Title: 'الراتب والتواصل',
-  onboardingStep4Title: 'الخبرة والإنهاء',
-  onboardingStep5Title: 'الخبرة والإنهاء',
+  onboardingStepLocationTitle: 'الموقع والتواصل',
+  onboardingStepSalaryVisaTitle: 'الراتب والتأشيرة',
+  onboardingStepExperienceTitle: 'الخبرة',
   onboardingPhotoIntro:
     'أصحاب العمل يرون صورتك أولاً. استخدم صورة واضحة للوجه بإضاءة جيدة.',
   profileCompletionHeadline: (percent) => `اكتمال الملف ${percent}٪`,
@@ -932,11 +1234,12 @@ const ar: Strings = {
       visa: 'أضف حالة التأشيرة',
       nationality: 'أضف الجنسية',
       location: 'أضف موقعك',
-      salary: 'أضف الراتب المتوقع',
+      salary: 'أضف الراتب الحالي والمتوقع',
       phone: 'أضف رقم الهاتف',
       name: 'أضف الاسم الكامل',
       available: 'حدد تاريخ التوفر',
       experience: 'أضف الخبرة واللغات',
+      alsoRoles: 'أضف مهناً إضافياً تفتح له العمل',
       company: 'أضف اسم الشركة',
       contact: 'أضف جهة الاتصال',
       email: 'أضف البريد الإلكتروني',
@@ -988,20 +1291,91 @@ const ar: Strings = {
   profileViews: 'مشاهدات الملف',
   profileLive: 'ملفك نشط — أصحاب العمل يمكنهم العثور عليك',
   profileActive: 'الملف نشط',
-  editProfile: 'تعديل الملف',
+  homeOverviewSection: 'نظرة عامة',
+  homeYourProfile: 'ملفك',
+  homeProfileViews: (count) => (count === 1 ? 'مشاهدة واحدة' : `${count} مشاهدات`),
+  homeGotHired: 'حصلت على عمل',
+  homeLocationLabel: 'الموقع',
+  homeExperienceLabel: 'الخبرة',
+  homeLanguagesLabel: 'اللغات',
+  homeLanguagesMore: (extra) => `+${extra} أخرى`,
+  homeExpectedSalaryLabel: 'الراتب المتوقع',
+  homeCurrentSalaryLabel: 'الراتب الحالي',
+  homeCurrentSalaryPrivate: 'يظهر لك فقط حتى يفتحك صاحب عمل',
+  cvSectionTitle: 'السيرة الذاتية',
+  cvSectionHint: 'اختياري. PDF أو Word حتى 8 ميجا. يراها أصحاب العمل بعد فتح ملفك.',
+  cvUpload: 'رفع السيرة',
+  cvReplace: 'استبدال',
+  cvAttached: 'تم إرفاق السيرة',
+  cvView: 'عرض السيرة',
+  cvViewA11y: 'فتح السيرة الذاتية',
+  cvRemoveTitle: 'إزالة السيرة؟',
+  cvRemoveMessage: 'قد يكون من حمّلها سابقاً قد حفظ نسخة.',
+  cvRemoveConfirm: 'إزالة',
+  cvInvalidFile: 'استخدم PDF أو Word أقل من 8 ميجا.',
+  cvUploadFailed: 'تعذّر رفع السيرة. حاول مرة أخرى.',
+  cvOpenFailed: 'تعذّر فتح السيرة. حاول مرة أخرى.',
+  cvBadge: 'سيرة',
+  cvEmployerHint: 'افتح جهة الاتصال لعرض أو تحميل السيرة.',
+  editProfile: 'تعديل',
+  candidateAdditionalRolesEdit: 'تعديل المهن الإضافية',
   filters: 'الفلاتر',
   candidatePickRole: 'مهنتك',
-  candidatePickRoleHint: 'اختر المهنة التي تبحث عنها.',
+  candidatePickRoleHint: 'اختر المهنة الأهم لك. يمكنك إضافة مهن أخرى من ملفك لاحقاً.',
+  candidatePrimaryRoleTitle: 'المهنة الأساسية',
+  candidatePrimaryRoleHint: 'هذه المهنة تظهر أولاً لأصحاب العمل.',
+  candidatePrimaryRoleEditNote: 'لتغيير المهنة الأساسية، استخدم تعديل الملف.',
+  candidateAdditionalRolesTitle: 'مفتوح أيضاً لـ',
+  candidateAdditionalRolesHint:
+    'أضف حتى مهنتين. يمكن لأصحاب العمل العثور عليك عند البحث عن هذه المهن.',
+  candidateAdditionalRolesScreenTitle: 'مفتوح أيضاً لـ',
+  candidateAdditionalRolesScreenIntro:
+    'ظهور في المزيد من الوظائف. يمكنك تغييرها في أي وقت.',
+  candidateAdditionalRolesCta: 'إضافة أو تعديل مهن إضافية',
+  candidateAdditionalRolesCount: (n, max) =>
+    `${n} من ${max} مهن إضافية — اضغط للتعديل`,
+  candidatePrimaryRoleBadge: 'أساسية',
+  candidateSecondaryRoleBadge: 'إضافية',
+  candidateAlsoOpenTo: 'مفتوح أيضاً لـ',
+  roleSelectedPrimary: 'المهنة الأساسية',
+  employerPrimaryRoleBadge: 'أساسية',
+  employerSecondaryRoleBadge: 'ثانوية',
+  employerAlsoOpenTo: 'مفتوح أيضاً لـ',
+  candidateAdditionalRolesEmpty: 'لم تُضف بعد',
+  jobRoleAdditionalCap: 'الحد الأقصى مهنتان إضافيتان. احذف واحدة لإضافة أخرى.',
+  removeRole: (role) => `إزالة ${role}`,
+  employerMatchPrimaryShort: 'يطابق الفلتر (مهنة رئيسية)',
+  employerMatchSecondaryShort: (role) =>
+    `يطابق الفلتر كمهنة ثانوية — المهنة الرئيسية ليست ${role}`,
+  employerRoleFilterLegend:
+    'أساسية = المهنة الرئيسية. ثانوية = مفتوح أيضاً لـ. القائمة تعرض من يطابق مهمتك.',
+  employerRoleFilterLegendDismiss: 'فهمت',
   jobRoleSearchPlaceholder: 'ابحث عن المهنة…',
+  jobRoleCategories: 'تصفح حسب الفئة',
+  jobRoleAllCategories: 'كل الفئات',
   allJobRoles: 'كل المهن',
-  jobRoleNoMatch: 'لا توجد مهنة مطابقة.',
+  jobRoleNoMatch: 'لا توجد مهنة.',
+  jobRoleNoMatchDetail: ({ query, categoryLabel }) => {
+    if (query && categoryLabel) {
+      return `لا توجد مهنة في ${categoryLabel} تطابق «${query}». جرّب كل الفئات أو غيّر البحث.`;
+    }
+    if (query) {
+      return `لا توجد مهنة تطابق «${query}». تحقق من الكتابة أو جرّب كلمة أخرى.`;
+    }
+    if (categoryLabel) {
+      return `لا توجد مهن في ${categoryLabel}. جرّب كل الفئات.`;
+    }
+    return 'لا توجد مهنة.';
+  },
+  jobRoleClearSearch: 'مسح البحث',
+  jobRoleClearCategory: 'مسح الفئة',
   roleSelected: 'المحدد',
   browsePickRole: 'ما المهنة التي توظف لها؟',
   browsePickRoleHint:
     'اختر المهنة أولاً — ثم صفّ حسب الجنسية والموقع والراتب والخبرة وغيرها. استخدم فقط الفلاتر التي تهمك.',
   browseRefine: 'تصفية',
   browseBackToRoles: 'كل المهن',
-  candidatesForRole: (role) => role,
+  candidatesForRole: (role) => `التوظيف لـ: ${role}`,
   filterOptionalHint: 'كل الفلاتر اختيارية — اتركها فارغة لعرض الجميع في هذه المهنة.',
   filterSalaryRange: 'نطاق الراتب (درهم / شهر)',
   filterExperience: 'الخبرة',
@@ -1024,7 +1398,9 @@ const ar: Strings = {
   email: 'البريد الإلكتروني',
   searchPlaceholder: 'ابحث عن الجنسية...',
   unlockedBadge: 'مفتوح',
-  salaryPerMonth: (amount) => `${amount} درهم/شهر`,
+  salaryPerMonth: (amount) => `${formatSalaryAmount(amount)} درهم/شهر`,
+  currentSalaryPerMonth: (amount) => `الحالي: ${formatSalaryAmount(amount)} درهم/شهر`,
+  expectedSalaryPerMonth: (amount) => `المتوقع: ${formatSalaryAmount(amount)} درهم/شهر`,
   subscribeToUnlock: 'اشترك لفتح الهاتف وواتساب',
   viewSubscription: 'عرض الخطط',
   call: 'اتصال',
@@ -1043,7 +1419,6 @@ const ar: Strings = {
   emailPlaceholder: 'بريد العمل أو الشخصي',
   back: 'رجوع',
   nationalityPlaceholder: 'ابحث عن جنسيتك…',
-  nationalityHint: 'ابحث ثم اختر بلدك من القائمة.',
   locationEmirate: 'الإمارة',
   locationArea: 'المنطقة أو الحي',
   locationAreaHint: 'اختياري — يساعد أصحاب العمل في إيجاد مرشحين قريبين.',
@@ -1060,7 +1435,7 @@ const ar: Strings = {
   phoneExampleLabel: (example) => `مثال: ${example}`,
   errPhoneInvalid:
     'أدخل رقم موبايل إماراتي صالح: +971 5X XXX XXXX (9 أرقام بعد +971).',
-  whatsappEmptyPlaceholder: 'رقم واتساب (اختياري)',
+  whatsappEmptyPlaceholder: '',
   fullNamePlaceholder: 'كما في الهوية',
   companyPlaceholder: 'اسم الشركة المسجل',
   contactPlaceholder: 'الشخص الذي يمكن التواصل معه',
@@ -1074,7 +1449,9 @@ const ar: Strings = {
   popularRoles: 'مهن شائعة',
   moreRoles: 'مهن أخرى',
   moreLanguages: 'لغات أخرى',
-  home: 'الرئيسية',
+  showMoreLanguages: 'المزيد من اللغات',
+  hideMoreLanguages: 'عرض أقل',
+  home: 'الملف',
   roleConfirmTitle: 'تأكيد نوع الحساب',
   roleConfirmMessage:
     'لا يمكن التبديل بين باحث عن عمل وصاحب عمل من التطبيق. فريق الدعم يمكنه المساعدة إذا اخترت بالخطأ.',
@@ -1082,7 +1459,7 @@ const ar: Strings = {
   roleSelectDifferent: 'اختر نوعاً آخر',
   contactUnlocks: 'فتح بيانات التواصل',
   contactUnlocksHint: 'أصحاب العمل الذين فتحوا هاتفك أو واتساب',
-  contactUnlocksEmpty: 'لم يفتح أحد بيانات تواصلك بعد. أبقِ ملفك نشطاً.',
+  contactUnlocksEmpty: 'لا تواصل بعد — أبقِ ملفك نشطاً.',
   subStep1Title: 'راسلنا على واتساب',
   subStep1Desc: 'اضغط اشترك — نرسل تفاصيل الدفع',
   subStep2Title: 'نؤكد الدفع',
@@ -1095,8 +1472,11 @@ const ar: Strings = {
   errNationality: 'أدخل جنسيتك',
   errNationalityPick: 'اختر جنسية من القائمة',
   errLocation: 'اختر الموقع',
+  errLocationArea: 'اختر الحي من القائمة',
   errAvailableFrom: 'اختر تاريخ بدء التوفر',
   errSalary: 'أدخل الراتب الشهري المتوقع',
+  errCurrentSalary: 'أدخل راتبك الشهري الحالي',
+  errExpectedSalary: 'أدخل راتبك الشهري المتوقع',
   errPhone: 'أدخل رقم الهاتف',
   errExperience: 'اختر سنوات الخبرة',
   errLanguages: 'اختر لغة واحدة على الأقل',
@@ -1157,6 +1537,7 @@ const ar: Strings = {
   toastProfileViewed: 'قام صاحب عمل بمشاهدة ملفك.',
   a11yDismissToast: 'إغلاق التنبيه',
   privacyPolicy: 'سياسة الخصوصية',
+  privacyPolicyUpdated: 'آخر تحديث يونيو 2026',
   otpSending: 'جاري إرسال رمز التحقق…',
   otpVerified: 'تم التحقق من الهاتف',
   otpVerifiedEmail: 'تم التحقق من البريد',

@@ -30,6 +30,7 @@ import { colors } from '@/core/theme/colors';
 
 import { interaction } from '@/core/theme/interaction';
 
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 
 import { typography } from '@/core/theme/typography';
@@ -179,11 +180,7 @@ export function SubscriptionScreen({ navigation }: Props) {
         actionLabel: t.browse,
 
         onAction: () => {
-
           navigation.navigate('EmployerShell', { screen: 'BrowseTab' });
-
-          navigation.goBack();
-
         },
 
       });
@@ -641,7 +638,11 @@ const styles = StyleSheet.create({
 
   tierCardPressed: { opacity: interaction.cardPressed },
 
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.lg },
+  scroll: {
+    paddingHorizontal: layout.screenPaddingX,
+    paddingBottom: layout.screenPaddingBottom,
+    gap: spacing.lg,
+  },
 
   headline: { ...typography.h2, marginTop: spacing.xs },
 
@@ -649,7 +650,7 @@ const styles = StyleSheet.create({
 
     padding: spacing.lg,
 
-    borderRadius: 14,
+    borderRadius: layout.cardRadius,
 
     backgroundColor: colors.secondaryTint,
 
@@ -687,7 +688,7 @@ const styles = StyleSheet.create({
 
     padding: spacing.lg,
 
-    borderRadius: 14,
+    borderRadius: layout.cardRadius,
 
     borderWidth: 1.5,
 

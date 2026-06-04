@@ -162,9 +162,9 @@ export const NATIONALITY_ALIASES: Record<string, string> = {
   'south african': 'South African',
 };
 
-export function filterNationalities(query: string, limit = 8): string[] {
+export function filterNationalities(query: string, limit = 20): string[] {
   const q = query.trim().toLowerCase();
-  if (!q) return [...NATIONALITIES].slice(0, limit);
+  if (!q) return [...NATIONALITIES];
 
   const alias = NATIONALITY_ALIASES[q];
   const fromAlias = alias ? [alias] : [];

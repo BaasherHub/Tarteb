@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 
@@ -70,7 +71,7 @@ export function OnboardingProgress({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: layout.screenPaddingX,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },

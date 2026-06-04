@@ -44,6 +44,10 @@ serve(async (req) => {
       });
     }
 
+    if (event === 'viewed') {
+      await supabase.rpc('increment_candidate_profile_view', { p_candidate_id: candidate_id });
+    }
+
     // Get their push token.
     const { data: profile } = await supabase
       .from('profiles')

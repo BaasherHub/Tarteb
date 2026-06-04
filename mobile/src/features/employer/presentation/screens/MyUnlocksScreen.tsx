@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { supabase } from '@/core/lib/supabase';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { RootStackParamList } from '@/core/navigation/types';
+import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
 import { FLAT_LIST_PERF, unlockItemLayout } from '@/shared/constants/listPerf';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { EmptyState } from '@/shared/widgets/EmptyState';
@@ -13,6 +14,7 @@ import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { BrowseListSkeleton } from '@/shared/widgets/BrowseListSkeleton';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { colors } from '@/core/theme/colors';
+import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import {
   UnlockListRow,
@@ -60,8 +62,12 @@ export function MyUnlocksScreen() {
   }, [load]);
 
   const openCandidate = useCallback(
-    (candidateId: string) => {
-      navigation.navigate('CandidateDetail', { candidateId });
+    (item: UnlockRow) => {
+      const role = item.candidates?.role;
+      navigation.navigate('CandidateDetail', {
+        candidateId: item.candidate_id,
+        ...(role ? { hiringRole: String(role) } : {}),
+      });
     },
     [navigation],
   );
@@ -70,7 +76,7 @@ export function MyUnlocksScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: UnlockRow }) => (
-      <UnlockListRow item={item} onOpen={openCandidate} />
+      <UnlockListRow item={item} onOpen={() => openCandidate(item)} />
     ),
     [openCandidate],
   );
@@ -92,7 +98,11 @@ export function MyUnlocksScreen() {
         message={t.noUnlocksHint}
         actionLabel={t.browse}
         icon="🔓"
-        onAction={() => navigation.getParent()?.navigate('BrowseTab' as never)}
+        onAction={() => {
+          const tabNav =
+            navigation.getParent<BottomTabNavigationProp<EmployerTabParamList>>();
+          tabNav?.navigate('BrowseTab');
+        }}
       />
     );
   }, [error, load, navigation, t]);
@@ -107,6 +117,7 @@ export function MyUnlocksScreen() {
       ) : (
         <FlatList
           style={styles.list}
+          contentContainerStyle={styles.listContent}
           data={rows}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
@@ -125,7 +136,10 @@ export function MyUnlocksScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.scaffold },
-  headerPad: { paddingHorizontal: spacing.lg },
+  headerPad: layoutStyles.screenHeaderWrap,
   list: { flex: 1 },
+  listContent: {
+    paddingBottom: layout.screenPaddingBottom + layout.tabBarClearance,
+  },
   sep: { height: 1, backgroundColor: colors.divider },
 });

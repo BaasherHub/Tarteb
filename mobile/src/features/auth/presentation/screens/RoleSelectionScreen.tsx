@@ -46,6 +46,7 @@ import { colors } from '@/core/theme/colors';
 
 import { interaction } from '@/core/theme/interaction';
 
+import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 
 import { typography } from '@/core/theme/typography';
@@ -534,7 +535,9 @@ const styles = StyleSheet.create({
 
     flexGrow: 1,
 
-    paddingBottom: spacing.xxxl,
+    paddingHorizontal: layout.screenPaddingX,
+
+    paddingBottom: layout.screenPaddingBottom,
 
     paddingTop: spacing.lg,
 
@@ -586,9 +589,9 @@ const styles = StyleSheet.create({
 
   card: {
 
-    borderRadius: 20,
+    borderRadius: layout.cardRadius,
 
-    padding: spacing.lg,
+    padding: layout.cardPadding,
 
     borderWidth: 1.5,
 

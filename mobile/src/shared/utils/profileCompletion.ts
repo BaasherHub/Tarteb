@@ -1,3 +1,5 @@
+import { sanitizeLanguages } from '@/shared/utils/languages';
+
 export type CompletionItem = {
   id: string;
   weight: number;
@@ -31,8 +33,7 @@ export function computeCompletion(items: CompletionItem[]): ProfileCompletionRes
 export function candidateProfileCompletion(
   row: Record<string, unknown>,
 ): ProfileCompletionResult {
-  const langs = row.languages;
-  const languageList = Array.isArray(langs) ? langs : [];
+  const languageList = sanitizeLanguages(row.languages);
   const experienceDone =
     row.years_experience !== undefined &&
     row.years_experience !== null &&
@@ -40,17 +41,30 @@ export function candidateProfileCompletion(
     row.uae_experience !== undefined &&
     row.uae_experience !== null;
 
+  const extraRoles = row.additional_roles;
+  const hasAlsoRoles =
+    Array.isArray(extraRoles) && extraRoles.filter((r) => Boolean(r)).length > 0;
+
   const items: CompletionItem[] = [
     { id: 'photo', weight: 40, done: Boolean(row.photo_url) },
     { id: 'role', weight: 8, done: Boolean(row.role) },
+    { id: 'alsoRoles', weight: 5, done: hasAlsoRoles },
     { id: 'visa', weight: 8, done: Boolean(row.visa_status) },
     { id: 'nationality', weight: 8, done: Boolean(row.nationality) },
     { id: 'location', weight: 8, done: Boolean(row.location) },
-    { id: 'salary', weight: 8, done: row.salary_expectation != null && row.salary_expectation !== '' },
+    {
+      id: 'salary',
+      weight: 8,
+      done:
+        row.current_salary != null &&
+        row.current_salary !== '' &&
+        row.salary_expectation != null &&
+        row.salary_expectation !== '',
+    },
     { id: 'phone', weight: 8, done: Boolean(row.phone) },
     { id: 'name', weight: 5, done: Boolean(String(row.name ?? '').trim()) },
     { id: 'available', weight: 5, done: Boolean(row.available_from) },
-    { id: 'experience', weight: 10, done: experienceDone },
+    { id: 'experience', weight: 5, done: experienceDone },
   ];
 
   return computeCompletion(items);

@@ -68,13 +68,12 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
 
   outer: {
-
+    flex: 1,
     width: '100%',
-
+    maxWidth: '100%',
+    alignSelf: 'stretch',
     alignItems: 'center',
-
     backgroundColor: Platform.OS === 'web' ? colors.scaffold : undefined,
-
   },
 
   innerPlain: {
@@ -88,27 +87,17 @@ const styles = StyleSheet.create({
   },
 
   innerCard: {
-
     width: '100%',
-
     maxWidth: Platform.OS === 'web' ? MAX_WIDTH : undefined,
-
+    flexGrow: 1,
     backgroundColor: colors.surface,
-
     borderRadius: 16,
-
     borderWidth: 1,
-
     borderColor: colors.divider,
-
     marginVertical: 8,
-
     paddingHorizontal: 0,
-
     overflow: 'hidden',
-
     alignSelf: 'center',
-
   },
 
 });

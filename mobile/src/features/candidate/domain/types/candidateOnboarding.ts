@@ -1,7 +1,15 @@
+import {
+  normalizeAdditionalRoles,
+  parseAdditionalRoles,
+} from '@/shared/utils/candidateRoles';
+import { sanitizeLanguages } from '@/shared/utils/languages';
+
 export type CandidateOnboardingData = {
   photoUrl?: string | null;
   role?: string;
+  additionalRoles: string[];
   visaStatus?: string;
+  currentSalary?: number;
   salaryExpectation?: number;
   location?: string;
   phone?: string;
@@ -19,15 +27,20 @@ export type CandidateOnboardingData = {
 export const emptyOnboardingData = (): CandidateOnboardingData => ({
   languages: [],
   uaeExperience: false,
+  additionalRoles: [],
 });
 
 export function onboardingFromRow(row: Record<string, unknown>): CandidateOnboardingData {
-  const langs = row.languages;
   return {
     candidateId: row.id as string | undefined,
     photoUrl: row.photo_url as string | undefined,
     role: row.role as string | undefined,
+    additionalRoles: normalizeAdditionalRoles(
+      String(row.role ?? ''),
+      parseAdditionalRoles(row.additional_roles),
+    ),
     visaStatus: row.visa_status as string | undefined,
+    currentSalary: row.current_salary as number | undefined,
     salaryExpectation: row.salary_expectation as number | undefined,
     location: row.location as string | undefined,
     phone: row.phone as string | undefined,
@@ -36,7 +49,7 @@ export function onboardingFromRow(row: Record<string, unknown>): CandidateOnboar
     name: row.name as string | undefined,
     availableFrom: row.available_from as string | undefined,
     yearsExperience: (row.years_experience as number) ?? 0,
-    languages: Array.isArray(langs) ? langs.map(String) : [],
+    languages: sanitizeLanguages(row.languages),
     uaeExperience: row.uae_experience === true,
     previousEmployer: row.previous_employer as string | undefined,
   };

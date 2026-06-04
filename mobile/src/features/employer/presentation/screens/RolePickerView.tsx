@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { JobRoleGrid } from '@/shared/widgets/JobRoleGrid';
@@ -50,8 +51,7 @@ export const RolePickerView = memo(function RolePickerView({ onSelectRole }: Pro
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
+    ...layoutStyles.screenContent,
     gap: spacing.sm,
   },
   title: { ...typography.h2 },

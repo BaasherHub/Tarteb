@@ -105,6 +105,18 @@ export function navigateFromUrl(
     return true;
   }
 
+  if (host === 'settings' || pathParts[0] === 'settings') {
+    ref.navigate('CandidateShell', { screen: 'SettingsTab' });
+    clearPendingDeepLink();
+    return true;
+  }
+
+  if (host === 'employer-settings' || pathParts[0] === 'employer-settings') {
+    ref.navigate('EmployerShell', { screen: 'SettingsTab' });
+    clearPendingDeepLink();
+    return true;
+  }
+
   return false;
 }
 

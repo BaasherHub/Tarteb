@@ -32,11 +32,13 @@ export const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           BrowseTab: 'browse',
           UnlocksTab: 'unlocks',
+          SettingsTab: 'employer-settings',
         },
       },
       CandidateShell: {
         screens: {
           HomeTab: 'dashboard',
+          SettingsTab: 'settings',
         },
       },
     },

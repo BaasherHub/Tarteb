@@ -20,12 +20,14 @@ export type RootStackParamList = {
   RoleSelection: undefined;
   EmployerOnboarding: { initial?: EmployerOnboardingData } | undefined;
   EmployerShell: NavigatorScreenParams<EmployerTabParamList> | undefined;
-  CandidateOnboarding: { initial?: CandidateOnboardingData };
+  CandidateOnboarding: { initial?: CandidateOnboardingData; startStep?: number };
+  CandidateAdditionalRoles: undefined;
   CandidateDashboard: undefined;
   CandidateShell: NavigatorScreenParams<CandidateTabParamList> | undefined;
-  CandidateDetail: { candidateId: string };
+  CandidateDetail: { candidateId: string; hiringRole?: string };
   Subscription: { success?: boolean } | undefined;
   Settings: undefined;
+  PrivacyPolicy: undefined;
 };
 
 

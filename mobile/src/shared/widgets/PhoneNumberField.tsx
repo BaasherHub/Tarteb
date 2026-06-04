@@ -19,6 +19,8 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
   error?: string;
   hint?: string;
   showExample?: boolean;
+  /** When false, hides the +971 format helper line under the field. */
+  showHelper?: boolean;
   /** When true, field can stay empty (e.g. optional WhatsApp). */
   allowEmpty?: boolean;
 };
@@ -33,6 +35,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
   error,
   hint,
   showExample = true,
+  showHelper = true,
   allowEmpty = false,
   ...rest
 }: Props) {
@@ -53,7 +56,9 @@ export const PhoneNumberField = memo(function PhoneNumberField({
   const displayValue =
     allowEmpty && !value.trim() ? '' : value || formatUaePhoneInput('');
 
-  const helperText = hint ?? (allowEmpty ? undefined : t.phoneHelper);
+  const helperText =
+    hint ??
+    (allowEmpty || !showHelper ? undefined : t.phoneHelper);
   const placeholder =
     rest.placeholder ??
     (allowEmpty ? t.whatsappEmptyPlaceholder : t.phonePlaceholderSpaced);
@@ -88,7 +93,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
 });
 
 const styles = StyleSheet.create({
-  wrap: { width: '100%' },
+  wrap: { width: '100%', marginBottom: 0 },
   inputLtr: {
     writingDirection: 'ltr',
     textAlign: 'left',
