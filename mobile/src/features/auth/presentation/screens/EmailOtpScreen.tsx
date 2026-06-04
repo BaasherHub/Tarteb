@@ -12,7 +12,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
-import { routeAuthenticatedUser } from '@/features/auth/data/services/authNavigation';
+import {
+  AuthRoutingError,
+  routeAuthenticatedUser,
+} from '@/features/auth/data/services/authNavigation';
 import { colors } from '@/core/theme/colors';
 import { getErrorMessage } from '@/shared/utils/errors';
 
@@ -56,7 +59,11 @@ export function EmailOtpScreen({ navigation }: Props) {
       if (error) throw error;
       await routeAuthenticatedUser(navigation);
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      const msg =
+        e instanceof AuthRoutingError
+          ? e.message
+          : getErrorMessage(e, t.errorGeneric);
+      Alert.alert(t.errorTitle, msg);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,7 +19,11 @@ import { Screen } from '@/shared/widgets/Screen';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
-import { routeAuthenticatedUser } from '@/features/auth/data/services/authNavigation';
+import {
+  AuthRoutingError,
+  routeAuthenticatedUser,
+} from '@/features/auth/data/services/authNavigation';
+import { useAuth } from '@/core/providers/AuthProvider';
 import { colors } from '@/core/theme/colors';
 import { getErrorMessage } from '@/shared/utils/errors';
 import {
@@ -36,6 +41,9 @@ const DEFAULT_DIAL = '+971';
 
 export function PhoneOtpScreen({ navigation }: Props) {
   const { t } = useLocale();
+  const { session, isReady } = useAuth();
+  const routedRef = useRef(false);
+  const [sessionRouting, setSessionRouting] = useState(false);
   const [localNumber, setLocalNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [sentPhone, setSentPhone] = useState<string | null>(null);
@@ -46,6 +54,22 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   const fullPhone = normalizeE164(`${DEFAULT_DIAL}${localNumber.replace(/\D/g, '')}`);
   const otpBypass = isOtpBypassEnabled();
+
+  useEffect(() => {
+    if (!isReady || !session || routedRef.current) return;
+    routedRef.current = true;
+    setSessionRouting(true);
+    routeAuthenticatedUser(navigation)
+      .catch((e) => {
+        routedRef.current = false;
+        setFormError(
+          e instanceof AuthRoutingError
+            ? e.message
+            : getErrorMessage(e, t.errorGeneric),
+        );
+      })
+      .finally(() => setSessionRouting(false));
+  }, [isReady, session, navigation, t.errorGeneric]);
 
   const onSend = async () => {
     if (!localNumber.trim()) {
@@ -64,7 +88,11 @@ export function PhoneOtpScreen({ navigation }: Props) {
       await sendOtp(fullPhone);
       setSentPhone(fullPhone);
     } catch (e) {
-      setFormError(getErrorMessage(e, t.errorGeneric));
+      setFormError(
+        e instanceof AuthRoutingError
+          ? e.message
+          : getErrorMessage(e, t.errorGeneric),
+      );
     } finally {
       setLoading(false);
     }
@@ -87,11 +115,25 @@ export function PhoneOtpScreen({ navigation }: Props) {
       await signInWithVerifiedPhone(sentPhone);
       await routeAuthenticatedUser(navigation);
     } catch (e) {
-      setFormError(getErrorMessage(e, t.errorGeneric));
+      setFormError(
+        e instanceof AuthRoutingError
+          ? e.message
+          : getErrorMessage(e, t.errorGeneric),
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isReady || sessionRouting) {
+    return (
+      <Screen>
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -177,6 +219,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   flex: { flex: 1, paddingTop: 24 },
   title: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
   sub: { fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginTop: 8, marginBottom: 24 },

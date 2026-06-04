@@ -10,7 +10,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
-import { routeAuthenticatedUser } from '@/features/auth/data/services/authNavigation';
+import {
+  AuthRoutingError,
+  routeAuthenticatedUser,
+} from '@/features/auth/data/services/authNavigation';
 import { colors } from '@/core/theme/colors';
 import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
@@ -43,7 +46,10 @@ export function RoleSelectionScreen({ navigation }: Props) {
       setPendingRole(null);
       await routeAuthenticatedUser(navigation);
     } catch (e) {
-      const msg = getErrorMessage(e, t.errorGeneric);
+      const msg =
+        e instanceof AuthRoutingError
+          ? e.message
+          : getErrorMessage(e, t.errorGeneric);
       if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
       else Alert.alert(t.errorTitle, msg);
     } finally {
