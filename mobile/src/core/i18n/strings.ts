@@ -18,8 +18,9 @@ export interface Strings {
   signInWithEmail: string;
   selectRole: string;
   selectRoleSubtitle: string;
+  changeLanguage: string;
+  changeLanguageHint: string;
   roleSelectionKicker: string;
-  roleSelectionNextHint: string;
   signingUpAsRole: (role: string) => string;
   roleCandidate: string;
   roleEmployer: string;
@@ -27,10 +28,15 @@ export interface Strings {
   roleEmployerSubtitle: string;
   roleCandidateBullets: readonly string[];
   roleEmployerBullets: readonly string[];
+  roleEmployerPriceFrom: string;
+  roleCandidatePriceFree: string;
+  roleCandidateSectionLabel: string;
   roleSelectionTrust: string;
   roleCompareTitle: string;
   roleCompareIntro: string;
   roleCompareFeature: string;
+  roleCompareShow: string;
+  roleCompareHide: string;
   roleComparisonRows: readonly {
     feature: string;
     candidate: string;
@@ -150,8 +156,11 @@ export interface Strings {
   onboardingStepPhotoIntro: string;
   onboardingStepRoleTitle: string;
   onboardingStepLocationTitle: string;
+  onboardingStepLocationIntro: string;
   onboardingStepSalaryVisaTitle: string;
+  onboardingStepSalaryVisaIntro: string;
   onboardingStepExperienceTitle: string;
+  onboardingStepExperienceIntro: string;
   errLocationArea: string;
   onboardingPhotoIntro: string;
   profileCompletionHeadline: (percent: number) => string;
@@ -309,6 +318,8 @@ export interface Strings {
   phonePlaceholder: string;
   phonePlaceholderSpaced: string;
   phoneHelper: string;
+  phoneSelectCountry: string;
+  errPhoneInvalidArabRegion: string;
   phoneExampleLabel: (example: string) => string;
   errPhoneInvalid: string;
   otpSending: string;
@@ -417,7 +428,7 @@ export interface Strings {
 
 const en: Strings = {
   appName: 'Tarteb',
-  splashTagline: 'Your next job, arranged',
+  splashTagline: 'Hire staff and find work in the UAE',
   welcomeToTarteb: 'Welcome to Tarteb',
   otpHelper: "We'll send a 6-digit code",
   sendOtp: 'Send OTP',
@@ -429,17 +440,20 @@ const en: Strings = {
   resendOtp: 'Resend code',
   codeSentTo: 'Code sent to',
   signInWithEmail: 'Sign in with email instead',
-  selectRole: 'How will you use Tarteb?',
+  selectRole: 'Start hiring verified staff',
   selectRoleSubtitle:
-    'One account type per person. Pick the path that matches how you will use Tarteb.',
-  roleSelectionKicker: 'Get started',
-  roleSelectionNextHint: 'Next: verify your UAE mobile number (+971).',
+    'Browse candidates by role, unlock phone and WhatsApp contacts, and hire across the UAE.',
+  changeLanguage: 'Change language',
+  changeLanguageHint: 'Wrong language? Tap Change language above.',
+  roleSelectionKicker: 'For employers',
   roleSelectionTrust:
     'Your choice is saved securely. Contact support if you selected the wrong account type.',
   roleCompareTitle: 'Compare account types',
   roleCompareIntro:
     'Review the differences below. You cannot switch between job seeker and employer in the app without support.',
   roleCompareFeature: 'What you get',
+  roleCompareShow: 'Compare account types',
+  roleCompareHide: 'Hide comparison',
   roleComparisonRows: [
     {
       feature: 'Your goal',
@@ -459,7 +473,7 @@ const en: Strings = {
     {
       feature: 'Cost',
       candidate: 'Free for job seekers',
-      employer: 'Monthly subscription (AED 79.9)',
+      employer: 'From AED 79.9 · 5 unlocks/mo',
     },
     {
       feature: 'Change type later',
@@ -484,12 +498,12 @@ const en: Strings = {
   employerOnboardingStep1Title: 'Company',
   employerOnboardingStep2Title: 'Contact & location',
   employerOnboardingStep1Intro:
-    'Add your company details. A logo helps candidates recognise your business.',
+    'Add your company name to continue. Logo and trade license are optional.',
   employerOnboardingStep2Intro:
     'How can candidates and our team reach you? Use your UAE mobile number.',
   companyLogo: 'Company logo',
   companyLogoTap: 'Tap to add company logo',
-  companyLogoHint: 'Optional — square image works best. Builds trust with job seekers.',
+  companyLogoHint: 'Optional — square image works best.',
   hiredBanner: 'You are marked as hired — your profile is hidden from employers',
   hiredAlertTitle: 'Got hired?',
   hiredAlertMessage:
@@ -511,8 +525,11 @@ const en: Strings = {
   roleEmployerBullets: [
     'Browse verified job seekers by role',
     'Unlock phone and WhatsApp contacts',
-    'Monthly plan — no per-profile fees',
+    'Cancel anytime — no per-profile fees',
   ],
+  roleEmployerPriceFrom: 'From AED 79.9 · 5 unlocks/mo',
+  roleCandidatePriceFree: 'Free for job seekers',
+  roleCandidateSectionLabel: 'Looking for work instead?',
   browse: 'Browse',
   myUnlocks: 'Candidates',
   subscribe: 'Subscribe',
@@ -642,8 +659,14 @@ const en: Strings = {
     'A clear face photo helps employers trust your profile and contact you faster.',
   onboardingStepRoleTitle: 'Your job role',
   onboardingStepLocationTitle: 'Location & contact',
+  onboardingStepLocationIntro:
+    'Your name, where you live, and how employers can reach you.',
   onboardingStepSalaryVisaTitle: 'Salary & visa',
+  onboardingStepSalaryVisaIntro:
+    'Helps employers match roles to your situation. Shared when you apply.',
   onboardingStepExperienceTitle: 'Experience',
+  onboardingStepExperienceIntro:
+    'Tell employers about your background and when you can start.',
   onboardingPhotoIntro:
     'Employers see your photo first. Use a clear face picture in good light.',
   profileCompletionHeadline: (percent) => `Profile ${percent}% complete`,
@@ -867,6 +890,8 @@ const en: Strings = {
   phonePlaceholderSpaced: '+971 5X XXX XXXX',
   phoneHelper:
     'Use international format starting with +971. Do not start with 050 — enter the full number.',
+  phoneSelectCountry: 'Select country',
+  errPhoneInvalidArabRegion: 'Enter a valid mobile number.',
   phoneExampleLabel: (example) => `Example: ${example}`,
   errPhoneInvalid:
     'Enter a valid UAE mobile: +971 5X XXX XXXX (9 digits after +971).',
@@ -984,7 +1009,7 @@ const en: Strings = {
 
 const ar: Strings = {
   appName: 'Tarteb',
-  splashTagline: 'رتّب شغلك',
+  splashTagline: 'وظّف كوادر وابحث عن عمل في الإمارات',
   welcomeToTarteb: 'مرحباً بك في ترتّب',
   otpHelper: 'سنرسل رمزاً من 6 أرقام',
   sendOtp: 'إرسال الرمز',
@@ -996,17 +1021,20 @@ const ar: Strings = {
   resendOtp: 'إعادة إرسال الرمز',
   codeSentTo: 'تم إرسال الرمز إلى',
   signInWithEmail: 'تسجيل الدخول بالبريد بدلاً من ذلك',
-  selectRole: 'كيف ستستخدم ترتّب؟',
+  selectRole: 'ابدأ توظيف كوادر موثوقة',
   selectRoleSubtitle:
-    'نوع حساب واحد لكل شخص. اختر المسار الذي يناسب استخدامك لتطبيق ترتّب.',
-  roleSelectionKicker: 'ابدأ الآن',
-  roleSelectionNextHint: 'التالي: التحقق من رقمك الإماراتي (+971).',
+    'تصفّح المرشحين حسب المهنة، افتح الهاتف وواتساب، ووظّف في جميع أنحاء الإمارات.',
+  changeLanguage: 'تغيير اللغة',
+  changeLanguageHint: 'اخترت لغة خاطئة؟ اضغط «تغيير اللغة» أعلاه.',
+  roleSelectionKicker: 'لأصحاب العمل',
   roleSelectionTrust:
     'يتم حفظ اختيارك بأمان. تواصل مع الدعم إذا اخترت نوع حساب خاطئاً.',
   roleCompareTitle: 'قارن أنواع الحساب',
   roleCompareIntro:
     'راجع الفروقات أدناه. لا يمكن التبديل بين باحث عن عمل وصاحب عمل من التطبيق دون الدعم.',
   roleCompareFeature: 'ما الذي تحصل عليه',
+  roleCompareShow: 'قارن أنواع الحساب',
+  roleCompareHide: 'إخفاء المقارنة',
   roleComparisonRows: [
     {
       feature: 'هدفك',
@@ -1026,7 +1054,7 @@ const ar: Strings = {
     {
       feature: 'التكلفة',
       candidate: 'مجاني لباحثي العمل',
-      employer: 'اشتراك شهري (٧٩٫٩ درهم)',
+      employer: 'من ٧٩٫٩ درهم · ٥ فتح شهرياً',
     },
     {
       feature: 'تغيير النوع لاحقاً',
@@ -1051,12 +1079,12 @@ const ar: Strings = {
   employerOnboardingStep1Title: 'الشركة',
   employerOnboardingStep2Title: 'التواصل والموقع',
   employerOnboardingStep1Intro:
-    'أضف بيانات شركتك. الشعار يساعد المرشحين على التعرّف على نشاطك.',
+    'أضف اسم شركتك للمتابعة. الشعار والرخصة التجارية اختياريان.',
   employerOnboardingStep2Intro:
     'كيف يتواصل معك المرشحون وفريقنا؟ استخدم رقم موبايل إماراتي.',
   companyLogo: 'شعار الشركة',
   companyLogoTap: 'اضغط لإضافة شعار الشركة',
-  companyLogoHint: 'اختياري — صورة مربعة أفضل. يعزز الثقة مع الباحثين عن عمل.',
+  companyLogoHint: 'اختياري — صورة مربعة أفضل.',
   hiredBanner: 'تم تسجيلك كموظّف — ملفك مخفي عن أصحاب العمل',
   hiredAlertTitle: 'حصلت على عمل؟',
   hiredAlertMessage:
@@ -1078,8 +1106,11 @@ const ar: Strings = {
   roleEmployerBullets: [
     'تصفح باحثي العمل حسب المهنة',
     'افتح الهاتف وواتساب',
-    'خطة شهرية — بدون رسوم لكل ملف',
+    'إلغاء في أي وقت — بدون رسوم لكل ملف',
   ],
+  roleEmployerPriceFrom: 'من ٧٩٫٩ درهم · ٥ فتح شهرياً',
+  roleCandidatePriceFree: 'مجاني لباحثي العمل',
+  roleCandidateSectionLabel: 'تبحث عن عمل؟',
   browse: 'تصفح',
   myUnlocks: 'المرشحون',
   subscribe: 'اشترك',
@@ -1209,8 +1240,12 @@ const ar: Strings = {
     'صورة واضحة للوجه تساعد أصحاب العمل على الوثوق بملفك والتواصل معك أسرع.',
   onboardingStepRoleTitle: 'مهنتك',
   onboardingStepLocationTitle: 'الموقع والتواصل',
+  onboardingStepLocationIntro: 'اسمك ومكان سكنك وكيف يتواصل معك أصحاب العمل.',
   onboardingStepSalaryVisaTitle: 'الراتب والتأشيرة',
+  onboardingStepSalaryVisaIntro:
+    'يساعد أصحاب العمل على مطابقة الوظائف لوضعك. يُشارك عند التقديم.',
   onboardingStepExperienceTitle: 'الخبرة',
+  onboardingStepExperienceIntro: 'أخبر أصحاب العمل عن خلفيتك ومتى يمكنك البدء.',
   onboardingPhotoIntro:
     'أصحاب العمل يرون صورتك أولاً. استخدم صورة واضحة للوجه بإضاءة جيدة.',
   profileCompletionHeadline: (percent) => `اكتمال الملف ${percent}٪`,
@@ -1432,6 +1467,8 @@ const ar: Strings = {
   phonePlaceholderSpaced: '+971 5X XXX XXXX',
   phoneHelper:
     'استخدم الصيغة الدولية التي تبدأ بـ +971. لا تبدأ بـ 050 — أدخل الرقم كاملاً.',
+  phoneSelectCountry: 'اختر البلد',
+  errPhoneInvalidArabRegion: 'أدخل رقم موبايل صالح.',
   phoneExampleLabel: (example) => `مثال: ${example}`,
   errPhoneInvalid:
     'أدخل رقم موبايل إماراتي صالح: +971 5X XXX XXXX (9 أرقام بعد +971).',

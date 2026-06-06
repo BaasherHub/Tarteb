@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { supabase } from '@/core/lib/supabase';
 import { EmployerOnboardingStep } from '@/features/employer/presentation/components/EmployerOnboardingStep';
 import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnboardingContext';
-import { colors } from '@/core/theme/colors';
-import { spacing } from '@/core/theme/spacing';
-import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
-import { typography } from '@/core/theme/typography';
 import {
   formatUaePhoneInput,
   isValidUaeMobileE164,
@@ -22,6 +16,11 @@ import { FormField } from '@/shared/widgets/FormField';
 import { PhoneNumberField } from '@/shared/widgets/PhoneNumberField';
 import { LocationPicker } from '@/shared/widgets/LocationPicker';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
+import {
+  OnboardingStepIntro,
+  onboardingStepStyles,
+} from '@/shared/widgets/OnboardingStepIntro';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { promptForPushNotifications } from '@/core/services/notifications';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployerOnboarding'>;
@@ -35,7 +34,6 @@ type Errors = {
 
 export function EmployerStep2Contact({ navigation }: Props) {
   const { t } = useLocale();
-  const rtl = useRtlStyles();
   const { data, update, setStep, isEditMode } = useEmployerOnboarding();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -105,17 +103,13 @@ export function EmployerStep2Contact({ navigation }: Props) {
       backLabel={t.back}
       onBack={() => setStep(1)}
     >
-      <Text style={[styles.intro, { textAlign: rtl.textAlign }]}>
+      <OnboardingStepIntro>
         {isEditMode ? t.employerOnboardingEditIntro : t.employerOnboardingStep2Intro}
-      </Text>
+      </OnboardingStepIntro>
 
-      {submitError ? (
-        <View style={styles.bannerWrap}>
-          <InfoBanner message={submitError} variant="warning" />
-        </View>
-      ) : null}
+      {submitError ? <InfoBanner message={submitError} variant="warning" /> : null}
 
-      <SurfaceCard inset>
+      <SurfaceCard inset style={onboardingStepStyles.formCard}>
         <FormField
           label={t.contactName}
           value={data.contactName}
@@ -160,13 +154,3 @@ export function EmployerStep2Contact({ navigation }: Props) {
     </EmployerOnboardingStep>
   );
 }
-
-const styles = StyleSheet.create({
-  intro: {
-    ...typography.body,
-    color: colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: spacing.lg,
-  },
-  bannerWrap: { marginBottom: spacing.md },
-});

@@ -32,7 +32,7 @@ import { AppBrand } from '@/shared/widgets/AppBrand';
 
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 
-import { PhoneNumberField } from '@/shared/widgets/PhoneNumberField';
+import { AuthPhoneNumberField } from '@/features/auth/presentation/components/AuthPhoneNumberField';
 
 import { AuthSuccessPulse } from '@/shared/widgets/AuthSuccessPulse';
 
@@ -64,7 +64,7 @@ import { useAuth } from '@/core/providers/AuthProvider';
 
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 
-import { useFormattedPhoneInput } from '@/shared/hooks/useFormattedPhoneInput';
+import { useAuthPhoneInput } from '@/shared/hooks/useAuthPhoneInput';
 
 import { colors } from '@/core/theme/colors';
 
@@ -88,10 +88,6 @@ import {
   verifyOtp,
 
 } from '@/features/auth/data/services/twilioVerify';
-import {
-  getPendingAccountRole,
-  type PendingAccountRole,
-} from '@/core/services/pendingAccountRole';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneOtp'>;
 
@@ -115,7 +111,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   const [sessionRouting, setSessionRouting] = useState(false);
 
-  const phone = useFormattedPhoneInput();
+  const phone = useAuthPhoneInput();
 
   const [phase, setPhase] = useState<AuthPhase>('phone');
 
@@ -136,18 +132,6 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
 
   const otpBypass = isOtpBypassEnabled();
-  const [pendingRole, setPendingRole] = useState<PendingAccountRole | null>(null);
-
-  useEffect(() => {
-    void getPendingAccountRole().then(setPendingRole);
-  }, []);
-
-  const pendingRoleLabel =
-    pendingRole === 'candidate'
-      ? t.roleCandidate
-      : pendingRole === 'employer'
-        ? t.roleEmployer
-        : null;
 
   useEffect(() => {
 
@@ -183,13 +167,17 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   const validatePhone = (): string | null => {
 
+    if (!phone.localNumber.trim()) {
+
+      setPhoneError(t.enterPhone);
+
+      return null;
+
+    }
+
     if (!phone.isValid) {
 
-      setPhoneError(
-
-        phone.e164.length > 4 ? t.errPhoneInvalid : t.enterPhone,
-
-      );
+      setPhoneError(t.errPhoneInvalidArabRegion);
 
       return null;
 
@@ -250,8 +238,6 @@ export function PhoneOtpScreen({ navigation }: Props) {
       await sendOtp(e164);
 
       setSentPhone(e164);
-
-      phone.setValue(formatPhoneForDisplay(e164));
 
       setPhase('otp');
 
@@ -467,11 +453,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
           >
 
-            <AppBrand />
-
-            {pendingRoleLabel ? (
-              <InfoBanner message={t.signingUpAsRole(pendingRoleLabel)} />
-            ) : null}
+            <AppBrand showTagline={false} />
 
             <InfoBanner message={t.accountNotice} />
 
@@ -503,24 +485,19 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
                 </Text>
 
-                <PhoneNumberField
-
+                <AuthPhoneNumberField
                   label={t.enterPhone}
-
-                  value={phone.value}
-
-                  onChangeText={(v) => {
-
-                    phone.onChangeText(v);
-
+                  country={phone.country}
+                  onCountryChange={(c) => {
+                    phone.setCountry(c);
                     setPhoneError(undefined);
-
                   }}
-
+                  localNumber={phone.localNumber}
+                  onChangeLocalNumber={(v) => {
+                    phone.onChangeLocalNumber(v);
+                    setPhoneError(undefined);
+                  }}
                   error={phoneError}
-
-                  showExample
-
                 />
 
                 <PrimaryButton

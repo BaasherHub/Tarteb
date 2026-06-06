@@ -41,7 +41,6 @@ export const PhoneNumberField = memo(function PhoneNumberField({
 }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
-
   const handleChange = useCallback(
     (text: string) => {
       if (allowEmpty && !text.trim()) {
@@ -57,8 +56,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
     allowEmpty && !value.trim() ? '' : value || formatUaePhoneInput('');
 
   const helperText =
-    hint ??
-    (allowEmpty || !showHelper ? undefined : t.phoneHelper);
+    hint ?? (allowEmpty || !showHelper ? undefined : t.phoneHelper);
   const placeholder =
     rest.placeholder ??
     (allowEmpty ? t.whatsappEmptyPlaceholder : t.phonePlaceholderSpaced);

@@ -1,25 +1,57 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useMemo } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native';
+import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { linking } from '@/core/navigation/linking';
 import { flushPendingDeepLink } from '@/core/navigation/deepLink';
 import { navigationRef } from '@/core/navigation/navigationRef';
 import { RootStackParamList } from './types';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { colors } from '@/core/theme/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { t, isRtl } = useLocale();
+  const { t, isRtl, isHydrated, hasCompletedLanguageSelection } = useLocale();
   const stackAnimation = isRtl ? 'slide_from_left' : 'slide_from_right';
+
+  if (!isHydrated) {
+    return (
+      <View style={styles.boot}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  const initialRouteName = hasCompletedLanguageSelection ? 'Splash' : 'LanguageSelection';
+
+  const gatedLinking = useMemo((): LinkingOptions<RootStackParamList> => {
+    if (hasCompletedLanguageSelection) return linking;
+
+    return {
+      ...linking,
+      config: {
+        screens: {
+          LanguageSelection: '',
+        },
+      },
+      getStateFromPath(path, options) {
+        const state = defaultGetStateFromPath(path, options);
+        if (state?.routes[0]?.name === 'LanguageSelection') return state;
+        return { routes: [{ name: 'LanguageSelection' as const }] };
+      },
+    };
+  }, [hasCompletedLanguageSelection]);
 
   return (
     <NavigationContainer
       ref={navigationRef}
-      linking={linking}
+      linking={gatedLinking}
       onReady={() => flushPendingDeepLink(navigationRef)}
     >
       <Stack.Navigator
+        initialRouteName={initialRouteName}
         screenOptions={{
           headerShadowVisible: false,
           animation: stackAnimation,
@@ -28,6 +60,11 @@ export function RootNavigator() {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
+          options={{ headerShown: false, animation: 'fade' }}
+        />
+        <Stack.Screen
+          name="LanguageSelection"
+          component={LanguageSelectionScreen}
           options={{ headerShown: false, animation: 'fade' }}
         />
         <Stack.Screen
@@ -101,6 +138,7 @@ export function RootNavigator() {
 }
 
 import { SplashScreen } from '@/features/app/presentation/screens/SplashScreen';
+import { LanguageSelectionScreen } from '@/features/auth/presentation/screens/LanguageSelectionScreen';
 import { PhoneOtpScreen } from '@/features/auth/presentation/screens/PhoneOtpScreen';
 import { EmailOtpScreen } from '@/features/auth/presentation/screens/EmailOtpScreen';
 import { RoleSelectionScreen } from '@/features/auth/presentation/screens/RoleSelectionScreen';
@@ -114,3 +152,12 @@ import { CandidateShellScreen } from '@/features/candidate/presentation/screens/
 import { CandidateDashboardScreen } from '@/features/candidate/presentation/screens/CandidateDashboardScreen';
 import { SettingsScreen } from '@/features/settings/presentation/screens/SettingsScreen';
 import { PrivacyPolicyScreen } from '@/features/settings/presentation/screens/PrivacyPolicyScreen';
+
+const styles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.scaffold,
+  },
+});

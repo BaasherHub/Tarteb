@@ -13,6 +13,7 @@ export type AppIconName =
   | 'search'
   | 'search-outline'
   | 'document-text-outline'
+  | 'language-outline'
   | 'settings-outline'
   | 'checkmark-circle'
   | 'time'

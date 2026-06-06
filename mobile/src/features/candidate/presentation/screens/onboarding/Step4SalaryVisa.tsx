@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
-import { spacing } from '@/core/theme/spacing';
+import {
+  OnboardingStepIntro,
+  onboardingStepStyles,
+} from '@/features/candidate/presentation/components/OnboardingStepIntro';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { FormField } from '@/shared/widgets/FormField';
 import { FieldError } from '@/shared/widgets/FieldError';
 import { SelectableChip } from '@/shared/widgets/SelectableChip';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { formatSalaryAmount, parseSalaryAmount } from '@/shared/utils/salary';
@@ -39,59 +43,50 @@ export function Step4SalaryVisa() {
       backLabel={t.back}
       onBack={() => setStep(3)}
     >
-      <SectionLabel first>{t.visaStatus}</SectionLabel>
-      <FieldError message={errors.visa} />
-      <View style={styles.visaGrid}>
-        {VISA_STATUSES.map((status) => (
-          <View key={status} style={styles.visaCell}>
-            <SelectableChip
-              label={t.visaStatusLabel(status)}
-              selected={data.visaStatus === status}
-              onPress={() => {
-                update({ visaStatus: status });
-                setErrors((e) => ({ ...e, visa: undefined }));
-              }}
-            />
-          </View>
-        ))}
-      </View>
+      <OnboardingStepIntro>{t.onboardingStepSalaryVisaIntro}</OnboardingStepIntro>
 
-      <SectionLabel>{t.salarySectionTitle}</SectionLabel>
-      <FormField
-        label={t.currentSalary}
-        prefix="AED"
-        keyboardType="number-pad"
-        value={formatSalaryAmount(data.currentSalary)}
-        onChangeText={(v) => {
-          update({ currentSalary: parseSalaryAmount(v) });
-          setErrors((e) => ({ ...e, currentSalary: undefined }));
-        }}
-        error={errors.currentSalary}
-      />
-      <FormField
-        label={t.expectedSalary}
-        prefix="AED"
-        keyboardType="number-pad"
-        value={formatSalaryAmount(data.salaryExpectation)}
-        onChangeText={(v) => {
-          update({ salaryExpectation: parseSalaryAmount(v) });
-          setErrors((e) => ({ ...e, expectedSalary: undefined }));
-        }}
-        error={errors.expectedSalary}
-      />
+      <SurfaceCard inset style={onboardingStepStyles.formCard}>
+        <SectionLabel first>{t.visaStatus}</SectionLabel>
+        <View style={onboardingStepStyles.chipGrid}>
+          {VISA_STATUSES.map((status) => (
+            <View key={status} style={onboardingStepStyles.chipCell}>
+              <SelectableChip
+                label={t.visaStatusLabel(status)}
+                selected={data.visaStatus === status}
+                onPress={() => {
+                  update({ visaStatus: status });
+                  setErrors((e) => ({ ...e, visa: undefined }));
+                }}
+              />
+            </View>
+          ))}
+        </View>
+        <FieldError message={errors.visa} />
+
+        <SectionLabel>{t.salarySectionTitle}</SectionLabel>
+        <FormField
+          label={t.currentSalary}
+          prefix="AED"
+          keyboardType="number-pad"
+          value={formatSalaryAmount(data.currentSalary)}
+          onChangeText={(v) => {
+            update({ currentSalary: parseSalaryAmount(v) });
+            setErrors((e) => ({ ...e, currentSalary: undefined }));
+          }}
+          error={errors.currentSalary}
+        />
+        <FormField
+          label={t.expectedSalary}
+          prefix="AED"
+          keyboardType="number-pad"
+          value={formatSalaryAmount(data.salaryExpectation)}
+          onChangeText={(v) => {
+            update({ salaryExpectation: parseSalaryAmount(v) });
+            setErrors((e) => ({ ...e, expectedSalary: undefined }));
+          }}
+          error={errors.expectedSalary}
+        />
+      </SurfaceCard>
     </CandidateOnboardingStep>
   );
 }
-
-const styles = StyleSheet.create({
-  visaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  visaCell: {
-    flexBasis: '47%',
-    flexGrow: 1,
-  },
-});

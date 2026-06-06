@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
+import { OnboardingStepIntro } from '@/features/candidate/presentation/components/OnboardingStepIntro';
 import { PhotoEmptyEncouragement } from '@/features/candidate/presentation/components/PhotoEmptyEncouragement';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { uploadCandidatePhoto } from '@/features/candidate/data/services/candidatePhoto';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
-import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { FieldError } from '@/shared/widgets/FieldError';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { PhotoAvatarPicker } from '@/features/candidate/presentation/components/PhotoAvatarPicker';
 import { RequiredBadge } from '@/shared/widgets/RequiredBadge';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 
 export function Step1Photo() {
   const { t } = useLocale();
-  const rtl = useRtlStyles();
   const { data, update, setStep } = useCandidateOnboarding();
   const [uploading, setUploading] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
@@ -77,11 +76,12 @@ export function Step1Photo() {
       onPrimary={next}
       primaryLoading={uploading}
     >
-      <Text style={[styles.intro, { textAlign: rtl.textAlignCenter }]}>
-        {t.onboardingStepPhotoIntro}
-      </Text>
+      <OnboardingStepIntro>{t.onboardingStepPhotoIntro}</OnboardingStepIntro>
 
-      <View style={[styles.card, !hasPhoto && styles.cardHighlight]}>
+      <SurfaceCard
+        inset
+        style={[styles.photoCard, !hasPhoto && styles.photoCardHighlight]}
+      >
         <View style={styles.badgeRow}>
           <RequiredBadge />
         </View>
@@ -92,44 +92,24 @@ export function Step1Photo() {
           onPressGallery={() => pickImage(false)}
         />
         {!hasPhoto ? <PhotoEmptyEncouragement /> : null}
-        {permissionError ? (
-          <View style={styles.feedback}>
-            <InfoBanner message={permissionError} variant="warning" />
-          </View>
-        ) : null}
+        {permissionError ? <InfoBanner message={permissionError} variant="warning" /> : null}
         <FieldError message={photoError} />
-      </View>
+      </SurfaceCard>
     </CandidateOnboardingStep>
   );
 }
 
 const styles = StyleSheet.create({
-  intro: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
-    lineHeight: 24,
-    paddingHorizontal: spacing.sm,
+  photoCard: {
+    gap: spacing.md,
+    marginBottom: 0,
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: spacing.xl,
-    paddingTop: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    overflow: 'hidden',
-  },
-  cardHighlight: {
+  photoCardHighlight: {
     borderColor: `${colors.primary}66`,
     borderWidth: 1.5,
     backgroundColor: colors.primaryTint,
   },
   badgeRow: {
-    marginBottom: spacing.md,
-  },
-  feedback: {
-    marginTop: spacing.sm,
     marginBottom: spacing.xs,
   },
 });

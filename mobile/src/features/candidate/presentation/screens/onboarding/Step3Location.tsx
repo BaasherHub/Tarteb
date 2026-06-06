@@ -1,26 +1,22 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { filterNationalities, resolveNationality } from '@/shared/constants/nationalities';
 import { parseLocation } from '@/shared/constants/uaeLocations';
-import { useRtlStyles } from '@/core/hooks/useRtlStyles';
-import { colors } from '@/core/theme/colors';
-import { spacing } from '@/core/theme/spacing';
-import { typography } from '@/core/theme/typography';
 import { AutocompleteField } from '@/shared/widgets/AutocompleteField';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { FormField } from '@/shared/widgets/FormField';
 import { LocationPicker } from '@/shared/widgets/LocationPicker';
-import { PhoneNumberField } from '@/shared/widgets/PhoneNumberField';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
+import { AuthPhoneNumberField } from '@/features/auth/presentation/components/AuthPhoneNumberField';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
-import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import {
-  formatUaePhoneInput,
-  isValidUaeMobileE164,
-  normalizeE164,
-  UAE_DIAL_CODE,
-  validateOptionalUaeMobile,
-} from '@/shared/utils/phone';
+  OnboardingStepIntro,
+  onboardingStepStyles,
+} from '@/features/candidate/presentation/components/OnboardingStepIntro';
+import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
+import { useAuthPhoneInput } from '@/shared/hooks/useAuthPhoneInput';
+import type { ArabPhoneCountry } from '@/shared/constants/arabPhoneCountries';
 
 type Errors = {
   name?: string;
@@ -34,30 +30,54 @@ function hasDistrict(location: string | undefined): boolean {
   return Boolean(parseLocation(location ?? '').area?.trim());
 }
 
+function e164FromParts(
+  dial: string,
+  localNumber: string,
+  maxLength = localNumber.length,
+): string {
+  const digits = localNumber.replace(/\D/g, '').slice(0, maxLength);
+  return digits ? `${dial}${digits}` : '';
+}
+
 export function Step3Location() {
   const { t } = useLocale();
-  const rtl = useRtlStyles();
   const { data, update, setStep } = useCandidateOnboarding();
   const [errors, setErrors] = useState<Errors>({});
   const [name, setName] = useState(data.name ?? '');
   const [nationalityQuery, setNationalityQuery] = useState(data.nationality ?? '');
+
+  const phoneInput = useAuthPhoneInput({ initialE164: data.phone });
+  const whatsappInput = useAuthPhoneInput({ initialE164: data.whatsapp });
 
   const nationalityOptions = useMemo(
     () => filterNationalities(nationalityQuery),
     [nationalityQuery],
   );
 
+  const syncPhone = (country: ArabPhoneCountry, localNumber: string) => {
+    update({
+      phone: e164FromParts(country.dial, localNumber, country.localMaxLength) || undefined,
+    });
+  };
+
+  const syncWhatsapp = (country: ArabPhoneCountry, localNumber: string) => {
+    update({
+      whatsapp: e164FromParts(country.dial, localNumber, country.localMaxLength) || null,
+    });
+  };
+
   const next = () => {
     const nextErrors: Errors = {};
     if (!name.trim()) nextErrors.name = t.errFullName;
 
-    const phoneE164 = normalizeE164(data.phone ?? '');
-    if (!data.phone?.trim() || !isValidUaeMobileE164(phoneE164)) {
-      nextErrors.phone = data.phone?.trim() ? t.errPhoneInvalid : t.errPhone;
+    if (!phoneInput.localNumber.trim() || !phoneInput.isValid) {
+      nextErrors.phone = phoneInput.localNumber.trim()
+        ? t.errPhoneInvalidArabRegion
+        : t.errPhone;
     }
-    const whatsappResult = validateOptionalUaeMobile(data.whatsapp);
-    if (!whatsappResult.ok) {
-      nextErrors.whatsapp = t.errPhoneInvalid;
+
+    if (whatsappInput.localNumber.trim() && !whatsappInput.isValid) {
+      nextErrors.whatsapp = t.errPhoneInvalidArabRegion;
     }
 
     const resolved = resolveNationality(nationalityQuery);
@@ -72,8 +92,8 @@ export function Step3Location() {
     update({
       name: name.trim(),
       nationality: resolved!,
-      phone: phoneE164,
-      whatsapp: whatsappResult.ok ? whatsappResult.e164 : null,
+      phone: phoneInput.e164,
+      whatsapp: whatsappInput.localNumber.trim() ? whatsappInput.e164 : null,
     });
     setStep(4);
   };
@@ -85,82 +105,84 @@ export function Step3Location() {
       backLabel={t.back}
       onBack={() => setStep(2)}
     >
-      <FormField
-        label={t.fullNameOnId}
-        value={name}
-        onChangeText={(v) => {
-          setName(v);
-          update({ name: v });
-          setErrors((e) => ({ ...e, name: undefined }));
-        }}
-        placeholder={t.fullNamePlaceholder}
-        error={errors.name}
-      />
+      <OnboardingStepIntro>{t.onboardingStepLocationIntro}</OnboardingStepIntro>
 
-      <View style={styles.section}>
-        <SectionLabel>{t.contactsSectionTitle}</SectionLabel>
-        <PhoneNumberField
-          value={
-            data.phone ? formatUaePhoneInput(data.phone) : formatUaePhoneInput(UAE_DIAL_CODE)
-          }
-          onChangeText={(phone) => {
-            update({ phone: formatUaePhoneInput(phone) });
-            setErrors((e) => ({ ...e, phone: undefined }));
+      <SurfaceCard inset style={onboardingStepStyles.formCard}>
+        <FormField
+          label={t.fullNameOnId}
+          value={name}
+          onChangeText={(v) => {
+            setName(v);
+            update({ name: v });
+            setErrors((e) => ({ ...e, name: undefined }));
           }}
-          showExample={false}
-          showHelper={false}
-          error={errors.phone}
+          placeholder={t.fullNamePlaceholder}
+          error={errors.name}
         />
-        <PhoneNumberField
-          label={t.whatsappOptional}
-          allowEmpty
-          showExample={false}
-          showHelper={false}
-          placeholder=""
-          value={data.whatsapp ? formatUaePhoneInput(data.whatsapp) : ''}
-          onChangeText={(whatsapp) => {
-            update({
-              whatsapp: whatsapp.trim() ? formatUaePhoneInput(whatsapp) : null,
-            });
-            setErrors((e) => ({ ...e, whatsapp: undefined }));
+
+        <View style={onboardingStepStyles.section}>
+          <SectionLabel first>{t.contactsSectionTitle}</SectionLabel>
+          <AuthPhoneNumberField
+            country={phoneInput.country}
+            onCountryChange={(country) => {
+              phoneInput.setCountry(country);
+              syncPhone(country, phoneInput.localNumber);
+              setErrors((e) => ({ ...e, phone: undefined }));
+            }}
+            localNumber={phoneInput.localNumber}
+            onChangeLocalNumber={(value) => {
+              phoneInput.onChangeLocalNumber(value);
+              syncPhone(phoneInput.country, value);
+              setErrors((e) => ({ ...e, phone: undefined }));
+            }}
+            error={errors.phone}
+          />
+          <AuthPhoneNumberField
+            label={t.whatsappOptional}
+            country={whatsappInput.country}
+            onCountryChange={(country) => {
+              whatsappInput.setCountry(country);
+              syncWhatsapp(country, whatsappInput.localNumber);
+              setErrors((e) => ({ ...e, whatsapp: undefined }));
+            }}
+            localNumber={whatsappInput.localNumber}
+            onChangeLocalNumber={(value) => {
+              whatsappInput.onChangeLocalNumber(value);
+              syncWhatsapp(whatsappInput.country, value);
+              setErrors((e) => ({ ...e, whatsapp: undefined }));
+            }}
+            error={errors.whatsapp}
+          />
+        </View>
+
+        <AutocompleteField
+          label={t.nationality}
+          value={nationalityQuery}
+          onChangeText={(q) => {
+            setNationalityQuery(q);
+            setErrors((e) => ({ ...e, nationality: undefined }));
           }}
-          error={errors.whatsapp}
+          onSelect={(n) => {
+            setNationalityQuery(n);
+            update({ nationality: n });
+            setErrors((e) => ({ ...e, nationality: undefined }));
+          }}
+          options={nationalityOptions}
+          placeholder={t.nationalityPlaceholder}
+          emptyHint={t.errNationalityPick}
+          error={errors.nationality}
         />
-      </View>
 
-      <AutocompleteField
-        label={t.nationality}
-        value={nationalityQuery}
-        onChangeText={(q) => {
-          setNationalityQuery(q);
-          setErrors((e) => ({ ...e, nationality: undefined }));
-        }}
-        onSelect={(n) => {
-          setNationalityQuery(n);
-          update({ nationality: n });
-          setErrors((e) => ({ ...e, nationality: undefined }));
-        }}
-        options={nationalityOptions}
-        placeholder={t.nationalityPlaceholder}
-        emptyHint={t.errNationalityPick}
-        error={errors.nationality}
-      />
-
-      <LocationPicker
-        value={data.location ?? ''}
-        onChange={(location) => {
-          update({ location });
-          setErrors((e) => ({ ...e, location: undefined }));
-        }}
-        error={errors.location}
-        areaHint=""
-      />
+        <LocationPicker
+          value={data.location ?? ''}
+          onChange={(location) => {
+            update({ location });
+            setErrors((e) => ({ ...e, location: undefined }));
+          }}
+          error={errors.location}
+          areaHint=""
+        />
+      </SurfaceCard>
     </CandidateOnboardingStep>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    gap: spacing.sm,
-  },
-});

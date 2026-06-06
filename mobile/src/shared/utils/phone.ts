@@ -1,3 +1,31 @@
+import { AUTH_PHONE_DIAL_PREFIXES } from '@/shared/constants/arabPhoneCountries';
+
+/** Max E.164 length for international auth input (+XXXXXXXXXXXXXXX). */
+export const INTERNATIONAL_PHONE_MAX_LENGTH = 16;
+
+/**
+ * International phone input for auth — user supplies country code (+966, +20, …).
+ */
+export function formatInternationalPhoneInput(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, '').replace(/\D/g, '').slice(0, 15);
+  if (!digits) return '+';
+  return `+${digits}`;
+}
+
+/** Valid mobile with a supported auth country code (Arab + major Asian expat). */
+export function isValidAuthPhoneE164(e164: string): boolean {
+  if (!/^\+\d{8,15}$/.test(e164)) return false;
+  const digits = e164.slice(1);
+  return AUTH_PHONE_DIAL_PREFIXES.some(
+    (prefix) => digits.startsWith(prefix) && digits.length >= prefix.length + 7,
+  );
+}
+
+/** @deprecated Use {@link isValidAuthPhoneE164}. */
+export function isValidArabRegionMobileE164(e164: string): boolean {
+  return isValidAuthPhoneE164(e164);
+}
+
 /** Default UAE country code for hints and validation. */
 export const UAE_DIAL_CODE = '+971';
 
@@ -92,6 +120,20 @@ export function isEmptyOptionalUaePhone(formatted: string | null | undefined): b
   if (!formatted?.trim()) return true;
   const e164 = normalizeE164(formatted);
   return !e164 || e164 === UAE_DIAL_CODE;
+}
+
+/** Optional auth-region mobile (e.g. WhatsApp). Empty → null; partial/invalid → error. */
+export function validateOptionalAuthPhone(
+  e164: string | null | undefined,
+): { ok: true; e164: string | null } | { ok: false } {
+  if (!e164?.trim()) {
+    return { ok: true, e164: null };
+  }
+  const normalized = e164.trim();
+  if (!isValidAuthPhoneE164(normalized)) {
+    return { ok: false };
+  }
+  return { ok: true, e164: normalized };
 }
 
 /**

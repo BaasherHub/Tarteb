@@ -53,10 +53,12 @@ export function EmployerOnboardingStep({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {children}
+      <View style={styles.stepContent}>{children}</View>
     </ScrollView>
   ) : (
-    <View style={[styles.body, contentStyle]}>{children}</View>
+    <View style={[styles.body, contentStyle]}>
+      <View style={styles.stepContent}>{children}</View>
+    </View>
   );
 
   return (
@@ -90,4 +92,5 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { ...layoutStyles.screenContent, paddingBottom: spacing.xxl },
   body: { flex: 1, ...layoutStyles.screenContent },
+  stepContent: { gap: spacing.lg },
 });

@@ -13,7 +13,7 @@ type Props = {
   onPressGallery: () => void;
 };
 
-export function CompanyLogoPicker({ imageUri, companyInitial = 'C', onPressGallery }: Props) {
+export function CompanyLogoPicker({ imageUri, companyInitial, onPressGallery }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const size = 112;
@@ -37,10 +37,13 @@ export function CompanyLogoPicker({ imageUri, companyInitial = 'C', onPressGalle
       >
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.logo} />
+        ) : companyInitial ? (
+          <View style={styles.initialWrap}>
+            <Text style={styles.initial}>{companyInitial.charAt(0).toUpperCase()}</Text>
+          </View>
         ) : (
           <View style={styles.placeholder}>
             <AppIcon name="business" size={36} color={colors.primary} />
-            <Text style={styles.initial}>{companyInitial.charAt(0).toUpperCase()}</Text>
           </View>
         )}
       </Pressable>
@@ -50,7 +53,7 @@ export function CompanyLogoPicker({ imageUri, companyInitial = 'C', onPressGalle
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', marginBottom: spacing.md },
+  wrap: { alignItems: 'center' },
   ring: {
     borderWidth: 2,
     overflow: 'hidden',
@@ -62,10 +65,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryTint,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+  },
+  initialWrap: {
+    flex: 1,
+    backgroundColor: colors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   initial: {
-    ...typography.caption,
+    ...typography.h2,
     fontWeight: '800',
     color: colors.primary,
   },

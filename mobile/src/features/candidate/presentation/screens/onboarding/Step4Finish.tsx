@@ -1,9 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { InfoBanner } from '@/shared/widgets/InfoBanner';
+import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
+import {
+  OnboardingStepIntro,
+  onboardingStepStyles,
+} from '@/features/candidate/presentation/components/OnboardingStepIntro';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
-import { FormField } from '@/shared/widgets/FormField';
 import { DateField } from '@/shared/widgets/DateField';
 import { FieldError } from '@/shared/widgets/FieldError';
 import { LanguageSelectList } from '@/shared/widgets/LanguageSelectList';
@@ -28,14 +33,16 @@ import {
 } from '@/features/candidate/domain/constants/candidate';
 import { normalizeAdditionalRoles } from '@/shared/utils/candidateRoles';
 import { sanitizeLanguages } from '@/shared/utils/languages';
-import { isValidUaeMobileE164, normalizeE164, validateOptionalUaeMobile } from '@/shared/utils/phone';
+import {
+  isValidAuthPhoneE164,
+  validateOptionalAuthPhone,
+} from '@/shared/utils/phone';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateOnboarding'>;
 
 type Errors = {
   experience?: string;
   languages?: string;
-  uae?: string;
 };
 
 function hasDistrict(location: string | undefined): boolean {
@@ -78,9 +85,9 @@ export function Step4Finish({ navigation }: Props) {
     if (!String(data.name ?? '').trim()) return t.errNameGoBackStep3;
     if (!resolveNationality(data.nationality ?? '')) return t.errNationalityPick;
     if (!hasDistrict(data.location)) return t.errLocationArea;
-    const phoneE164 = normalizeE164(data.phone ?? '');
-    if (!data.phone?.trim() || !isValidUaeMobileE164(phoneE164)) {
-      return data.phone?.trim() ? t.errPhoneInvalid : t.errPhone;
+    const phoneE164 = (data.phone ?? '').trim();
+    if (!phoneE164 || !isValidAuthPhoneE164(phoneE164)) {
+      return phoneE164 ? t.errPhoneInvalidArabRegion : t.errPhone;
     }
     if (!data.visaStatus) return t.errSalaryVisaGoBackStep4;
     if (!data.currentSalary) return t.errSalaryVisaGoBackStep4;
@@ -97,7 +104,6 @@ export function Step4Finish({ navigation }: Props) {
 
     const nextErrors: Errors = {};
     if (data.yearsExperience === undefined) nextErrors.experience = t.errExperience;
-    if (data.uaeExperience === undefined) nextErrors.uae = t.errUae;
     if (data.languages.length === 0) nextErrors.languages = t.errLanguages;
 
     setErrors(nextErrors);
@@ -108,8 +114,8 @@ export function Step4Finish({ navigation }: Props) {
 
     setSubmitError(undefined);
     setLoading(true);
-    const phoneE164 = normalizeE164(data.phone ?? '');
-    const whatsappResult = validateOptionalUaeMobile(data.whatsapp);
+    const phoneE164 = (data.phone ?? '').trim();
+    const whatsappResult = validateOptionalAuthPhone(data.whatsapp);
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) throw new Error('Not signed in');
@@ -135,8 +141,8 @@ export function Step4Finish({ navigation }: Props) {
         whatsapp: whatsappResult.ok ? whatsappResult.e164 : null,
         years_experience: data.yearsExperience ?? 0,
         languages: sanitizeLanguages(data.languages),
-        uae_experience: data.uaeExperience,
-        previous_employer: data.previousEmployer,
+        uae_experience: null,
+        previous_employer: null,
         is_active: true,
       };
 
@@ -162,110 +168,64 @@ export function Step4Finish({ navigation }: Props) {
       backLabel={t.back}
       onBack={() => setStep(4)}
     >
-      {submitError ? (
-        <Text style={[styles.submitErr, { textAlign: rtl.textAlign }]} accessibilityRole="alert">
-          {submitError}
-        </Text>
-      ) : null}
+      <OnboardingStepIntro>{t.onboardingStepExperienceIntro}</OnboardingStepIntro>
 
-      <SectionLabel first>{t.yearsExperience}</SectionLabel>
-      <SectionHint>{t.experienceSelectOne}</SectionHint>
-      <View style={[styles.experienceRow, rtl.row]}>
-        {EXPERIENCE_OPTIONS.map((opt) => (
-          <View key={opt.years} style={styles.experienceCell}>
-            <SelectableChip
-              compact
-              label={t.experienceBucketLabel(opt.years)}
-              selected={data.yearsExperience === opt.years}
-              onPress={() => {
-                update({ yearsExperience: opt.years });
-                setErrors((e) => ({ ...e, experience: undefined }));
-              }}
-            />
-          </View>
-        ))}
-      </View>
-      <FieldError message={errors.experience} />
+      {submitError ? <InfoBanner message={submitError} variant="warning" /> : null}
 
-      <SectionLabel>{t.uaeExperience}</SectionLabel>
-      <View style={[styles.yesNo, rtl.row]}>
-        <View style={styles.half}>
-          <SelectableChip
-            compact
-            label={t.yes}
-            selected={data.uaeExperience === true}
-            onPress={() => {
-              update({ uaeExperience: true });
-              setErrors((e) => ({ ...e, uae: undefined }));
-            }}
-          />
+      <SurfaceCard inset style={onboardingStepStyles.formCard}>
+        <SectionLabel first>{t.yearsExperience}</SectionLabel>
+        <SectionHint>{t.experienceSelectOne}</SectionHint>
+        <View style={[onboardingStepStyles.chipGrid, rtl.row]}>
+          {EXPERIENCE_OPTIONS.map((opt) => (
+            <View key={opt.years} style={onboardingStepStyles.chipCell}>
+              <SelectableChip
+                compact
+                label={t.experienceBucketLabel(opt.years)}
+                selected={data.yearsExperience === opt.years}
+                onPress={() => {
+                  update({ yearsExperience: opt.years });
+                  setErrors((e) => ({ ...e, experience: undefined }));
+                }}
+              />
+            </View>
+          ))}
         </View>
-        <View style={styles.half}>
-          <SelectableChip
-            compact
-            label={t.no}
-            selected={data.uaeExperience === false}
-            onPress={() => {
-              update({ uaeExperience: false, previousEmployer: null });
-              setErrors((e) => ({ ...e, uae: undefined }));
-            }}
-          />
-        </View>
-      </View>
-      <FieldError message={errors.uae} />
+        <FieldError message={errors.experience} />
 
-      {data.uaeExperience === true ? (
-        <FormField
-          label={t.previousEmployer}
-          value={data.previousEmployer ?? ''}
-          onChangeText={(v) => update({ previousEmployer: v || null })}
-          placeholder={t.previousEmployerPlaceholder}
+        <SectionLabel>{t.languages}</SectionLabel>
+        <SectionHint>{t.languagesSelectAll}</SectionHint>
+        <LanguageSelectList
+          options={languageOptions}
+          selected={data.languages}
+          onToggle={toggleLang}
         />
-      ) : null}
+        {MORE_LANGUAGE_OPTIONS.length > 0 ? (
+          <Pressable
+            onPress={() => setShowMoreLanguages((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={showMoreLanguages ? t.hideMoreLanguages : t.showMoreLanguages}
+          >
+            <Text style={[styles.moreLink, { textAlign: rtl.textAlign }]}>
+              {showMoreLanguages ? t.hideMoreLanguages : t.showMoreLanguages}
+            </Text>
+          </Pressable>
+        ) : null}
+        <FieldError message={errors.languages} />
 
-      <SectionLabel>{t.languages}</SectionLabel>
-      <SectionHint>{t.languagesSelectAll}</SectionHint>
-      <LanguageSelectList
-        options={languageOptions}
-        selected={data.languages}
-        onToggle={toggleLang}
-      />
-      {MORE_LANGUAGE_OPTIONS.length > 0 ? (
-        <Pressable
-          onPress={() => setShowMoreLanguages((v) => !v)}
-          accessibilityRole="button"
-          accessibilityLabel={showMoreLanguages ? t.hideMoreLanguages : t.showMoreLanguages}
-        >
-          <Text style={[styles.moreLink, { textAlign: rtl.textAlign }]}>
-            {showMoreLanguages ? t.hideMoreLanguages : t.showMoreLanguages}
-          </Text>
-        </Pressable>
-      ) : null}
-      <FieldError message={errors.languages} />
-
-      <DateField
-        label={t.availableFrom}
-        value={availableFrom}
-        onChange={(date) => {
-          setAvailableFrom(date);
-          update({ availableFrom: formatIsoDateLocal(date) });
-        }}
-      />
+        <DateField
+          label={t.availableFrom}
+          value={availableFrom}
+          onChange={(date) => {
+            setAvailableFrom(date);
+            update({ availableFrom: formatIsoDateLocal(date) });
+          }}
+        />
+      </SurfaceCard>
     </CandidateOnboardingStep>
   );
 }
 
 const styles = StyleSheet.create({
-  submitErr: { ...typography.caption, color: colors.error, marginBottom: spacing.md },
-  experienceRow: {
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  experienceCell: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    minWidth: 120,
-  },
   moreLink: {
     ...typography.caption,
     fontWeight: '700',
@@ -273,6 +233,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     marginBottom: spacing.sm,
   },
-  yesNo: { gap: spacing.sm },
-  half: { flex: 1 },
 });

@@ -15,6 +15,7 @@ export type CandidateTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
+  LanguageSelection: undefined;
   PhoneOtp: undefined;
   EmailOtp: undefined;
   RoleSelection: undefined;

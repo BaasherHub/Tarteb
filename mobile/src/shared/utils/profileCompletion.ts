@@ -37,9 +37,7 @@ export function candidateProfileCompletion(
   const experienceDone =
     row.years_experience !== undefined &&
     row.years_experience !== null &&
-    languageList.length > 0 &&
-    row.uae_experience !== undefined &&
-    row.uae_experience !== null;
+    languageList.length > 0;
 
   const extraRoles = row.additional_roles;
   const hasAlsoRoles =

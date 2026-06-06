@@ -15,29 +15,53 @@ type LocaleContextValue = {
   t: ReturnType<typeof strings>;
   setLang: (lang: Lang) => void;
   isRtl: boolean;
+  /** AsyncStorage read finished. */
+  isHydrated: boolean;
+  /** User completed the first-run language screen (or changed language in Settings). */
+  hasCompletedLanguageSelection: boolean;
+  /** Undo first-run completion so the user can pick language again. */
+  resetLanguageSelection: () => void;
 };
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
-const STORAGE_KEY = 'app_language';
+export const LANGUAGE_STORAGE_KEY = 'app_language';
+/** Separate from app_language so an old saved locale does not skip the picker. */
+export const LANGUAGE_SELECTION_DONE_KEY = 'language_selection_done_v1';
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en');
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [hasCompletedLanguageSelection, setHasCompletedLanguageSelection] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+    Promise.all([
+      AsyncStorage.getItem(LANGUAGE_STORAGE_KEY),
+      AsyncStorage.getItem(LANGUAGE_SELECTION_DONE_KEY),
+    ]).then(([stored, done]) => {
       if (stored === 'ar' || stored === 'en') {
         setLangState(stored);
         I18nManager.allowRTL(true);
         I18nManager.forceRTL(stored === 'ar');
       }
+      setHasCompletedLanguageSelection(done === '1');
+      setIsHydrated(true);
     });
   }, []);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
-    AsyncStorage.setItem(STORAGE_KEY, next);
+    setHasCompletedLanguageSelection(true);
+    void AsyncStorage.multiSet([
+      [LANGUAGE_STORAGE_KEY, next],
+      [LANGUAGE_SELECTION_DONE_KEY, '1'],
+    ]);
     I18nManager.allowRTL(true);
     I18nManager.forceRTL(next === 'ar');
+  }, []);
+
+  const resetLanguageSelection = useCallback(() => {
+    setHasCompletedLanguageSelection(false);
+    void AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY);
   }, []);
 
   const value = useMemo(
@@ -46,8 +70,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       t: strings(lang),
       setLang,
       isRtl: lang === 'ar',
+      isHydrated,
+      hasCompletedLanguageSelection,
+      resetLanguageSelection,
     }),
-    [lang, setLang],
+    [lang, setLang, isHydrated, hasCompletedLanguageSelection, resetLanguageSelection],
   );
 
   return (
@@ -60,5 +87,3 @@ export function useLocale() {
   if (!ctx) throw new Error('useLocale must be used within LocaleProvider');
   return ctx;
 }
-
-

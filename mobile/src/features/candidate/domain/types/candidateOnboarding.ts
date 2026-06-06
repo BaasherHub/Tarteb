@@ -20,13 +20,10 @@ export type CandidateOnboardingData = {
   candidateId?: string;
   yearsExperience?: number;
   languages: string[];
-  uaeExperience: boolean;
-  previousEmployer?: string | null;
 };
 
 export const emptyOnboardingData = (): CandidateOnboardingData => ({
   languages: [],
-  uaeExperience: false,
   additionalRoles: [],
 });
 
@@ -50,7 +47,5 @@ export function onboardingFromRow(row: Record<string, unknown>): CandidateOnboar
     availableFrom: row.available_from as string | undefined,
     yearsExperience: (row.years_experience as number) ?? 0,
     languages: sanitizeLanguages(row.languages),
-    uaeExperience: row.uae_experience === true,
-    previousEmployer: row.previous_employer as string | undefined,
   };
 }
