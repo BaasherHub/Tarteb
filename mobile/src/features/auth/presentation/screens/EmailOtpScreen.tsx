@@ -329,6 +329,8 @@ export function EmailOtpScreen({ navigation }: Props) {
 
                   label={t.enterEmail}
 
+                  required
+
                   value={email}
 
                   onChangeText={(v) => {

@@ -46,7 +46,9 @@ export function Step4SalaryVisa() {
       <OnboardingStepIntro>{t.onboardingStepSalaryVisaIntro}</OnboardingStepIntro>
 
       <SurfaceCard inset style={onboardingStepStyles.formCard}>
-        <SectionLabel first>{t.visaStatus}</SectionLabel>
+        <SectionLabel first required>
+          {t.visaStatus}
+        </SectionLabel>
         <View style={onboardingStepStyles.chipGrid}>
           {VISA_STATUSES.map((status) => (
             <View key={status} style={onboardingStepStyles.chipCell}>
@@ -66,6 +68,7 @@ export function Step4SalaryVisa() {
         <SectionLabel>{t.salarySectionTitle}</SectionLabel>
         <FormField
           label={t.currentSalary}
+          required
           prefix="AED"
           keyboardType="number-pad"
           value={formatSalaryAmount(data.currentSalary)}
@@ -77,6 +80,7 @@ export function Step4SalaryVisa() {
         />
         <FormField
           label={t.expectedSalary}
+          required
           prefix="AED"
           keyboardType="number-pad"
           value={formatSalaryAmount(data.salaryExpectation)}

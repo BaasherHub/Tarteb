@@ -68,17 +68,16 @@ export function candidateProfileCompletion(
   return computeCompletion(items);
 }
 
-/** Employer company profile — no photo; logo encouraged (10%). */
+/** Employer company profile completion. */
 export function employerProfileCompletion(
   row: Record<string, unknown>,
 ): ProfileCompletionResult {
   const items: CompletionItem[] = [
-    { id: 'company', weight: 25, done: Boolean(String(row.company_name ?? '').trim()) },
+    { id: 'company', weight: 30, done: Boolean(String(row.company_name ?? '').trim()) },
     { id: 'contact', weight: 20, done: Boolean(String(row.contact_name ?? '').trim()) },
     { id: 'phone', weight: 20, done: Boolean(row.phone) },
-    { id: 'email', weight: 20, done: Boolean(String(row.email ?? '').trim()) },
+    { id: 'email', weight: 15, done: Boolean(String(row.email ?? '').trim()) },
     { id: 'location', weight: 15, done: Boolean(row.location) },
-    { id: 'logo', weight: 10, done: Boolean(row.logo_url) },
   ];
   return computeCompletion(items);
 }

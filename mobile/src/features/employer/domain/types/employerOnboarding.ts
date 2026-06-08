@@ -1,9 +1,8 @@
-import { formatUaePhoneInput } from '@/shared/utils/phone';
+import { normalizeE164 } from '@/shared/utils/phone';
 
 export type EmployerOnboardingData = {
   employerId?: string;
   companyName: string;
-  logoUrl: string | null;
   tradeLicense: string;
   contactName: string;
   phone: string;
@@ -13,7 +12,6 @@ export type EmployerOnboardingData = {
 
 export const emptyEmployerOnboardingData = (): EmployerOnboardingData => ({
   companyName: '',
-  logoUrl: null,
   tradeLicense: '',
   contactName: '',
   phone: '',
@@ -26,10 +24,9 @@ export function employerFromRow(row: Record<string, unknown>): EmployerOnboardin
   return {
     employerId: row.id as string | undefined,
     companyName: String(row.company_name ?? ''),
-    logoUrl: (row.logo_url as string | null) ?? null,
     tradeLicense: String(row.trade_license ?? ''),
     contactName: String(row.contact_name ?? ''),
-    phone: phone ? formatUaePhoneInput(phone) : '',
+    phone: phone ? normalizeE164(phone) : '',
     email: String(row.email ?? ''),
     location: String(row.location ?? ''),
   };

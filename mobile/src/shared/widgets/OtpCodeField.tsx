@@ -62,6 +62,9 @@ export const OtpCodeField = memo(function OtpCodeField({
         accessibilityLabel={fieldA11yLabel(
           t.otpCode,
           error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
+          undefined,
+          { required: true },
+          t,
         )}
         textContentType="oneTimeCode"
         autoComplete="sms-otp"

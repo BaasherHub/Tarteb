@@ -8,7 +8,7 @@ import {
   JobRoleGrid,
   type JobRoleGridFilterState,
 } from '@/shared/widgets/JobRoleGrid';
-import { SectionHint } from '@/shared/widgets/SectionLabel';
+import { SectionHint, SectionLabel } from '@/shared/widgets/SectionLabel';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import type { RoleCategoryId } from '@/features/candidate/domain/constants/candidate';
 
@@ -57,6 +57,9 @@ export function Step2JobRole() {
       roleSelectionSummary={roleSelectionSummary}
     >
       <OnboardingStepIntro>{t.candidatePickRoleHint}</OnboardingStepIntro>
+      <SectionLabel first required>
+        {t.jobRole}
+      </SectionLabel>
       <SectionHint>{t.candidatePrimaryRoleHint}</SectionHint>
 
       <JobRoleGrid

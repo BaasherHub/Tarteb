@@ -13,20 +13,24 @@ import { typography } from '@/core/theme/typography';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { fieldA11yLabel } from '@/shared/utils/a11y';
 import { FieldError } from '@/shared/widgets/FieldError';
+import { FieldLabel, type FieldLabelFlags } from '@/shared/widgets/FieldLabel';
 
-type Props = TextInputProps & {
-  label: string;
-  error?: string;
-  hint?: string;
-  /** Shown inside the field (e.g. AED for salary). Input stays LTR for numbers. */
-  prefix?: string;
-};
+type Props = TextInputProps &
+  FieldLabelFlags & {
+    label: string;
+    error?: string;
+    hint?: string;
+    /** Shown inside the field (e.g. AED for salary). Input stays LTR for numbers. */
+    prefix?: string;
+  };
 
 export function FormField({
   label,
   error,
   hint,
   prefix,
+  required,
+  optional,
   style,
   placeholderTextColor,
   textAlign: textAlignProp,
@@ -35,17 +39,16 @@ export function FormField({
   const rtl = useRtlStyles();
   const { t } = useLocale();
   const inputId = useId();
+  const flags = { required, optional };
 
   return (
     <View style={styles.wrap} accessibilityRole="none">
-      <Text
+      <FieldLabel
+        label={label}
+        required={required}
+        optional={optional}
         nativeID={`${inputId}-label`}
-        style={[styles.label, { textAlign: rtl.textAlign }]}
-        numberOfLines={2}
-        maxFontSizeMultiplier={1.3}
-      >
-        {label}
-      </Text>
+      />
       {hint ? (
         <Text
           style={[styles.hint, { textAlign: rtl.textAlign }]}
@@ -71,7 +74,9 @@ export function FormField({
             accessibilityLabel={fieldA11yLabel(
               `${label}, ${prefix}`,
               error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
-              hint,
+              undefined,
+              flags,
+              t,
             )}
             accessibilityHint={hint}
             accessibilityState={{
@@ -97,6 +102,8 @@ export function FormField({
             label,
             error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
             hint,
+            flags,
+            t,
           )}
           accessibilityHint={hint}
           accessibilityState={{
@@ -111,11 +118,11 @@ export function FormField({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.fieldGap },
-  label: { ...typography.label, color: colors.textSecondary, marginBottom: spacing.xs },
   hint: {
     ...typography.caption,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
+    fontWeight: '400',
   },
   input: {
     borderWidth: 1,
@@ -146,6 +153,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    marginBottom: 0,
     backgroundColor: colors.scaffold,
     borderEndWidth: StyleSheet.hairlineWidth,
     borderEndColor: colors.divider,

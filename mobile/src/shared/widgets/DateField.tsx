@@ -2,11 +2,16 @@ import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { FieldError } from '@/shared/widgets/FieldError';
+import { FieldLabel, type FieldLabelFlags } from '@/shared/widgets/FieldLabel';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
+import { spacing } from '@/core/theme/spacing';
+import { typography } from '@/core/theme/typography';
+import { fieldA11yLabel } from '@/shared/utils/a11y';
 import { formatIsoDateLocal, isValidDate } from '@/shared/utils/dateFormat';
 
-type Props = {
+type Props = FieldLabelFlags & {
   label: string;
   value: Date | null;
   onChange: (date: Date) => void;
@@ -14,21 +19,33 @@ type Props = {
   hint?: string;
 };
 
-export function DateField({ label, value, onChange, error, hint }: Props) {
+export function DateField({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+  required,
+  optional,
+}: Props) {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const [showPicker, setShowPicker] = useState(false);
   const display =
     value && isValidDate(value) ? formatIsoDateLocal(value) : '';
+  const flags = { required, optional };
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{label}</Text>
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      <FieldLabel label={label} required={required} optional={optional} />
+      {hint ? (
+        <Text style={[styles.hint, { textAlign: rtl.textAlign }]}>{hint}</Text>
+      ) : null}
       <Pressable
         style={[styles.input, styles.pressable, error ? styles.inputError : null]}
         onPress={() => setShowPicker(true)}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={fieldA11yLabel(label, error, hint, flags, t)}
       >
         <Text style={value && isValidDate(value) ? styles.valueText : styles.placeholderText}>
           {display || t.datePlaceholder}
@@ -60,14 +77,13 @@ export function DateField({ label, value, onChange, error, hint }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 8, marginBottom: 4 },
-  label: { marginBottom: 4, color: colors.textSecondary, fontWeight: '600', fontSize: 13 },
-  hint: { marginBottom: 6, color: colors.textSecondary, fontSize: 12 },
+  wrap: { marginTop: spacing.sm, marginBottom: spacing.xs },
+  hint: { marginBottom: spacing.sm, color: colors.textSecondary, fontSize: 12 },
   input: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: spacing.md,
+    padding: spacing.md,
     backgroundColor: colors.surface,
     minHeight: 48,
   },
@@ -75,7 +91,5 @@ const styles = StyleSheet.create({
   pressable: { justifyContent: 'center' },
   valueText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
   placeholderText: { fontSize: 16, color: colors.placeholder },
-  pickHint: { marginTop: 4, fontSize: 12, color: colors.textSecondary },
+  pickHint: { marginTop: spacing.xs, fontSize: 12, color: colors.textSecondary },
 });
-
-

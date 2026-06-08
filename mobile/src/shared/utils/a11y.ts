@@ -1,8 +1,20 @@
 import type { Strings } from '@/core/i18n/strings';
+import {
+  fieldLabelA11y,
+  type FieldLabelFlags,
+} from '@/shared/widgets/FieldLabel';
 
 /** Build field label + error for screen readers (RTL-friendly single announcement). */
-export function fieldA11yLabel(label: string, error?: string, hint?: string): string {
-  const parts = [label, hint, error].filter(Boolean);
+export function fieldA11yLabel(
+  label: string,
+  error?: string,
+  hint?: string,
+  flags?: FieldLabelFlags,
+  t?: Strings,
+): string {
+  const base =
+    flags && t ? fieldLabelA11y(label, flags, t) : label;
+  const parts = [base, hint, error].filter(Boolean);
   return parts.join('. ');
 }
 

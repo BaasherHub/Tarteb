@@ -487,6 +487,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
                 <AuthPhoneNumberField
                   label={t.enterPhone}
+                  required
                   country={phone.country}
                   onCountryChange={(c) => {
                     phone.setCountry(c);

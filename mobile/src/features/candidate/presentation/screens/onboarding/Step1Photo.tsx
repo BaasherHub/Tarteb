@@ -13,7 +13,7 @@ import { FieldError } from '@/shared/widgets/FieldError';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { PhotoAvatarPicker } from '@/features/candidate/presentation/components/PhotoAvatarPicker';
-import { RequiredBadge } from '@/shared/widgets/RequiredBadge';
+import { FieldLabel } from '@/shared/widgets/FieldLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 
 export function Step1Photo() {
@@ -82,9 +82,7 @@ export function Step1Photo() {
         inset
         style={[styles.photoCard, !hasPhoto && styles.photoCardHighlight]}
       >
-        <View style={styles.badgeRow}>
-          <RequiredBadge />
-        </View>
+        <FieldLabel label={t.onboardingStepPhotoTitle} required />
         <PhotoAvatarPicker
           size="large"
           imageUri={imageUri}
@@ -108,8 +106,5 @@ const styles = StyleSheet.create({
     borderColor: `${colors.primary}66`,
     borderWidth: 1.5,
     backgroundColor: colors.primaryTint,
-  },
-  badgeRow: {
-    marginBottom: spacing.xs,
   },
 });

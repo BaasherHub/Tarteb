@@ -173,7 +173,9 @@ export function Step4Finish({ navigation }: Props) {
       {submitError ? <InfoBanner message={submitError} variant="warning" /> : null}
 
       <SurfaceCard inset style={onboardingStepStyles.formCard}>
-        <SectionLabel first>{t.yearsExperience}</SectionLabel>
+        <SectionLabel first required>
+          {t.yearsExperience}
+        </SectionLabel>
         <SectionHint>{t.experienceSelectOne}</SectionHint>
         <View style={[onboardingStepStyles.chipGrid, rtl.row]}>
           {EXPERIENCE_OPTIONS.map((opt) => (
@@ -192,7 +194,7 @@ export function Step4Finish({ navigation }: Props) {
         </View>
         <FieldError message={errors.experience} />
 
-        <SectionLabel>{t.languages}</SectionLabel>
+        <SectionLabel required>{t.languages}</SectionLabel>
         <SectionHint>{t.languagesSelectAll}</SectionHint>
         <LanguageSelectList
           options={languageOptions}
@@ -214,6 +216,8 @@ export function Step4Finish({ navigation }: Props) {
 
         <DateField
           label={t.availableFrom}
+          optional
+          hint={t.availableFromOptionalHint}
           value={availableFrom}
           onChange={(date) => {
             setAvailableFrom(date);

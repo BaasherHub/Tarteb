@@ -15,6 +15,7 @@ import {
 } from '@/shared/constants/uaeLocations';
 import { AutocompleteField } from '@/shared/widgets/AutocompleteField';
 import { FieldError } from '@/shared/widgets/FieldError';
+import { FieldLabel } from '@/shared/widgets/FieldLabel';
 import { SelectableChip } from '@/shared/widgets/SelectableChip';
 
 type Props = {
@@ -22,9 +23,17 @@ type Props = {
   onChange: (location: string) => void;
   error?: string;
   areaHint?: string;
+  /** When true, area/district must be filled (candidate onboarding). */
+  areaRequired?: boolean;
 };
 
-export function LocationPicker({ value, onChange, error, areaHint }: Props) {
+export function LocationPicker({
+  value,
+  onChange,
+  error,
+  areaHint,
+  areaRequired = false,
+}: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const parsed = parseLocation(value);
@@ -79,9 +88,7 @@ export function LocationPicker({ value, onChange, error, areaHint }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { textAlign: rtl.textAlign }]} numberOfLines={2}>
-        {t.locationEmirate}
-      </Text>
+      <FieldLabel label={t.locationEmirate} required />
       <FieldError message={error && !value ? error : undefined} />
       <View style={[styles.chips, rtl.row]}>
         {UAE_EMIRATES.map((e) => (
@@ -95,6 +102,8 @@ export function LocationPicker({ value, onChange, error, areaHint }: Props) {
       </View>
       <AutocompleteField
         label={t.locationArea}
+        required={areaRequired}
+        optional={!areaRequired}
         hint={areaHint ?? t.locationAreaHint}
         value={areaQuery}
         onChangeText={commitAreaQuery}
@@ -119,7 +128,6 @@ export function LocationPicker({ value, onChange, error, areaHint }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { marginTop: spacing.sm, marginBottom: spacing.xs, gap: spacing.sm },
-  label: { ...typography.label, color: colors.textSecondary },
   chips: { flexWrap: 'wrap', gap: spacing.sm },
   selected: { ...typography.caption, color: colors.primary, fontWeight: '600' },
 });

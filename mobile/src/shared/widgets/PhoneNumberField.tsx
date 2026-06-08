@@ -1,13 +1,8 @@
 import { memo, useCallback } from 'react';
-import { StyleSheet, Text, View, type TextInputProps } from 'react-native';
+import { StyleSheet, View, type TextInputProps } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { useRtlStyles } from '@/core/hooks/useRtlStyles';
-import { colors } from '@/core/theme/colors';
-import { spacing } from '@/core/theme/spacing';
-import { typography } from '@/core/theme/typography';
 import {
   formatUaePhoneInput,
-  UAE_PHONE_EXAMPLE,
   UAE_PHONE_FORMATTED_MAX_LENGTH,
 } from '@/shared/utils/phone';
 import { FormField } from '@/shared/widgets/FormField';
@@ -18,29 +13,25 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
   onChangeText: (value: string) => void;
   error?: string;
   hint?: string;
-  showExample?: boolean;
-  /** When false, hides the +971 format helper line under the field. */
-  showHelper?: boolean;
   /** When true, field can stay empty (e.g. optional WhatsApp). */
   allowEmpty?: boolean;
+  required?: boolean;
+  optional?: boolean;
 };
 
-/**
- * UAE phone field: LTR digits, RTL-aware labels, auto-spacing (+971 50 155 1480).
- */
+/** UAE phone field: LTR digits with auto-spacing. */
 export const PhoneNumberField = memo(function PhoneNumberField({
   label,
   value,
   onChangeText,
   error,
   hint,
-  showExample = true,
-  showHelper = true,
   allowEmpty = false,
+  required: requiredProp,
+  optional: optionalProp,
   ...rest
 }: Props) {
   const { t } = useLocale();
-  const rtl = useRtlStyles();
   const handleChange = useCallback(
     (text: string) => {
       if (allowEmpty && !text.trim()) {
@@ -55,18 +46,21 @@ export const PhoneNumberField = memo(function PhoneNumberField({
   const displayValue =
     allowEmpty && !value.trim() ? '' : value || formatUaePhoneInput('');
 
-  const helperText =
-    hint ?? (allowEmpty || !showHelper ? undefined : t.phoneHelper);
   const placeholder =
     rest.placeholder ??
     (allowEmpty ? t.whatsappEmptyPlaceholder : t.phonePlaceholderSpaced);
+
+  const required = requiredProp ?? !allowEmpty;
+  const optional = optionalProp ?? allowEmpty;
 
   return (
     <View style={styles.wrap}>
       <FormField
         {...rest}
         label={label ?? t.phoneNumber}
-        hint={helperText}
+        required={required}
+        optional={optional}
+        hint={hint}
         value={displayValue}
         onChangeText={handleChange}
         placeholder={placeholder}
@@ -77,15 +71,6 @@ export const PhoneNumberField = memo(function PhoneNumberField({
         error={error}
         style={[styles.inputLtr, rest.style]}
       />
-      {showExample && !error ? (
-        <Text
-          style={[styles.example, { textAlign: rtl.textAlign }]}
-          numberOfLines={2}
-          accessibilityRole="text"
-        >
-          {t.phoneExampleLabel(formatUaePhoneInput(UAE_PHONE_EXAMPLE))}
-        </Text>
-      ) : null}
     </View>
   );
 });
@@ -96,11 +81,5 @@ const styles = StyleSheet.create({
     writingDirection: 'ltr',
     textAlign: 'left',
     fontVariant: ['tabular-nums'],
-  },
-  example: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: -spacing.xs,
-    marginBottom: spacing.sm,
   },
 });

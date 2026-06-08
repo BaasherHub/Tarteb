@@ -24,8 +24,9 @@ import { FieldError } from '@/shared/widgets/FieldError';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { playSelectionHaptic } from '@/shared/utils/selectionHaptic';
 import { fieldA11yLabel } from '@/shared/utils/a11y';
+import { FieldLabel, type FieldLabelFlags } from '@/shared/widgets/FieldLabel';
 
-type Props = {
+type Props = FieldLabelFlags & {
   label?: string;
   country: ArabPhoneCountry;
   onCountryChange: (country: ArabPhoneCountry) => void;
@@ -41,11 +42,17 @@ export function AuthPhoneNumberField({
   localNumber,
   onChangeLocalNumber,
   error,
+  required: requiredProp,
+  optional: optionalProp,
 }: Props) {
   const { lang, t } = useLocale();
   const rtl = useRtlStyles();
   const inputId = useId();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const fieldLabel = label ?? t.phoneNumber;
+  const required = requiredProp ?? !optionalProp;
+  const optional = optionalProp;
+  const flags = { required, optional };
 
   const pickCountry = (next: ArabPhoneCountry) => {
     void playSelectionHaptic();
@@ -55,9 +62,12 @@ export function AuthPhoneNumberField({
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { textAlign: rtl.textAlign }]} numberOfLines={2}>
-        {label ?? t.phoneNumber}
-      </Text>
+      <FieldLabel
+        label={fieldLabel}
+        required={required}
+        optional={optional}
+        nativeID={`${inputId}-label`}
+      />
 
       <View style={[styles.row, error ? styles.rowError : null]}>
         <Pressable
@@ -81,8 +91,11 @@ export function AuthPhoneNumberField({
           maxLength={country.localMaxLength}
           style={styles.input}
           accessibilityLabel={fieldA11yLabel(
-            label ?? t.phoneNumber,
+            fieldLabel,
             error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
+            undefined,
+            flags,
+            t,
           )}
         />
       </View>
@@ -148,11 +161,6 @@ export function AuthPhoneNumberField({
 
 const styles = StyleSheet.create({
   wrap: { width: '100%', marginBottom: spacing.fieldGap },
-  label: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
   row: {
     flexDirection: 'row',
     ...(Platform.OS !== 'web' ? { direction: 'ltr' as const } : null),

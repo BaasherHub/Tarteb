@@ -42,7 +42,4 @@ export const onboardingStepStyles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
   },
-  logoWrap: {
-    alignItems: 'center',
-  },
 });

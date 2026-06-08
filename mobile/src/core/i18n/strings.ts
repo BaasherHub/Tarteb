@@ -151,6 +151,8 @@ export interface Strings {
   saveProfile: string;
   required: string;
   requiredField: string;
+  fieldOptionalSuffix: string;
+  whatsapp: string;
   onboardingStep1Title: string;
   onboardingStepPhotoTitle: string;
   onboardingStepPhotoIntro: string;
@@ -317,10 +319,8 @@ export interface Strings {
   salaryPlaceholder: string;
   phonePlaceholder: string;
   phonePlaceholderSpaced: string;
-  phoneHelper: string;
   phoneSelectCountry: string;
   errPhoneInvalidArabRegion: string;
-  phoneExampleLabel: (example: string) => string;
   errPhoneInvalid: string;
   otpSending: string;
   otpVerified: string;
@@ -374,6 +374,7 @@ export interface Strings {
   errUae: string;
   errFullName: string;
   errCompany: string;
+  errCompanyTaken: string;
   errContact: string;
   errEmail: string;
   errEmailInvalid: string;
@@ -498,9 +499,9 @@ const en: Strings = {
   employerOnboardingStep1Title: 'Company',
   employerOnboardingStep2Title: 'Contact & location',
   employerOnboardingStep1Intro:
-    'Add your company name to continue. Logo and trade license are optional.',
+    'Add your company name to continue. Trade license is optional.',
   employerOnboardingStep2Intro:
-    'How can candidates and our team reach you? Use your UAE mobile number.',
+    'How can candidates and our team reach you?',
   companyLogo: 'Company logo',
   companyLogoTap: 'Tap to add company logo',
   companyLogoHint: 'Optional — square image works best.',
@@ -653,6 +654,8 @@ const en: Strings = {
   saveProfile: 'Save profile',
   required: 'Please fill all required fields',
   requiredField: 'Required',
+  fieldOptionalSuffix: '(optional)',
+  whatsapp: 'WhatsApp',
   onboardingStep1Title: 'Photo & job role',
   onboardingStepPhotoTitle: 'Your profile photo',
   onboardingStepPhotoIntro:
@@ -679,7 +682,7 @@ const en: Strings = {
   employerEditKicker: 'Edit company',
   employerOnboardingEditIntro: 'Update your business details. Changes apply immediately.',
   employerOnboardingEditStep1Intro:
-    'Update your company name, logo, or trade license.',
+    'Update your company name or trade license.',
   whatsappSubscribeMessage: (tierName, price, contact) =>
     `Hi, I want to subscribe to Tarteb — ${tierName} plan (${price}).\nMy number: ${contact}`,
   whatsappSupportMessage: 'Hi, I need support with Tarteb.',
@@ -881,24 +884,21 @@ const en: Strings = {
   locationAreaHint: 'Optional — helps employers find people near their business.',
   employerLocationAreaHint:
     'Optional — helps candidates see where your business is based.',
-  locationAreaPlaceholder: 'District or neighbourhood (optional)',
+  locationAreaPlaceholder: 'District or neighbourhood',
   locationNoMatch: 'No matching area — try another spelling or pick the emirate only.',
   locationSelected: 'Selected',
   locationFilterHint: 'Filter by emirate or a specific district',
   salaryPlaceholder: 'Amount in AED',
   phonePlaceholder: '+9715XXXXXXXX',
   phonePlaceholderSpaced: '+971 5X XXX XXXX',
-  phoneHelper:
-    'Use international format starting with +971. Do not start with 050 — enter the full number.',
   phoneSelectCountry: 'Select country',
   errPhoneInvalidArabRegion: 'Enter a valid mobile number.',
-  phoneExampleLabel: (example) => `Example: ${example}`,
   errPhoneInvalid:
     'Enter a valid UAE mobile: +971 5X XXX XXXX (9 digits after +971).',
   whatsappEmptyPlaceholder: '',
   fullNamePlaceholder: 'As on your ID',
   companyPlaceholder: 'Your registered business name',
-  contactPlaceholder: 'Person we can reach',
+  contactPlaceholder: '',
   datePlaceholder: 'Select a date',
   availableFromHint: 'When you can start working',
   signInWithPhone: 'Sign in with phone instead',
@@ -943,6 +943,7 @@ const en: Strings = {
   errUae: 'Tell us if you worked in the UAE',
   errFullName: 'Enter your full name',
   errCompany: 'Enter company name',
+  errCompanyTaken: 'This company name is already registered. Use your official business name.',
   errContact: 'Enter contact name',
   errEmail: 'Enter your email',
   errEmailInvalid: 'Enter a valid email address',
@@ -964,7 +965,7 @@ const en: Strings = {
   activeAgo: (days) =>
     days === 0 ? 'Active today' : days === 1 ? 'Active yesterday' : days < 7 ? `Active ${days}d ago` : days < 30 ? `Active ${Math.floor(days / 7)}w ago` : `Active ${Math.floor(days / 30)}mo ago`,
   tradeLicense: 'Trade license number',
-  tradeLicensePlaceholder: 'Trade license number (optional)',
+  tradeLicensePlaceholder: 'Trade license number',
   tradeLicenseHint: 'Optional but helps candidates trust your business.',
   a11ySelected: 'Selected',
   a11yNotSelected: 'Not selected',
@@ -1079,9 +1080,9 @@ const ar: Strings = {
   employerOnboardingStep1Title: 'الشركة',
   employerOnboardingStep2Title: 'التواصل والموقع',
   employerOnboardingStep1Intro:
-    'أضف اسم شركتك للمتابعة. الشعار والرخصة التجارية اختياريان.',
+    'أضف اسم شركتك للمتابعة. الرخصة التجارية اختيارية.',
   employerOnboardingStep2Intro:
-    'كيف يتواصل معك المرشحون وفريقنا؟ استخدم رقم موبايل إماراتي.',
+    'كيف يتواصل معك المرشحون وفريقنا؟',
   companyLogo: 'شعار الشركة',
   companyLogoTap: 'اضغط لإضافة شعار الشركة',
   companyLogoHint: 'اختياري — صورة مربعة أفضل.',
@@ -1234,6 +1235,8 @@ const ar: Strings = {
   saveProfile: 'حفظ الملف',
   required: 'يرجى تعبئة الحقول المطلوبة',
   requiredField: 'مطلوب',
+  fieldOptionalSuffix: '(اختياري)',
+  whatsapp: 'واتساب',
   onboardingStep1Title: 'الصورة والمهنة',
   onboardingStepPhotoTitle: 'صورة ملفك',
   onboardingStepPhotoIntro:
@@ -1258,7 +1261,7 @@ const ar: Strings = {
   employerEditKicker: 'تعديل الشركة',
   employerOnboardingEditIntro: 'حدّث بيانات نشاطك التجاري. التغييرات تُطبّق فوراً.',
   employerOnboardingEditStep1Intro:
-    'حدّث اسم الشركة أو الشعار أو الرخصة التجارية.',
+    'حدّث اسم الشركة أو الرخصة التجارية.',
   whatsappSubscribeMessage: (tierName, price, contact) =>
     `مرحباً، أريد الاشتراك في ترتّب — خطة ${tierName} (${price}).\nرقمي: ${contact}`,
   whatsappSupportMessage: 'مرحباً، أحتاج دعماً بخصوص ترتّب.',
@@ -1458,24 +1461,21 @@ const ar: Strings = {
   locationArea: 'المنطقة أو الحي',
   locationAreaHint: 'اختياري — يساعد أصحاب العمل في إيجاد مرشحين قريبين.',
   employerLocationAreaHint: 'اختياري — يساعد المرشحين على معرفة موقع نشاطك.',
-  locationAreaPlaceholder: 'الحي أو المنطقة (اختياري)',
+  locationAreaPlaceholder: 'الحي أو المنطقة',
   locationNoMatch: 'لا توجد منطقة مطابقة — جرّب إملاءً آخر أو اختر الإمارة فقط.',
   locationSelected: 'المحدد',
   locationFilterHint: 'فلترة حسب الإمارة أو حي محدد',
   salaryPlaceholder: 'المبلغ بالدرهم',
   phonePlaceholder: '+9715XXXXXXXX',
   phonePlaceholderSpaced: '+971 5X XXX XXXX',
-  phoneHelper:
-    'استخدم الصيغة الدولية التي تبدأ بـ +971. لا تبدأ بـ 050 — أدخل الرقم كاملاً.',
   phoneSelectCountry: 'اختر البلد',
   errPhoneInvalidArabRegion: 'أدخل رقم موبايل صالح.',
-  phoneExampleLabel: (example) => `مثال: ${example}`,
   errPhoneInvalid:
     'أدخل رقم موبايل إماراتي صالح: +971 5X XXX XXXX (9 أرقام بعد +971).',
   whatsappEmptyPlaceholder: '',
   fullNamePlaceholder: 'كما في الهوية',
   companyPlaceholder: 'اسم الشركة المسجل',
-  contactPlaceholder: 'الشخص الذي يمكن التواصل معه',
+  contactPlaceholder: '',
   datePlaceholder: 'اختر تاريخاً',
   availableFromHint: 'متى يمكنك بدء العمل',
   signInWithPhone: 'تسجيل الدخول بالهاتف بدلاً من ذلك',
@@ -1520,6 +1520,7 @@ const ar: Strings = {
   errUae: 'أخبرنا إن عملت في الإمارات',
   errFullName: 'أدخل الاسم الكامل',
   errCompany: 'أدخل اسم الشركة',
+  errCompanyTaken: 'اسم الشركة مسجّل مسبقاً. استخدم الاسم الرسمي لنشاطك التجاري.',
   errContact: 'أدخل اسم جهة الاتصال',
   errEmail: 'أدخل البريد الإلكتروني',
   errEmailInvalid: 'أدخل بريداً إلكترونياً صالحاً',
@@ -1541,7 +1542,7 @@ const ar: Strings = {
   activeAgo: (days) =>
     days === 0 ? 'نشط اليوم' : days === 1 ? 'نشط أمس' : days < 7 ? `نشط منذ ${days} أيام` : days < 30 ? `نشط منذ ${Math.floor(days / 7)} أسابيع` : `نشط منذ ${Math.floor(days / 30)} أشهر`,
   tradeLicense: 'رقم الرخصة التجارية',
-  tradeLicensePlaceholder: 'رقم الرخصة التجارية (اختياري)',
+  tradeLicensePlaceholder: 'رقم الرخصة التجارية',
   tradeLicenseHint: 'اختياري — يساعد المرشحين على الوثوق بنشاطك التجاري.',
   a11ySelected: 'محدد',
   a11yNotSelected: 'غير محدد',

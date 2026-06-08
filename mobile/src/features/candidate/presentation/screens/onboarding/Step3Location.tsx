@@ -110,6 +110,7 @@ export function Step3Location() {
       <SurfaceCard inset style={onboardingStepStyles.formCard}>
         <FormField
           label={t.fullNameOnId}
+          required
           value={name}
           onChangeText={(v) => {
             setName(v);
@@ -123,6 +124,7 @@ export function Step3Location() {
         <View style={onboardingStepStyles.section}>
           <SectionLabel first>{t.contactsSectionTitle}</SectionLabel>
           <AuthPhoneNumberField
+            required
             country={phoneInput.country}
             onCountryChange={(country) => {
               phoneInput.setCountry(country);
@@ -138,7 +140,8 @@ export function Step3Location() {
             error={errors.phone}
           />
           <AuthPhoneNumberField
-            label={t.whatsappOptional}
+            label={t.whatsapp}
+            optional
             country={whatsappInput.country}
             onCountryChange={(country) => {
               whatsappInput.setCountry(country);
@@ -157,6 +160,7 @@ export function Step3Location() {
 
         <AutocompleteField
           label={t.nationality}
+          required
           value={nationalityQuery}
           onChangeText={(q) => {
             setNationalityQuery(q);
@@ -180,6 +184,7 @@ export function Step3Location() {
             setErrors((e) => ({ ...e, location: undefined }));
           }}
           error={errors.location}
+          areaRequired
           areaHint=""
         />
       </SurfaceCard>

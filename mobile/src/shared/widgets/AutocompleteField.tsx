@@ -17,17 +17,19 @@ import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { fieldA11yLabel } from '@/shared/utils/a11y';
 import { FieldError } from '@/shared/widgets/FieldError';
+import { FieldLabel, type FieldLabelFlags } from '@/shared/widgets/FieldLabel';
 
-type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
-  label: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  onSelect: (value: string) => void;
-  options: string[];
-  error?: string;
-  hint?: string;
-  emptyHint?: string;
-};
+type Props = Omit<TextInputProps, 'value' | 'onChangeText'> &
+  FieldLabelFlags & {
+    label: string;
+    value: string;
+    onChangeText: (value: string) => void;
+    onSelect: (value: string) => void;
+    options: string[];
+    error?: string;
+    hint?: string;
+    emptyHint?: string;
+  };
 
 export function AutocompleteField({
   label,
@@ -38,6 +40,8 @@ export function AutocompleteField({
   error,
   hint,
   emptyHint,
+  required,
+  optional,
   placeholder,
   ...inputProps
 }: Props) {
@@ -82,16 +86,16 @@ export function AutocompleteField({
     keepListFocus();
   };
 
+  const flags = { required, optional };
+
   return (
     <View style={styles.wrap} accessibilityRole="none">
-      <Text
+      <FieldLabel
+        label={label}
+        required={required}
+        optional={optional}
         nativeID={`${inputId}-label`}
-        style={[styles.label, { textAlign: rtl.textAlign }]}
-        numberOfLines={2}
-        maxFontSizeMultiplier={1.3}
-      >
-        {label}
-      </Text>
+      />
       {hint ? (
         <Text
           style={[styles.hint, { textAlign: rtl.textAlign }]}
@@ -122,6 +126,8 @@ export function AutocompleteField({
           label,
           error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
           hint,
+          flags,
+          t,
         )}
         accessibilityHint={hint}
       />
@@ -193,7 +199,6 @@ export function AutocompleteField({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.fieldGap, zIndex: 2 },
-  label: { ...typography.label, color: colors.textSecondary, marginBottom: spacing.xs },
   hint: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.sm },
   input: {
     borderWidth: 1,
