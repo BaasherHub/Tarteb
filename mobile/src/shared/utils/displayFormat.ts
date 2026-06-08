@@ -2,7 +2,7 @@ import { NATIONALITIES, resolveNationality } from '@/shared/constants/nationalit
 
 /** Title-case a person or place name for display. */
 export function formatDisplayName(name: string): string {
-  const trimmed = name.trim();
+  const trimmed = collapseDoubledToken(name.trim());
   if (!trimmed) return '';
 
   return trimmed
@@ -14,9 +14,18 @@ export function formatDisplayName(name: string): string {
     .join(' ');
 }
 
+function collapseDoubledToken(value: string): string {
+  if (value.length < 2 || value.length % 2 !== 0) return value;
+  const half = value.length / 2;
+  const left = value.slice(0, half);
+  const right = value.slice(half);
+  if (left.toLowerCase() === right.toLowerCase()) return left;
+  return value;
+}
+
 /** Canonical demonym for browse/detail (fixes aliases and duplicated values). */
 export function formatNationalityDisplay(raw: string): string {
-  const trimmed = raw.trim();
+  const trimmed = collapseDoubledToken(raw.trim());
   if (!trimmed) return '';
 
   const resolved = resolveNationality(trimmed);

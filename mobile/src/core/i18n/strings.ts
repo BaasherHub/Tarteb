@@ -28,7 +28,6 @@ export interface Strings {
   roleEmployerSubtitle: string;
   roleCandidateBullets: readonly string[];
   roleEmployerBullets: readonly string[];
-  roleEmployerPriceFrom: string;
   roleCandidatePriceFree: string;
   roleCandidateSectionLabel: string;
   roleSelectionTrust: string;
@@ -59,26 +58,12 @@ export interface Strings {
   employerOnboardingStep2Title: string;
   employerOnboardingStep1Intro: string;
   employerOnboardingStep2Intro: string;
-  companyLogo: string;
-  companyLogoTap: string;
-  companyLogoHint: string;
   previousEmployerPlaceholder: string;
   browse: string;
   myUnlocks: string;
   currentSalaryLocked: string;
-  subscribe: string;
-  planActive: string;
-  subscription: string;
-  subscriptionPrice: string;
   unlockContact: string;
   contactUnlocked: string;
-  subscriptionRequired: string;
-  subscribeViaWhatsApp: string;
-  subscriptionBody: string;
-  subscriptionBullet1: string;
-  subscriptionBullet2: string;
-  subscriptionBullet3: string;
-  subscriptionValidUntil: (date: string) => string;
   settings: string;
   settingsSectionAccount: string;
   settingsSectionPreferences: string;
@@ -177,22 +162,8 @@ export interface Strings {
   employerEditKicker: string;
   employerOnboardingEditIntro: string;
   employerOnboardingEditStep1Intro: string;
-  whatsappSubscribeMessage: (tierName: string, price: string, contact: string) => string;
   whatsappSupportMessage: string;
   profileMilestoneLabel: (id: string) => string;
-  subscriptionChoosePlan: string;
-  subscriptionPlanActiveTitle: (tierName: string) => string;
-  subscriptionRemainingUnlimited: string;
-  subscriptionRemainingCount: (left: number) => string;
-  subscriptionSubscribeToTier: (tierName: string) => string;
-  subscriptionSwitchToTier: (tierName: string) => string;
-  subscriptionPaymentNote: string;
-  subscriptionBadgeCurrent: string;
-  subscriptionBadgePopular: string;
-  subscriptionA11yCurrentPlan: string;
-  tierDisplayName: (tier: 'starter' | 'business' | 'agency') => string;
-  tierDisplayPrice: (tier: 'starter' | 'business' | 'agency') => string;
-  tierDisplayBullets: (tier: 'starter' | 'business' | 'agency') => readonly string[];
   profilePaused: string;
   profileViews: string;
   profileLive: string;
@@ -293,8 +264,6 @@ export interface Strings {
   salaryPerMonth: (amount: string) => string;
   currentSalaryPerMonth: (amount: string) => string;
   expectedSalaryPerMonth: (amount: string) => string;
-  subscribeToUnlock: string;
-  viewSubscription: string;
   call: string;
   whatsApp: string;
   noUnlocksYet: string;
@@ -355,13 +324,6 @@ export interface Strings {
   contactUnlocks: string;
   contactUnlocksHint: string;
   contactUnlocksEmpty: string;
-  subStep1Title: string;
-  subStep1Desc: string;
-  subStep2Title: string;
-  subStep2Desc: string;
-  subStep3Title: string;
-  subStep3Desc: string;
-  managePlan: string;
   errRole: string;
   errVisa: string;
   errNationality: string;
@@ -391,8 +353,6 @@ export interface Strings {
   language: string;
   accountNotice: string;
   popularLanguages: string;
-  subscriptionPending: string;
-  subscriptionPendingHint: string;
   activeAgo: (days: number) => string;
   tradeLicense: string;
   tradeLicensePlaceholder: string;
@@ -405,11 +365,9 @@ export interface Strings {
   a11yApplyFilters: string;
   a11yResetFilters: string;
   a11yLoadingList: string;
-  a11yManagePlanHint: string;
   a11yRefineHint: string;
   a11yBackHint: string;
   a11yFieldInvalid: string;
-  a11ySelectPlan: string;
   a11ySignInEmail: string;
   errorLoadList: string;
   offlineCachedHint: string;
@@ -424,7 +382,6 @@ export interface Strings {
   employerProfileCompleteHeadline: string;
   notificationAllow: string;
   notificationNotNow: string;
-  toastSubscriptionActive: string;
   toastUnlockSuccess: string;
   toastNewUnlock: string;
   toastProfileViewed: string;
@@ -480,7 +437,7 @@ const en: Strings = {
     {
       feature: 'Cost',
       candidate: 'Free for job seekers',
-      employer: 'From AED 79.9 · 5 unlocks/mo',
+      employer: 'Free to unlock contacts',
     },
     {
       feature: 'Change type later',
@@ -508,9 +465,6 @@ const en: Strings = {
     'Add your company name to continue. Trade license is optional.',
   employerOnboardingStep2Intro:
     'How can candidates and our team reach you?',
-  companyLogo: 'Company logo',
-  companyLogoTap: 'Tap to add company logo',
-  companyLogoHint: 'Optional — square image works best.',
   hiredBanner: 'You are marked as hired — your profile is hidden from employers',
   hiredAlertTitle: 'Got hired?',
   hiredAlertMessage:
@@ -532,28 +486,15 @@ const en: Strings = {
   roleEmployerBullets: [
     'Browse verified job seekers by role',
     'Unlock phone and WhatsApp contacts',
-    'Cancel anytime — no per-profile fees',
+    'Free while we grow our candidate network',
   ],
-  roleEmployerPriceFrom: 'From AED 79.9 · 5 unlocks/mo',
   roleCandidatePriceFree: 'Free for job seekers',
   roleCandidateSectionLabel: 'Looking for work instead?',
   browse: 'Browse',
   myUnlocks: 'Unlocks',
   currentSalaryLocked: 'Unlock to see current salary',
-  subscribe: 'Subscribe',
-  planActive: 'Plan active',
-  subscription: 'Subscription',
-  subscriptionPrice: 'AED 79.9 / month',
   unlockContact: 'Unlock contact',
   contactUnlocked: 'Contact unlocked!',
-  subscriptionRequired: 'Active plan required to unlock phone and WhatsApp.',
-  subscribeViaWhatsApp: 'Subscribe via WhatsApp',
-  subscriptionBody:
-    'Unlimited contact unlocks while your plan is active. Payment is confirmed via WhatsApp; we activate within 1 hour.',
-  subscriptionBullet1: 'Unlimited unlocks for all candidates',
-  subscriptionBullet2: 'Phone & WhatsApp contact details',
-  subscriptionBullet3: 'Cancel anytime — no per-CV fees',
-  subscriptionValidUntil: (date) => `Valid until ${date}`,
   settings: 'Settings',
   settingsSectionAccount: 'Account',
   settingsSectionPreferences: 'Preferences',
@@ -693,8 +634,6 @@ const en: Strings = {
   employerOnboardingEditIntro: 'Update your business details. Changes apply immediately.',
   employerOnboardingEditStep1Intro:
     'Update your company name or trade license.',
-  whatsappSubscribeMessage: (tierName, price, contact) =>
-    `Hi, I want to subscribe to Tarteb — ${tierName} plan (${price}).\nMy number: ${contact}`,
   whatsappSupportMessage: 'Hi, I need support with Tarteb.',
   profileMilestoneLabel: (id) => {
     const labels: Record<string, string> = {
@@ -715,46 +654,6 @@ const en: Strings = {
     };
     return labels[id] ?? '';
   },
-  subscriptionChoosePlan: 'Choose a plan',
-  subscriptionPlanActiveTitle: (tierName) => `${tierName} plan — active`,
-  subscriptionRemainingUnlimited: 'Unlimited unlocks this month',
-  subscriptionRemainingCount: (left) => `${left} unlocks left this month`,
-  subscriptionSubscribeToTier: (tierName) => `Subscribe to ${tierName} via WhatsApp`,
-  subscriptionSwitchToTier: (tierName) => `Switch to ${tierName} via WhatsApp`,
-  subscriptionPaymentNote:
-    'Payment confirmed via WhatsApp · Activated within 1 hour · Cancel anytime',
-  subscriptionBadgeCurrent: 'Current',
-  subscriptionBadgePopular: 'Popular',
-  subscriptionA11yCurrentPlan: 'Current plan',
-  tierDisplayName: (tier) =>
-    ({ starter: 'Starter', business: 'Business', agency: 'Agency' })[tier],
-  tierDisplayPrice: (tier) =>
-    ({
-      starter: 'AED 79.9 / mo',
-      business: 'AED 199 / mo',
-      agency: 'AED 499 / mo',
-    })[tier],
-  tierDisplayBullets: (tier) =>
-    ({
-      starter: [
-        '5 contact unlocks / month',
-        'Phone & WhatsApp details',
-        'All job categories',
-      ],
-      business: [
-        '25 contact unlocks / month',
-        'Phone & WhatsApp details',
-        'All job categories',
-        'Priority support',
-      ],
-      agency: [
-        'Unlimited contact unlocks',
-        'Phone & WhatsApp details',
-        'All job categories',
-        'Priority support',
-        'Multi-role hiring',
-      ],
-    })[tier],
   profilePaused: 'Your profile is paused — employers cannot see you',
   profileViews: 'Profile views',
   profileLive: 'Your profile is live — employers can find you',
@@ -869,8 +768,6 @@ const en: Strings = {
   salaryPerMonth: (amount) => `AED ${formatSalaryAmount(amount)}/mo`,
   currentSalaryPerMonth: (amount) => `Current: AED ${formatSalaryAmount(amount)}/mo`,
   expectedSalaryPerMonth: (amount) => `Expected: AED ${formatSalaryAmount(amount)}/mo`,
-  subscribeToUnlock: 'Subscribe to unlock phone & WhatsApp',
-  viewSubscription: 'View plans',
   call: 'Call',
   whatsApp: 'WhatsApp',
   noUnlocksYet: 'No unlocks yet',
@@ -928,13 +825,6 @@ const en: Strings = {
   contactUnlocks: 'Contact unlocks',
   contactUnlocksHint: 'Employers who unlocked your phone or WhatsApp',
   contactUnlocksEmpty: 'No unlocks yet — keep your profile active.',
-  subStep1Title: 'Message us on WhatsApp',
-  subStep1Desc: 'Tap Subscribe — we send payment details',
-  subStep2Title: 'We confirm payment',
-  subStep2Desc: 'Usually within 1 hour on business days',
-  subStep3Title: 'Plan active',
-  subStep3Desc: 'Unlimited unlocks until your plan ends',
-  managePlan: 'Manage plan',
   errRole: 'Select a job role',
   errVisa: 'Select your visa status',
   errNationality: 'Enter your nationality',
@@ -967,9 +857,6 @@ const en: Strings = {
   accountNotice:
     'Your account is linked to this phone number. Use the same number when you return to sign in.',
   popularLanguages: 'Common languages',
-  subscriptionPending: 'Activation pending',
-  subscriptionPendingHint:
-    'We received your WhatsApp message. Your plan is usually activated within 1 hour on business days.',
   activeAgo: (days) =>
     days === 0 ? 'Active today' : days === 1 ? 'Active yesterday' : days < 7 ? `Active ${days}d ago` : days < 30 ? `Active ${Math.floor(days / 7)}w ago` : `Active ${Math.floor(days / 30)}mo ago`,
   tradeLicense: 'Trade license number',
@@ -983,11 +870,9 @@ const en: Strings = {
   a11yApplyFilters: 'Apply filters',
   a11yResetFilters: 'Clear all filters',
   a11yLoadingList: 'Loading list',
-  a11yManagePlanHint: 'Opens subscription plans',
   a11yRefineHint: 'Opens filter options',
   a11yBackHint: 'Returns to job roles',
   a11yFieldInvalid: 'Has an error',
-  a11ySelectPlan: 'Double tap to select this plan',
   a11ySignInEmail: 'Opens email sign in',
   errorLoadList: 'Could not load candidates. Check your connection and try again.',
   offlineCachedHint: 'Showing saved results. Pull down to refresh when you are back online.',
@@ -1004,7 +889,6 @@ const en: Strings = {
   employerProfileCompleteHeadline: 'Company profile complete',
   notificationAllow: 'Enable notifications',
   notificationNotNow: 'Not now',
-  toastSubscriptionActive: 'Your plan is active. You can unlock candidates now.',
   toastUnlockSuccess: 'Contact unlocked. You can call or message this candidate.',
   toastNewUnlock: 'An employer unlocked your contact details.',
   toastProfileViewed: 'An employer viewed your profile.',
@@ -1067,7 +951,7 @@ const ar: Strings = {
     {
       feature: 'التكلفة',
       candidate: 'مجاني لباحثي العمل',
-      employer: 'من ٧٩٫٩ درهم · ٥ فتح شهرياً',
+      employer: 'فتح بيانات التواصل مجاناً',
     },
     {
       feature: 'تغيير النوع لاحقاً',
@@ -1095,9 +979,6 @@ const ar: Strings = {
     'أضف اسم شركتك للمتابعة. الرخصة التجارية اختيارية.',
   employerOnboardingStep2Intro:
     'كيف يتواصل معك المرشحون وفريقنا؟',
-  companyLogo: 'شعار الشركة',
-  companyLogoTap: 'اضغط لإضافة شعار الشركة',
-  companyLogoHint: 'اختياري — صورة مربعة أفضل.',
   hiredBanner: 'تم تسجيلك كموظّف — ملفك مخفي عن أصحاب العمل',
   hiredAlertTitle: 'حصلت على عمل؟',
   hiredAlertMessage:
@@ -1119,28 +1000,15 @@ const ar: Strings = {
   roleEmployerBullets: [
     'تصفح باحثي العمل حسب المهنة',
     'افتح الهاتف وواتساب',
-    'إلغاء في أي وقت — بدون رسوم لكل ملف',
+    'مجاني بينما ننمّي شبكة المرشحين',
   ],
-  roleEmployerPriceFrom: 'من ٧٩٫٩ درهم · ٥ فتح شهرياً',
   roleCandidatePriceFree: 'مجاني لباحثي العمل',
   roleCandidateSectionLabel: 'تبحث عن عمل؟',
   browse: 'تصفح',
   myUnlocks: 'فتحات التواصل',
   currentSalaryLocked: 'افتح الملف لرؤية الراتب الحالي',
-  subscribe: 'اشترك',
-  planActive: 'الخطة نشطة',
-  subscription: 'الاشتراك',
-  subscriptionPrice: '٧٩٫٩ درهم / شهر',
   unlockContact: 'افتح بيانات التواصل',
   contactUnlocked: 'تم فتح بيانات التواصل!',
-  subscriptionRequired: 'خطة نشطة مطلوبة لفتح الهاتف وواتساب.',
-  subscribeViaWhatsApp: 'اشترك عبر واتساب',
-  subscriptionBody:
-    'فتح غير محدود لبيانات التواصل طالما خطتك نشطة. يتم تأكيد الدفع عبر واتساب؛ التفعيل خلال ساعة.',
-  subscriptionBullet1: 'فتح غير محدود لجميع المرشحين',
-  subscriptionBullet2: 'رقم الهاتف وواتساب',
-  subscriptionBullet3: 'إلغاء في أي وقت — بدون رسوم لكل سيرة',
-  subscriptionValidUntil: (date) => `صالح حتى ${date}`,
   settings: 'الإعدادات',
   settingsSectionAccount: 'الحساب',
   settingsSectionPreferences: 'التفضيلات',
@@ -1278,8 +1146,6 @@ const ar: Strings = {
   employerOnboardingEditIntro: 'حدّث بيانات نشاطك التجاري. التغييرات تُطبّق فوراً.',
   employerOnboardingEditStep1Intro:
     'حدّث اسم الشركة أو الرخصة التجارية.',
-  whatsappSubscribeMessage: (tierName, price, contact) =>
-    `مرحباً، أريد الاشتراك في ترتّب — خطة ${tierName} (${price}).\nرقمي: ${contact}`,
   whatsappSupportMessage: 'مرحباً، أحتاج دعماً بخصوص ترتّب.',
   profileMilestoneLabel: (id) => {
     const labels: Record<string, string> = {
@@ -1300,46 +1166,6 @@ const ar: Strings = {
     };
     return labels[id] ?? '';
   },
-  subscriptionChoosePlan: 'اختر خطة',
-  subscriptionPlanActiveTitle: (tierName) => `خطة ${tierName} — نشطة`,
-  subscriptionRemainingUnlimited: 'فتح غير محدود هذا الشهر',
-  subscriptionRemainingCount: (left) => `${left} فتح متبقٍ هذا الشهر`,
-  subscriptionSubscribeToTier: (tierName) => `اشترك في ${tierName} عبر واتساب`,
-  subscriptionSwitchToTier: (tierName) => `التحويل إلى ${tierName} عبر واتساب`,
-  subscriptionPaymentNote:
-    'تأكيد الدفع عبر واتساب · التفعيل خلال ساعة · إلغاء في أي وقت',
-  subscriptionBadgeCurrent: 'الحالية',
-  subscriptionBadgePopular: 'الأكثر شيوعاً',
-  subscriptionA11yCurrentPlan: 'الخطة الحالية',
-  tierDisplayName: (tier) =>
-    ({ starter: 'أساسية', business: 'أعمال', agency: 'وكالة' })[tier],
-  tierDisplayPrice: (tier) =>
-    ({
-      starter: '٧٩٫٩ درهم / شهر',
-      business: '١٩٩ درهم / شهر',
-      agency: '٤٩٩ درهم / شهر',
-    })[tier],
-  tierDisplayBullets: (tier) =>
-    ({
-      starter: [
-        '٥ فتح بيانات تواصل / شهر',
-        'هاتف وواتساب',
-        'جميع المهن',
-      ],
-      business: [
-        '٢٥ فتح بيانات تواصل / شهر',
-        'هاتف وواتساب',
-        'جميع المهن',
-        'دعم أولوية',
-      ],
-      agency: [
-        'فتح بيانات تواصل غير محدود',
-        'هاتف وواتساب',
-        'جميع المهن',
-        'دعم أولوية',
-        'توظيف لعدة مهن',
-      ],
-    })[tier],
   profilePaused: 'ملفك متوقف — أصحاب العمل لا يمكنهم رؤيتك',
   profileViews: 'مشاهدات الملف',
   profileLive: 'ملفك نشط — أصحاب العمل يمكنهم العثور عليك',
@@ -1453,8 +1279,6 @@ const ar: Strings = {
   salaryPerMonth: (amount) => `${formatSalaryAmount(amount)} درهم/شهر`,
   currentSalaryPerMonth: (amount) => `الحالي: ${formatSalaryAmount(amount)} درهم/شهر`,
   expectedSalaryPerMonth: (amount) => `المتوقع: ${formatSalaryAmount(amount)} درهم/شهر`,
-  subscribeToUnlock: 'اشترك لفتح الهاتف وواتساب',
-  viewSubscription: 'عرض الخطط',
   call: 'اتصال',
   whatsApp: 'واتساب',
   noUnlocksYet: 'لا يوجد فتح بعد',
@@ -1511,13 +1335,6 @@ const ar: Strings = {
   contactUnlocks: 'فتح بيانات التواصل',
   contactUnlocksHint: 'أصحاب العمل الذين فتحوا هاتفك أو واتساب',
   contactUnlocksEmpty: 'لا تواصل بعد — أبقِ ملفك نشطاً.',
-  subStep1Title: 'راسلنا على واتساب',
-  subStep1Desc: 'اضغط اشترك — نرسل تفاصيل الدفع',
-  subStep2Title: 'نؤكد الدفع',
-  subStep2Desc: 'عادة خلال ساعة في أيام العمل',
-  subStep3Title: 'الخطة نشطة',
-  subStep3Desc: 'فتح غير محدود حتى انتهاء الخطة',
-  managePlan: 'إدارة الخطة',
   errRole: 'اختر المهنة',
   errVisa: 'اختر حالة التأشيرة',
   errNationality: 'أدخل جنسيتك',
@@ -1550,9 +1367,6 @@ const ar: Strings = {
   accountNotice:
     'حسابك مرتبط بهذا الرقم. استخدم نفس الرقم عند تسجيل الدخول مرة أخرى.',
   popularLanguages: 'لغات شائعة',
-  subscriptionPending: 'التفعيل قيد الانتظار',
-  subscriptionPendingHint:
-    'استلمنا رسالتك على واتساب. عادةً يتم تفعيل الخطة خلال ساعة في أيام العمل.',
   activeAgo: (days) =>
     days === 0 ? 'نشط اليوم' : days === 1 ? 'نشط أمس' : days < 7 ? `نشط منذ ${days} أيام` : days < 30 ? `نشط منذ ${Math.floor(days / 7)} أسابيع` : `نشط منذ ${Math.floor(days / 30)} أشهر`,
   tradeLicense: 'رقم الرخصة التجارية',
@@ -1566,11 +1380,9 @@ const ar: Strings = {
   a11yApplyFilters: 'تطبيق الفلاتر',
   a11yResetFilters: 'مسح جميع الفلاتر',
   a11yLoadingList: 'جاري تحميل القائمة',
-  a11yManagePlanHint: 'يفتح خطط الاشتراك',
   a11yRefineHint: 'يفتح خيارات التصفية',
   a11yBackHint: 'العودة إلى المهن',
   a11yFieldInvalid: 'يوجد خطأ',
-  a11ySelectPlan: 'اضغط مرتين لاختيار هذه الخطة',
   a11ySignInEmail: 'يفتح تسجيل الدخول بالبريد',
   errorLoadList: 'تعذّر تحميل المرشحين. تحقق من الاتصال وحاول مرة أخرى.',
   offlineCachedHint: 'عرض نتائج محفوظة. اسحب للأسفل للتحديث عند عودة الاتصال.',
@@ -1587,7 +1399,6 @@ const ar: Strings = {
   employerProfileCompleteHeadline: 'ملف الشركة مكتمل',
   notificationAllow: 'تفعيل الإشعارات',
   notificationNotNow: 'ليس الآن',
-  toastSubscriptionActive: 'خطتك مفعّلة. يمكنك فتح بيانات المرشحين الآن.',
   toastUnlockSuccess: 'تم فتح بيانات التواصل. يمكنك الاتصال أو المراسلة.',
   toastNewUnlock: 'قام صاحب عمل بفتح بيانات تواصلك.',
   toastProfileViewed: 'قام صاحب عمل بمشاهدة ملفك.',
