@@ -1,5 +1,11 @@
+import { ZodError } from 'zod';
+
 /** User-facing message from a caught unknown error. */
 export function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    const first = error.issues[0]?.message;
+    if (first?.trim()) return first;
+  }
   if (error instanceof Error && error.message.trim()) {
     return error.message;
   }

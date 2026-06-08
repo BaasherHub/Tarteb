@@ -34,9 +34,11 @@ import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { useToast } from '@/core/providers/ToastProvider';
 import {
+  employerHasUnlockedCandidate,
   hasCandidateContact,
   isCandidateUnlocked,
 } from '@/features/employer/domain/candidateUnlock';
+import { parseUnlockCandidateRpcArgs } from '@/features/employer/domain/schemas/unlockCandidate';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateDetail'>;
 
@@ -47,12 +49,14 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [unlockConfirmed, setUnlockConfirmed] = useState(false);
 
   const phone = String(candidate?.phone ?? '').trim() || undefined;
   const whatsapp = String(candidate?.whatsapp ?? '').trim() || undefined;
   const cvPath = candidate?.cv_url as string | undefined;
   const hasCv = Boolean(candidate?.has_cv) || Boolean(cvPath);
-  const isUnlocked = candidate ? isCandidateUnlocked(candidate) : false;
+  const isUnlocked =
+    unlockConfirmed || (candidate ? isCandidateUnlocked(candidate) : false);
   const hasContact = candidate ? hasCandidateContact(candidate) : false;
   const visa = String(candidate?.visa_status ?? '');
   const displayName = formatDisplayName(String(candidate?.name ?? ''));
@@ -87,9 +91,16 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   };
 
   useEffect(() => {
-    fetchCandidate()
-      .then((data) => {
-        if (data && !isCandidateUnlocked(data as Record<string, unknown>)) {
+    setUnlockConfirmed(false);
+    Promise.all([
+      fetchCandidate(),
+      employerHasUnlockedCandidate(route.params.candidateId),
+    ])
+      .then(([data, alreadyUnlocked]) => {
+        const row = data as Record<string, unknown> | null;
+        const unlocked = alreadyUnlocked || (row ? isCandidateUnlocked(row) : false);
+        setUnlockConfirmed(unlocked);
+        if (row && !unlocked) {
           supabase.functions
             .invoke('notify-candidate', {
               body: { candidate_id: route.params.candidateId, event: 'viewed' },
@@ -113,21 +124,22 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   const unlock = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.rpc('unlock_candidate', {
-        p_candidate_id: route.params.candidateId,
-      });
+      const { error } = await supabase.rpc(
+        'unlock_candidate',
+        parseUnlockCandidateRpcArgs(route.params.candidateId),
+      );
       if (error) throw error;
+      setUnlockConfirmed(true);
       supabase.functions
         .invoke('notify-candidate', {
           body: { candidate_id: route.params.candidateId, event: 'unlocked' },
         })
         .catch(() => {});
       const refreshed = await fetchCandidate();
-      const unlockedNow = refreshed && isCandidateUnlocked(refreshed as Record<string, unknown>);
       const contactReady =
         refreshed && hasCandidateContact(refreshed as Record<string, unknown>);
       showToast({
-        message: unlockedNow && !contactReady ? t.contactUnlockedNoDetails : t.toastUnlockSuccess,
+        message: !contactReady ? t.contactUnlockedNoDetails : t.toastUnlockSuccess,
         variant: 'success',
         actionLabel: t.myUnlocks,
         onAction: () => {

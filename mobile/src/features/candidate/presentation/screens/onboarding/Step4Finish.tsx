@@ -33,6 +33,7 @@ import {
 } from '@/features/candidate/domain/constants/candidate';
 import { normalizeAdditionalRoles } from '@/shared/utils/candidateRoles';
 import { sanitizeLanguages } from '@/shared/utils/languages';
+import { parseCandidateUpsertPayload } from '@/features/candidate/domain/schemas/candidateProfile';
 import {
   isValidAuthPhoneE164,
   validateOptionalAuthPhone,
@@ -123,10 +124,10 @@ export function Step4Finish({ navigation }: Props) {
       const nationality =
         resolveNationality(data.nationality ?? '') ?? data.nationality?.trim() ?? '';
 
-      const payload = {
+      const payload = parseCandidateUpsertPayload({
         user_id: userId,
         name: String(data.name).trim(),
-        photo_url: data.photoUrl,
+        photo_url: data.photoUrl ?? null,
         role: data.role,
         additional_roles: data.candidateId
           ? normalizeAdditionalRoles(data.role ?? '', data.additionalRoles ?? [])
@@ -144,7 +145,7 @@ export function Step4Finish({ navigation }: Props) {
         uae_experience: null,
         previous_employer: null,
         is_active: true,
-      };
+      });
 
       const { error } = await supabase
         .from('candidates')

@@ -24,6 +24,7 @@ import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { AuthPhoneNumberField } from '@/features/auth/presentation/components/AuthPhoneNumberField';
 import { useAuthPhoneInput } from '@/shared/hooks/useAuthPhoneInput';
 import type { ArabPhoneCountry } from '@/shared/constants/arabPhoneCountries';
+import { parseEmployerProfilePayload } from '@/features/employer/domain/schemas/employerProfile';
 import { promptForPushNotifications } from '@/core/services/notifications';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployerOnboarding'>;
@@ -86,14 +87,14 @@ export function EmployerStep2Contact({ navigation }: Props) {
         return;
       }
 
-      const payload = {
+      const payload = parseEmployerProfilePayload({
         company_name: companyName,
         contact_name: data.contactName.trim(),
         phone: phoneInput.e164,
         email: data.email.trim(),
         location: data.location,
         trade_license: data.tradeLicense.trim() || null,
-      };
+      });
 
       if (isEditMode) {
         const { error } = await supabase
