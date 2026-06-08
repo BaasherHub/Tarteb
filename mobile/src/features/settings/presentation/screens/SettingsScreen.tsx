@@ -7,11 +7,11 @@ import { clearPushToken } from '@/core/services/notifications';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
-import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
+import { SettingsPanel } from '@/shared/widgets/SettingsPanel';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
 import { TabScreenScroll } from '@/shared/widgets/TabScreenScroll';
-import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
+import { onboardingFromRow } from '@/shared/domain/candidateOnboarding';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 

@@ -11,7 +11,7 @@ import { RootStackParamList } from '@/core/navigation/types';
 import {
   AuthRoutingError,
   routeAuthenticatedUser,
-} from '@/features/auth/data/services/authNavigation';
+} from '@/core/navigation/authNavigation';
 import { useAuth } from '@/core/providers/AuthProvider';
 import { flushPendingDeepLink } from '@/core/navigation/deepLink';
 import { navigationRef } from '@/core/navigation/navigationRef';

@@ -1008,7 +1008,7 @@ const ar: Strings = {
   roleCandidatePriceFree: 'مجاني لباحثي العمل',
   roleCandidateSectionLabel: 'تبحث عن عمل؟',
   browse: 'تصفح',
-  myUnlocks: 'فتحات التواصل',
+  myUnlocks: 'جهات الاتصال المفتوحة',
   currentSalaryLocked: 'افتح الملف لرؤية الراتب الحالي',
   unlockContact: 'افتح بيانات التواصل',
   contactUnlocked: 'تم فتح بيانات التواصل!',

@@ -16,7 +16,7 @@ import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
-import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
+import { SettingsPanel } from '@/shared/widgets/SettingsPanel';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import type { AppIconName } from '@/shared/widgets/AppIcon.types';
 import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';

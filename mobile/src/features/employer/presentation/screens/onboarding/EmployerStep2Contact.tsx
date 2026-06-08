@@ -21,7 +21,7 @@ import {
 } from '@/shared/widgets/OnboardingStepIntro';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
-import { AuthPhoneNumberField } from '@/features/auth/presentation/components/AuthPhoneNumberField';
+import { AuthPhoneNumberField } from '@/shared/widgets/AuthPhoneNumberField';
 import { useAuthPhoneInput } from '@/shared/hooks/useAuthPhoneInput';
 import type { ArabPhoneCountry } from '@/shared/constants/arabPhoneCountries';
 import { parseEmployerProfilePayload } from '@/features/employer/domain/schemas/employerProfile';

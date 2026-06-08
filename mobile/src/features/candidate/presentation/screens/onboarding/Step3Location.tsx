@@ -8,7 +8,7 @@ import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { FormField } from '@/shared/widgets/FormField';
 import { LocationPicker } from '@/shared/widgets/LocationPicker';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
-import { AuthPhoneNumberField } from '@/features/auth/presentation/components/AuthPhoneNumberField';
+import { AuthPhoneNumberField } from '@/shared/widgets/AuthPhoneNumberField';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
 import {
   OnboardingStepIntro,

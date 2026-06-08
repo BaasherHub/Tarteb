@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { CandidateOnboardingData } from '@/features/candidate/domain/types/candidateOnboarding';
+import type { CandidateOnboardingData } from '@/shared/domain/candidateOnboarding';
 import type { EmployerOnboardingData } from '@/features/employer/domain/types/employerOnboarding';
 
 export type EmployerTabParamList = {
