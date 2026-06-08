@@ -1,5 +1,11 @@
 import { supabase } from '@/core/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { employerKeys } from '@/features/employer/data/employerQueryKeys';
+import {
+  readBrowseCache,
+  writeBrowseCache,
+} from '@/features/employer/data/services/browseCache';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { postgrestRoleOrFilter } from '@/shared/utils/candidateRoles';
 
 export const PAGE_SIZE = 20;
@@ -75,9 +81,50 @@ export async function fetchRoleCounts(): Promise<Record<string, number>> {
 
 export function useRoleCounts() {
   return useQuery({
-    queryKey: ['employer', 'roleCounts'],
+    queryKey: employerKeys.roleCounts(),
     queryFn: fetchRoleCounts,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export type BrowsePageResult = {
+  items: Record<string, unknown>[];
+  fromCache: boolean;
+};
+
+async function fetchBrowsePage(
+  filters: BrowseFilters,
+  page: number,
+): Promise<BrowsePageResult> {
+  try {
+    const items = await fetchCandidatesPage(filters, page);
+    if (page === 0) void writeBrowseCache(filters, items);
+    return { items, fromCache: false };
+  } catch (e) {
+    if (page === 0) {
+      const cached = await readBrowseCache(filters);
+      if (cached?.length) return { items: cached, fromCache: true };
+    }
+    throw e;
+  }
+}
+
+export function useBrowseCandidates(filters: BrowseFilters | null, errorLabel: string) {
+  return useInfiniteQuery({
+    queryKey: filters ? employerKeys.browse(filters) : ['employer', 'browse', 'idle'],
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await fetchBrowsePage(filters!, pageParam);
+      } catch (e) {
+        throw new Error(getErrorMessage(e, errorLabel));
+      }
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _pages, lastPageParam) => {
+      if (lastPage.fromCache) return undefined;
+      return lastPage.items.length >= PAGE_SIZE ? lastPageParam + 1 : undefined;
+    },
+    enabled: filters != null,
   });
 }
 

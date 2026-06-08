@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/core/lib/supabase';
+import { employerKeys } from '@/features/employer/data/employerQueryKeys';
+import { parseUnlockCandidateRpcArgs } from '@/features/employer/domain/schemas/unlockCandidate';
 import { getErrorMessage } from '@/shared/utils/errors';
 
 export type UnlockRow = {
@@ -47,8 +49,29 @@ async function fetchUnlocks(errorLabel: string): Promise<UnlocksResult> {
 
 export function useUnlocks(errorLabel: string) {
   return useQuery({
-    queryKey: ['employer', 'unlocks'],
+    queryKey: employerKeys.unlocks(),
     queryFn: () => fetchUnlocks(errorLabel),
+  });
+}
+
+export function useUnlockCandidate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (candidateId: string) => {
+      const { error } = await supabase.rpc(
+        'unlock_candidate',
+        parseUnlockCandidateRpcArgs(candidateId),
+      );
+      if (error) throw error;
+      return candidateId;
+    },
+    onSuccess: (candidateId) => {
+      queryClient.setQueryData(employerKeys.unlockStatus(candidateId), true);
+      void queryClient.invalidateQueries({ queryKey: employerKeys.unlocks() });
+      void queryClient.invalidateQueries({ queryKey: employerKeys.candidate(candidateId) });
+      void queryClient.invalidateQueries({ queryKey: [...employerKeys.all, 'browse'] });
+    },
   });
 }
 

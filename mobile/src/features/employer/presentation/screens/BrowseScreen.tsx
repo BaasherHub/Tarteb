@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ActivityIndicator,
@@ -27,18 +27,13 @@ import { ErrorState } from '@/shared/widgets/ErrorState';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { supabase } from '@/core/lib/supabase';
-import { getErrorMessage, isLikelyNetworkError } from '@/shared/utils/errors';
+import { isLikelyNetworkError } from '@/shared/utils/errors';
 import {
   BrowseFilters,
-  fetchCandidatesPage,
   filtersForRole,
   hasRefineFilters,
-  PAGE_SIZE,
+  useBrowseCandidates,
 } from '@/features/employer/data/services/candidateBrowse';
-import {
-  readBrowseCache,
-  writeBrowseCache,
-} from '@/features/employer/data/services/browseCache';
 import { BrowseListRow } from '@/features/employer/presentation/components/BrowseListRow';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { RefineFiltersModal } from './RefineFiltersModal';
@@ -63,21 +58,31 @@ export function BrowseScreen() {
   const navigation = useNavigation<Nav>();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [filters, setFilters] = useState<BrowseFilters | null>(null);
-  const [items, setItems] = useState<Record<string, unknown>[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [showingCache, setShowingCache] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [employerProfile, setEmployerProfile] = useState<Record<string, unknown> | null>(null);
   const [showRoleLegend, setShowRoleLegend] = useState(false);
 
-  const pageRef = useRef(0);
-  const loadingMoreRef = useRef(false);
-  const filtersRef = useRef<BrowseFilters | null>(null);
-  filtersRef.current = filters;
+  const {
+    data,
+    error,
+    isPending,
+    isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    refetch,
+    fetchNextPage,
+  } = useBrowseCandidates(filters, t.errorLoadList);
+
+  const items = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
+  const showingCache = data?.pages[0]?.fromCache ?? false;
+  const loadError = error
+    ? isLikelyNetworkError(error) && items.length === 0
+      ? t.errorLoadList
+      : String(error.message || t.errorLoadList)
+    : null;
 
   const refined = filters ? hasRefineFilters(filters) : false;
 
@@ -107,121 +112,36 @@ export function BrowseScreen() {
     }
   }, []);
 
-  const loadPage = useCallback(
-    async (activeFilters: BrowseFilters, refresh: boolean) => {
-      if (!refresh && loadingMoreRef.current) return;
-
-      const nextPage = refresh ? 0 : pageRef.current;
-      if (refresh) {
-        setLoadError(null);
-        setShowingCache(false);
-      } else {
-        loadingMoreRef.current = true;
-        setLoadingMore(true);
-      }
-
-      try {
-        const data = await fetchCandidatesPage(activeFilters, nextPage);
-        if (refresh) {
-          setItems(data);
-          pageRef.current = 1;
-          void writeBrowseCache(activeFilters, data);
-        } else {
-          setItems((prev) => [...prev, ...data]);
-          pageRef.current = nextPage + 1;
-        }
-        setHasMore(data.length >= PAGE_SIZE);
-        setLoadError(null);
-        setShowingCache(false);
-      } catch (e) {
-        const message = getErrorMessage(e, t.errorLoadList);
-        if (refresh) {
-          const cached = await readBrowseCache(activeFilters);
-          if (cached?.length) {
-            setItems(cached);
-            pageRef.current = 1;
-            setHasMore(false);
-            setShowingCache(true);
-            setLoadError(null);
-          } else {
-            setItems([]);
-            setLoadError(
-              isLikelyNetworkError(e) ? t.errorLoadList : message,
-            );
-          }
-        }
-      } finally {
-        if (refresh) {
-          setLoading(false);
-          setRefreshing(false);
-        } else {
-          loadingMoreRef.current = false;
-          setLoadingMore(false);
-        }
-      }
-    },
-    [t.errorLoadList],
-  );
-
   useEffect(() => {
     loadEmployerProfile();
   }, [loadEmployerProfile]);
 
   const selectRole = useCallback((role: string) => {
-    const next = filtersForRole(role);
     setSelectedRole(role);
-    setFilters(next);
-    setLoading(true);
-    setLoadError(null);
-    pageRef.current = 0;
-    setHasMore(true);
-    void loadPage(next, true);
-  }, [loadPage]);
+    setFilters(filtersForRole(role));
+  }, []);
 
   const backToRoles = useCallback(() => {
     setSelectedRole(null);
     setFilters(null);
-    setItems([]);
-    pageRef.current = 0;
-    setHasMore(true);
-    setLoading(false);
-    setLoadError(null);
-    setShowingCache(false);
   }, []);
 
   const onRefresh = useCallback(() => {
-    const f = filtersRef.current;
-    if (!f) return;
-    setRefreshing(true);
-    void loadPage(f, true);
-  }, [loadPage]);
+    void refetch();
+  }, [refetch]);
 
   const applyRefine = useCallback((next: BrowseFilters) => {
     setFilters(next);
-    setLoading(true);
-    setLoadError(null);
-    pageRef.current = 0;
-    void loadPage(next, true);
-  }, [loadPage]);
+  }, []);
 
   const resetRefine = useCallback(() => {
     if (!selectedRole) return;
-    const next = filtersForRole(selectedRole);
-    setFilters(next);
-    setLoading(true);
-    setLoadError(null);
-    pageRef.current = 0;
-    void loadPage(next, true);
-  }, [loadPage, selectedRole]);
+    setFilters(filtersForRole(selectedRole));
+  }, [selectedRole]);
 
   const retryLoad = useCallback(() => {
-    const f = filtersRef.current;
-    if (!f) return;
-    setLoading(true);
-    setLoadError(null);
-    pageRef.current = 0;
-    void loadPage(f, true);
-  }, [loadPage]);
+    void refetch();
+  }, [refetch]);
 
   const openCandidate = useCallback(
     (candidateId: string) => {
@@ -250,19 +170,18 @@ export function BrowseScreen() {
   );
 
   const onEndReached = useCallback(() => {
-    const f = filtersRef.current;
-    if (!f || !hasMore || loadingMoreRef.current || loading) return;
-    void loadPage(f, false);
-  }, [hasMore, loadPage, loading]);
+    if (!hasNextPage || isFetchingNextPage || isPending) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isPending]);
 
   const listFooter = useMemo(() => {
-    if (!loadingMore) return null;
+    if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator color={colors.primary} accessibilityLabel={t.loadingMore} />
       </View>
     );
-  }, [loadingMore, t.loadingMore]);
+  }, [isFetchingNextPage, t.loadingMore]);
 
   const listEmpty = useMemo(() => {
     if (loadError) {
@@ -325,7 +244,7 @@ export function BrowseScreen() {
     );
   }
 
-  const showSkeleton = loading && items.length === 0 && !loadError;
+  const showSkeleton = isPending && items.length === 0 && !loadError;
 
   return (
     <ContentWidth style={styles.container}>
@@ -424,7 +343,7 @@ export function BrowseScreen() {
           getItemLayout={browseItemLayout}
           {...FLAT_LIST_PERF}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={isRefetching && !isFetchingNextPage} onRefresh={onRefresh} />
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.35}
