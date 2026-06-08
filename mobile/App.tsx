@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { validateProductionConfig } from '@/core/config/env';
 import { LocaleProvider } from '@/core/i18n/LocaleContext';
 import { AppErrorBoundary } from '@/core/providers/AppErrorBoundary';
@@ -9,6 +10,8 @@ import { PushNotificationsProvider } from '@/core/providers/PushNotificationsPro
 import { ToastProvider } from '@/core/providers/ToastProvider';
 import { NotificationToastBridge } from '@/core/providers/NotificationToastBridge';
 import { RootNavigator } from '@/core/navigation/RootNavigator';
+
+const queryClient = new QueryClient();
 
 export default function App() {
   useEffect(() => {
@@ -23,13 +26,15 @@ export default function App() {
       <LocaleProvider>
         <AppErrorBoundary>
           <AuthProvider>
-            <ToastProvider>
-              <NotificationToastBridge />
-              <PushNotificationsProvider>
-                <RootNavigator />
-                <StatusBar style="auto" />
-              </PushNotificationsProvider>
-            </ToastProvider>
+            <QueryClientProvider client={queryClient}>
+              <ToastProvider>
+                <NotificationToastBridge />
+                <PushNotificationsProvider>
+                  <RootNavigator />
+                  <StatusBar style="auto" />
+                </PushNotificationsProvider>
+              </ToastProvider>
+            </QueryClientProvider>
           </AuthProvider>
         </AppErrorBoundary>
       </LocaleProvider>

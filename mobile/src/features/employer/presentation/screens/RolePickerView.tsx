@@ -1,11 +1,11 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { JobRoleGrid } from '@/shared/widgets/JobRoleGrid';
 import { OnboardingStepIntro } from '@/shared/widgets/OnboardingStepIntro';
-import { fetchRoleCounts } from '@/features/employer/data/services/candidateBrowse';
+import { useRoleCounts } from '@/features/employer/data/services/candidateBrowse';
 
 type Props = {
   onSelectRole: (role: string) => void;
@@ -13,17 +13,7 @@ type Props = {
 
 export const RolePickerView = memo(function RolePickerView({ onSelectRole }: Props) {
   const { t } = useLocale();
-  const [counts, setCounts] = useState<Record<string, number>>({});
-
-  const loadCounts = useCallback(() => {
-    fetchRoleCounts()
-      .then(setCounts)
-      .catch(() => setCounts({}));
-  }, []);
-
-  useEffect(() => {
-    loadCounts();
-  }, [loadCounts]);
+  const { data: counts } = useRoleCounts();
 
   return (
     <ScrollView
@@ -32,7 +22,7 @@ export const RolePickerView = memo(function RolePickerView({ onSelectRole }: Pro
       keyboardShouldPersistTaps="handled"
     >
       <OnboardingStepIntro>{t.browsePickRoleHint}</OnboardingStepIntro>
-      <JobRoleGrid onSelectRole={onSelectRole} counts={counts} />
+      <JobRoleGrid onSelectRole={onSelectRole} counts={counts ?? {}} />
     </ScrollView>
   );
 });

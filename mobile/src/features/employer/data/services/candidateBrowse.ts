@@ -1,4 +1,5 @@
 import { supabase } from '@/core/lib/supabase';
+import { useQuery } from '@tanstack/react-query';
 import { postgrestRoleOrFilter } from '@/shared/utils/candidateRoles';
 
 export const PAGE_SIZE = 20;
@@ -70,6 +71,14 @@ export async function fetchRoleCounts(): Promise<Record<string, number>> {
     }
     return acc;
   }, {});
+}
+
+export function useRoleCounts() {
+  return useQuery({
+    queryKey: ['employer', 'roleCounts'],
+    queryFn: fetchRoleCounts,
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
 export async function fetchCandidatesPage(
