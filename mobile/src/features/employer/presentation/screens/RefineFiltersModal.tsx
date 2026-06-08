@@ -294,7 +294,9 @@ const Section = memo(function Section({
 }) {
   return (
     <View style={styles.section}>
-      <SectionLabel first={first}>{title}</SectionLabel>
+      <SectionLabel first={first} optional>
+        {title}
+      </SectionLabel>
       {children}
     </View>
   );

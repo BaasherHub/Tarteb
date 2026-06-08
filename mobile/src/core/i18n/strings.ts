@@ -712,7 +712,6 @@ const en: Strings = {
       company: 'Add company name',
       contact: 'Add contact person',
       email: 'Add business email',
-      logo: 'Add company logo',
     };
     return labels[id] ?? '';
   },
@@ -841,7 +840,7 @@ const en: Strings = {
   roleSelected: 'Selected',
   browsePickRole: 'What role are you hiring for?',
   browsePickRoleHint:
-    'Pick a job title first — then refine by nationality, location, salary, experience, and more. Use only the filters that matter to you.',
+    'Choose a job title to see matching candidates. Refine with filters only if you need to.',
   browseRefine: 'Refine',
   browseBackToRoles: 'All roles',
   candidatesForRole: (role) => `Hiring for: ${role}`,
@@ -1298,7 +1297,6 @@ const ar: Strings = {
       company: 'أضف اسم الشركة',
       contact: 'أضف جهة الاتصال',
       email: 'أضف البريد الإلكتروني',
-      logo: 'أضف شعار الشركة',
     };
     return labels[id] ?? '';
   },
@@ -1426,7 +1424,7 @@ const ar: Strings = {
   roleSelected: 'المحدد',
   browsePickRole: 'ما المهنة التي توظف لها؟',
   browsePickRoleHint:
-    'اختر المهنة أولاً — ثم صفّ حسب الجنسية والموقع والراتب والخبرة وغيرها. استخدم فقط الفلاتر التي تهمك.',
+    'اختر مهنة لعرض المرشحين المطابقين. استخدم الفلاتر فقط عند الحاجة.',
   browseRefine: 'تصفية',
   browseBackToRoles: 'كل المهن',
   candidatesForRole: (role) => `التوظيف لـ: ${role}`,

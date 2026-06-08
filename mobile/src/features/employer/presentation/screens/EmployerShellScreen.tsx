@@ -24,7 +24,7 @@ import { spacing } from '@/core/theme/spacing';
 
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 
-import { CandidateTabLayout } from '@/features/candidate/presentation/components/CandidateTabLayout';
+import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
 
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
 
@@ -109,7 +109,7 @@ function EmployerSettingsTab() {
 
   return (
 
-    <CandidateTabLayout>
+    <TabScreenLayout>
 
       <ScreenHeader title={t.settings} />
 
@@ -123,7 +123,7 @@ function EmployerSettingsTab() {
 
       />
 
-    </CandidateTabLayout>
+    </TabScreenLayout>
 
   );
 

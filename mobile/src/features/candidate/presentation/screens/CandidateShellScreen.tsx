@@ -15,7 +15,7 @@ import { clearPushToken } from '@/core/services/notifications';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
-import { CandidateTabLayout } from '@/features/candidate/presentation/components/CandidateTabLayout';
+import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
 import { SettingsPanel } from '@/features/settings/presentation/components/SettingsPanel';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import type { AppIconName } from '@/shared/widgets/AppIcon.types';
@@ -65,14 +65,14 @@ function CandidateSettingsTab() {
   };
 
   return (
-    <CandidateTabLayout>
+    <TabScreenLayout>
       <ScreenHeader title={t.settings} />
       <SettingsPanel
         onLogout={logout}
         onEditProfile={openEditProfile}
         onOpenPrivacy={() => stackNav.navigate('PrivacyPolicy')}
       />
-    </CandidateTabLayout>
+    </TabScreenLayout>
   );
 }
 

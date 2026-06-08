@@ -8,8 +8,8 @@ type Props = ScrollViewProps & {
   children: React.ReactNode;
 };
 
-/** Shared Home / Settings tab chrome — identical padding and web card width. */
-export function CandidateTabLayout({ children, contentContainerStyle, ...scrollProps }: Props) {
+/** Shared tab screen chrome — padding and web card width for candidate and employer shells. */
+export function TabScreenLayout({ children, contentContainerStyle, ...scrollProps }: Props) {
   return (
     <ContentWidth style={styles.tab}>
       <TabScreenScroll

@@ -315,7 +315,7 @@ export function BrowseScreen() {
     return (
       <ContentWidth style={styles.container}>
         <View style={styles.headerPad}>
-          <ScreenHeader title={t.browse} />
+          <ScreenHeader title={t.browsePickRole} />
         </View>
         {employerCompletion && employerCompletion.percent < 100
           ? employerCompletionCard

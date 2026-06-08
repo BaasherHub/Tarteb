@@ -45,7 +45,7 @@ import { VisaChip } from '@/shared/widgets/VisaChip';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
-import { CandidateTabLayout } from '@/features/candidate/presentation/components/CandidateTabLayout';
+import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
 
 import { DashboardSkeleton } from '@/shared/widgets/DashboardSkeleton';
 
@@ -259,12 +259,12 @@ export function CandidateDashboardScreen() {
 
     return (
 
-      <CandidateTabLayout>
+      <TabScreenLayout>
         <ScreenHeader title={t.home} />
         <View style={styles.sections}>
           <DashboardSkeleton />
         </View>
-      </CandidateTabLayout>
+      </TabScreenLayout>
 
     );
 
@@ -373,7 +373,7 @@ export function CandidateDashboardScreen() {
 
   return (
 
-    <CandidateTabLayout
+    <TabScreenLayout
 
       refreshControl={
 
@@ -661,7 +661,7 @@ export function CandidateDashboardScreen() {
 
       </View>
 
-    </CandidateTabLayout>
+    </TabScreenLayout>
 
   );
 
