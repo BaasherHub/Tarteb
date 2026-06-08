@@ -23,7 +23,7 @@ import {
   getRoleCategoryLabel,
   ONBOARDING_ROLE_CATEGORIES,
   type RoleCategoryId,
-} from '@/features/candidate/domain/constants/candidate';
+} from '@/shared/constants/candidate';
 
 export type JobRoleGridFilterState = {
   query: string;

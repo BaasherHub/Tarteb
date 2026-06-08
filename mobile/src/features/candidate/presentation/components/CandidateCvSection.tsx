@@ -22,7 +22,7 @@ import {
   isAllowedCvFile,
   removeCandidateCvFile,
   uploadCandidateCv,
-} from '@/features/candidate/data/services/candidateCv';
+} from '@/shared/services/candidateCv';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   CANDIDATE_ROLES,
   VISA_STATUSES,
-} from '@/features/candidate/domain/constants/candidate';
+} from '@/shared/constants/candidate';
 import { parseSchema } from '@/shared/validation/parseSchema';
 import { isValidAuthPhoneE164 } from '@/shared/utils/phone';
 

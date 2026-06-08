@@ -31,7 +31,7 @@ import {
   LANGUAGE_OPTIONS,
   POPULAR_LANGUAGES,
   VISA_STATUSES,
-} from '@/features/candidate/domain/constants/candidate';
+} from '@/shared/constants/candidate';
 
 type Props = {
   visible: boolean;

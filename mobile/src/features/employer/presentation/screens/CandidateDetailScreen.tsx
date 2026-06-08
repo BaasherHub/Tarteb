@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { getCandidateCvSignedUrl } from '@/features/candidate/data/services/candidateCv';
+import { getCandidateCvSignedUrl } from '@/shared/services/candidateCv';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
