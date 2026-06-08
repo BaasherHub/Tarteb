@@ -35,10 +35,6 @@ export function NotificationToastBridge() {
           case 'dashboard':
             message = body ?? t.toastProfileViewed;
             break;
-          case 'subscription':
-            message = t.toastSubscriptionActive;
-            variant = 'success';
-            break;
           case 'candidate':
             message = body ?? title ?? message;
             break;

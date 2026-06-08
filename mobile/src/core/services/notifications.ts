@@ -236,7 +236,12 @@ export async function promptForPushOnFirstDashboardVisit(t: Strings): Promise<bo
   return promptForPushNotifications(t);
 }
 
-export async function promptForPushNotifications(t: Strings): Promise<boolean> {
+export type PushPromptAudience = 'candidate' | 'employer';
+
+export async function promptForPushNotifications(
+  t: Strings,
+  audience: PushPromptAudience = 'candidate',
+): Promise<boolean> {
 
   if (Platform.OS === 'web') return false;
 
@@ -252,11 +257,16 @@ export async function promptForPushNotifications(t: Strings): Promise<boolean> {
 
   await AsyncStorage.setItem(PUSH_PROMPT_KEY, '1');
 
+  const message =
+    audience === 'employer'
+      ? t.employerNotificationPermissionMessage
+      : t.notificationPermissionMessage;
+
 
 
   return new Promise((resolve) => {
 
-    Alert.alert(t.notificationPermissionTitle, t.notificationPermissionMessage, [
+    Alert.alert(t.notificationPermissionTitle, message, [
 
       {
 

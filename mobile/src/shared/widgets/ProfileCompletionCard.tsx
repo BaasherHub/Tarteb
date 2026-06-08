@@ -24,11 +24,20 @@ export function ProfileCompletionCard({
   const { percent, nextItem } = completion;
   const complete = percent >= 100;
 
+  const isEmployer = variant === 'employer';
   const milestoneKey = nextItem?.id ?? 'complete';
   const milestoneLabel = t.profileMilestoneLabel(milestoneKey);
-  const headline = complete ? t.profileCompleteHeadline : t.profileCompletionHeadline(percent);
+  const headline = complete
+    ? isEmployer
+      ? t.employerProfileCompleteHeadline
+      : t.profileCompleteHeadline
+    : isEmployer
+      ? t.employerProfileCompletionHeadline(percent)
+      : t.profileCompletionHeadline(percent);
   const sub = complete
-    ? t.profileCompleteCelebration
+    ? isEmployer
+      ? t.employerProfileCompleteCelebration
+      : t.profileCompleteCelebration
     : t.profileCompletionNext(milestoneLabel);
 
   const accent = variant === 'employer' ? colors.secondary : colors.primary;
@@ -69,7 +78,7 @@ export function ProfileCompletionCard({
       </View>
       {!complete && onImprove ? (
         <Text style={[styles.cta, { textAlign: rtl.textAlignEnd, color: accent }]}>
-          {t.profileCompletionCta}
+          {isEmployer ? t.employerProfileCompletionCta : t.profileCompletionCta}
         </Text>
       ) : null}
     </Pressable>

@@ -170,6 +170,8 @@ export interface Strings {
   profileCompletionNext: (milestone: string) => string;
   profileCompleteHeadline: string;
   profileCompleteCelebration: string;
+  employerProfileCompletionHeadline: (percent: number) => string;
+  employerProfileCompleteCelebration: string;
   profileCompletionCta: string;
   saveCompanyProfile: string;
   employerEditKicker: string;
@@ -417,6 +419,9 @@ export interface Strings {
   errorBoundaryMessage: string;
   notificationPermissionTitle: string;
   notificationPermissionMessage: string;
+  employerNotificationPermissionMessage: string;
+  employerProfileCompletionCta: string;
+  employerProfileCompleteHeadline: string;
   notificationAllow: string;
   notificationNotNow: string;
   toastSubscriptionActive: string;
@@ -679,6 +684,9 @@ const en: Strings = {
   profileCompleteHeadline: 'Profile complete',
   profileCompleteCelebration:
     'Your profile is complete. Employers can discover you with full trust signals.',
+  employerProfileCompletionHeadline: (percent) => `Company profile ${percent}% complete`,
+  employerProfileCompleteCelebration:
+    'Your company profile is complete. Browse candidates and unlock contacts when you find a match.',
   profileCompletionCta: 'Improve profile →',
   saveCompanyProfile: 'Save company profile',
   employerEditKicker: 'Edit company',
@@ -990,7 +998,11 @@ const en: Strings = {
   errorBoundaryMessage: 'The app hit an unexpected error. You can try again.',
   notificationPermissionTitle: 'Stay in the loop',
   notificationPermissionMessage:
-    'Get alerts when employers view your profile, unlock your contact, or when your subscription is activated.',
+    'Get alerts when employers view your profile or unlock your contact.',
+  employerNotificationPermissionMessage:
+    'Get alerts when candidates update their profiles or when you have unlock activity.',
+  employerProfileCompletionCta: 'Complete company profile →',
+  employerProfileCompleteHeadline: 'Company profile complete',
   notificationAllow: 'Enable notifications',
   notificationNotNow: 'Not now',
   toastSubscriptionActive: 'Your plan is active. You can unlock candidates now.',
@@ -1258,6 +1270,9 @@ const ar: Strings = {
   profileCompleteHeadline: 'الملف مكتمل',
   profileCompleteCelebration:
     'ملفك مكتمل. يمكن لأصحاب العمل اكتشافك بإشارات ثقة كاملة.',
+  employerProfileCompletionHeadline: (percent) => `اكتمال ملف الشركة ${percent}٪`,
+  employerProfileCompleteCelebration:
+    'ملف شركتك مكتمل. تصفّح المرشحين وافتح بيانات التواصل عندما تجد من يناسبك.',
   profileCompletionCta: 'تحسين الملف ←',
   saveCompanyProfile: 'حفظ بيانات الشركة',
   employerEditKicker: 'تعديل الشركة',
@@ -1567,7 +1582,11 @@ const ar: Strings = {
   errorBoundaryMessage: 'واجه التطبيق مشكلة. يمكنك المحاولة مرة أخرى.',
   notificationPermissionTitle: 'ابقَ على اطلاع',
   notificationPermissionMessage:
-    'تلقّ تنبيهات عند مشاهدة ملفك، فتح بيانات التواصل، أو تفعيل اشتراكك.',
+    'تلقّ تنبيهات عند مشاهدة أصحاب العمل لملفك أو فتح بيانات تواصلك.',
+  employerNotificationPermissionMessage:
+    'تلقّ تنبيهات عند تحديث المرشحين لملفاتهم أو عند نشاط الفتح لديك.',
+  employerProfileCompletionCta: 'إكمال ملف الشركة ←',
+  employerProfileCompleteHeadline: 'ملف الشركة مكتمل',
   notificationAllow: 'تفعيل الإشعارات',
   notificationNotNow: 'ليس الآن',
   toastSubscriptionActive: 'خطتك مفعّلة. يمكنك فتح بيانات المرشحين الآن.',

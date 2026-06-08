@@ -11,7 +11,7 @@ const en: PrivacySection[] = [
   {
     title: 'How we use data',
     body:
-      'To authenticate you, match employers with candidates, send OTP and optional push alerts, operate subscriptions and unlock limits, and keep the service secure.',
+      'To authenticate you, match employers with candidates, send OTP and optional push alerts, and keep the service secure.',
   },
   {
     title: 'Sharing',
@@ -39,7 +39,7 @@ const ar: PrivacySection[] = [
   {
     title: 'كيف نستخدم البيانات',
     body:
-      'للتحقق من هويتك، ربط أصحاب العمل بالمرشحين، إرسال رمز التحقق والإشعارات الاختيارية، وتشغيل الاشتراكات وحدود الفتح.',
+      'للتحقق من هويتك، ربط أصحاب العمل بالمرشحين، إرسال رمز التحقق والإشعارات الاختيارية، والحفاظ على أمان الخدمة.',
   },
   {
     title: 'المشاركة',

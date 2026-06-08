@@ -110,7 +110,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
         ...payload,
       });
       if (error) throw error;
-      await promptForPushNotifications(t);
+      await promptForPushNotifications(t, 'employer');
       navigation.replace('EmployerShell');
     } catch (e) {
       if (isCompanyNameConflict(e)) {

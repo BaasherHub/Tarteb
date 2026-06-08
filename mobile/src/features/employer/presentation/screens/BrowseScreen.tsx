@@ -317,7 +317,9 @@ export function BrowseScreen() {
         <View style={styles.headerPad}>
           <ScreenHeader title={t.browse} />
         </View>
-        {employerCompletionCard}
+        {employerCompletion && employerCompletion.percent < 100
+          ? employerCompletionCard
+          : null}
         <RolePickerView onSelectRole={selectRole} />
       </ContentWidth>
     );
