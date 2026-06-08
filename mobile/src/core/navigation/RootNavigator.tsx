@@ -95,7 +95,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateDetail"
           component={CandidateDetailScreen}
-          options={{ title: t.candidateProfileTitle }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="CandidateOnboarding"

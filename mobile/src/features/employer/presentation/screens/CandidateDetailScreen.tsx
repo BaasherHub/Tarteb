@@ -31,6 +31,7 @@ import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { ProfileFactRow } from '@/shared/widgets/ProfileFactRow';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
+import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { useToast } from '@/core/providers/ToastProvider';
 import {
   hasCandidateContact,
@@ -101,10 +102,13 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
       });
   }, [route.params.candidateId]);
 
-  useEffect(() => {
-    const title = displayName || t.candidateProfileTitle;
-    navigation.setOptions({ title });
-  }, [displayName, navigation, t.candidateProfileTitle]);
+  const goBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate('EmployerShell', { screen: 'BrowseTab' });
+  };
 
   const unlock = async () => {
     setLoading(true);
@@ -150,6 +154,10 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
       <ContentWidth grow={false}>
+        <ScreenHeader
+          title={displayName || t.candidateProfileTitle}
+          onBack={goBack}
+        />
         <SurfaceCard inset style={styles.profileCard}>
           <View style={[styles.profileHero, rtl.row]}>
             {candidate.photo_url ? (
