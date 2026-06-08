@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text } from 'react-native';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';

@@ -19,10 +19,6 @@ export function clearPendingDeepLink(): void {
   pendingUrl = null;
 }
 
-function parseSuccess(value: unknown): boolean {
-  return value === true || value === '1' || value === 'true';
-}
-
 /** Map push data payload → tarteb:// URL. */
 export function payloadToUrl(data: PushPayload): string | null {
   if (data.url && typeof data.url === 'string') {

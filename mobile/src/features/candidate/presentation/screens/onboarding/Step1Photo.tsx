@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
 import { OnboardingStepIntro } from '@/features/candidate/presentation/components/OnboardingStepIntro';

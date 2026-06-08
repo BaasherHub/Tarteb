@@ -13,7 +13,7 @@ import { colors } from '@/core/theme/colors';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { t, isRtl, isHydrated, hasCompletedLanguageSelection } = useLocale();
+  const { isRtl, isHydrated, hasCompletedLanguageSelection } = useLocale();
   const stackAnimation = isRtl ? 'slide_from_left' : 'slide_from_right';
 
   if (!isHydrated) {

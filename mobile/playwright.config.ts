@@ -1,6 +1,9 @@
+import fs from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:8081';
+const storagePath = process.env.E2E_STORAGE_STATE ?? 'e2e/.auth/employer.json';
+const storageState = fs.existsSync(storagePath) ? storagePath : undefined;
 
 export default defineConfig({
   testDir: './e2e',
@@ -12,6 +15,7 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     baseURL,
+    storageState,
     trace: 'on-first-retry',
     ...devices['Desktop Chrome'],
   },

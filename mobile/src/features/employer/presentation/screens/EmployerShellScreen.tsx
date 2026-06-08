@@ -235,7 +235,7 @@ export function EmployerShellScreen() {
 
             <AppIcon
 
-              name="document-text-outline"
+              name={(focused ? 'document-text' : 'document-text-outline') as AppIconName}
 
               size={22}
 
