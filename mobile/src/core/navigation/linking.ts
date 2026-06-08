@@ -7,7 +7,6 @@ const prefix = Linking.createURL('/');
 /**
  * Deep link examples:
  * - tarteb://candidate/{id}
- * - tarteb://subscription?success=1
  * - tarteb://browse
  * - tarteb://unlocks
  * - tarteb://dashboard (candidate home)
@@ -20,12 +19,6 @@ export const linking: LinkingOptions<RootStackParamList> = {
         path: 'candidate/:candidateId',
         parse: {
           candidateId: (id: string) => id,
-        },
-      },
-      Subscription: {
-        path: 'subscription',
-        parse: {
-          success: (value: string) => value === '1' || value === 'true',
         },
       },
       EmployerShell: {

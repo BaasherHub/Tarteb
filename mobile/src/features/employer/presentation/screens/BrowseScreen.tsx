@@ -39,15 +39,6 @@ import {
   readBrowseCache,
   writeBrowseCache,
 } from '@/features/employer/data/services/browseCache';
-import {
-  fetchEmployerAccount,
-  hasActiveSubscription,
-} from '@/features/employer/data/services/employerSubscription';
-import {
-  clearSubscriptionPending,
-  getSubscriptionPendingAt,
-  isSubscriptionPending,
-} from '@/features/employer/data/services/subscriptionPending';
 import { BrowseListRow } from '@/features/employer/presentation/components/BrowseListRow';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { RefineFiltersModal } from './RefineFiltersModal';
@@ -79,8 +70,6 @@ export function BrowseScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showingCache, setShowingCache] = useState(false);
-  const [subActive, setSubActive] = useState(false);
-  const [subPending, setSubPending] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [employerProfile, setEmployerProfile] = useState<Record<string, unknown> | null>(null);
   const [showRoleLegend, setShowRoleLegend] = useState(false);
@@ -103,27 +92,18 @@ export function BrowseScreen() {
     void AsyncStorage.setItem(ROLE_LEGEND_DISMISSED_KEY, '1');
   }, []);
 
-  const loadSubscription = useCallback(async () => {
+  const loadEmployerProfile = useCallback(async () => {
     try {
-      const account = await fetchEmployerAccount();
-      const active = hasActiveSubscription(account.subscriptionEndsAt);
-      setSubActive(active);
-      const pendingAt = await getSubscriptionPendingAt();
-      setSubPending(isSubscriptionPending(pendingAt, active));
-      if (active) await clearSubscriptionPending();
-
       const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (userId) {
-        const { data: employer } = await supabase
-          .from('employers')
-          .select('*')
-          .eq('user_id', userId)
-          .maybeSingle();
-        setEmployerProfile(employer as Record<string, unknown> | null);
-      }
+      if (!userId) return;
+      const { data: employer } = await supabase
+        .from('employers')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      setEmployerProfile(employer as Record<string, unknown> | null);
     } catch {
-      setSubActive(false);
-      setSubPending(false);
+      setEmployerProfile(null);
     }
   }, []);
 
@@ -184,8 +164,8 @@ export function BrowseScreen() {
   );
 
   useEffect(() => {
-    loadSubscription();
-  }, [loadSubscription]);
+    loadEmployerProfile();
+  }, [loadEmployerProfile]);
 
   const selectRole = useCallback((role: string) => {
     const next = filtersForRole(role);
@@ -213,9 +193,8 @@ export function BrowseScreen() {
     const f = filtersRef.current;
     if (!f) return;
     setRefreshing(true);
-    loadSubscription();
     void loadPage(f, true);
-  }, [loadPage, loadSubscription]);
+  }, [loadPage]);
 
   const applyRefine = useCallback((next: BrowseFilters) => {
     setFilters(next);
@@ -252,11 +231,6 @@ export function BrowseScreen() {
       });
     },
     [navigation, selectedRole],
-  );
-
-  const navigateSubscription = useCallback(
-    () => navigation.navigate('Subscription'),
-    [navigation],
   );
 
   const keyExtractor = useCallback(
@@ -312,39 +286,6 @@ export function BrowseScreen() {
     );
   }, [loadError, refined, resetRefine, retryLoad, t]);
 
-  const planPill = useMemo(
-    () => (
-      <Pressable
-        style={({ pressed }) => [
-          styles.pill,
-          subActive && styles.pillActive,
-          subPending && styles.pillPending,
-          pressed && styles.pillPressed,
-        ]}
-        onPress={navigateSubscription}
-        accessibilityRole="button"
-        accessibilityLabel={
-          subActive ? t.planActive : subPending ? t.subscriptionPending : t.managePlan
-        }
-        accessibilityHint={t.a11yManagePlanHint}
-        accessibilityState={{ selected: subActive, busy: subPending }}
-      >
-        <Text
-          style={[
-            styles.pillText,
-            subActive && styles.pillTextActive,
-            subPending && styles.pillTextPending,
-          ]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {subActive ? t.planActive : subPending ? t.subscriptionPending : t.managePlan}
-        </Text>
-      </Pressable>
-    ),
-    [navigateSubscription, subActive, subPending, t],
-  );
-
   const employerCompletion =
     employerProfile ? employerProfileCompletion(employerProfile) : null;
 
@@ -374,7 +315,7 @@ export function BrowseScreen() {
     return (
       <ContentWidth style={styles.container}>
         <View style={styles.headerPad}>
-          <ScreenHeader title={t.browse} right={planPill} />
+          <ScreenHeader title={t.browse} />
         </View>
         {employerCompletionCard}
         <RolePickerView onSelectRole={selectRole} />
@@ -426,7 +367,6 @@ export function BrowseScreen() {
                   {refined ? t.filtered : t.browseRefine}
                 </Text>
               </Pressable>
-              {planPill}
             </View>
           }
         />
@@ -541,15 +481,8 @@ const styles = StyleSheet.create({
     borderColor: `${colors.primary}40`,
     maxWidth: 140,
   },
-  pillActive: {
-    backgroundColor: `${colors.secondary}20`,
-    borderColor: `${colors.secondary}50`,
-  },
-  pillPending: { backgroundColor: colors.warningTint },
-  pillTextPending: { color: '#B45309' },
   pillFiltered: { backgroundColor: `${colors.primary}30` },
   pillText: { ...typography.label, color: colors.primary },
-  pillTextActive: { color: colors.secondary },
   pillTextFiltered: { color: colors.primary },
   pillPressed: { opacity: interaction.pressed },
 });

@@ -26,7 +26,6 @@ export type RootStackParamList = {
   CandidateDashboard: undefined;
   CandidateShell: NavigatorScreenParams<CandidateTabParamList> | undefined;
   CandidateDetail: { candidateId: string; hiringRole?: string };
-  Subscription: { success?: boolean } | undefined;
   Settings: undefined;
   PrivacyPolicy: undefined;
 };

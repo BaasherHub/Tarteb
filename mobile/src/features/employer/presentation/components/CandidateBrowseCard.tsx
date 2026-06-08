@@ -7,6 +7,7 @@ import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { usePressScale } from '@/shared/hooks/usePressScale';
 import { candidateCardA11yLabel } from '@/shared/utils/a11y';
+import { formatDisplayName, formatNationalityDisplay } from '@/shared/utils/displayFormat';
 import { VisaChip } from '@/shared/widgets/VisaChip';
 import { CandidateRolesDisplay } from '@/shared/widgets/CandidateRolesDisplay';
 import { formatCandidateRolesA11y } from '@/shared/utils/candidateRoles';
@@ -25,7 +26,7 @@ function CandidateBrowseCardInner({
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const { animatedStyle, onPressIn, onPressOut } = usePressScale();
-  const name = String(item.name ?? '—');
+  const name = formatDisplayName(String(item.name ?? '')) || '—';
   const roleA11y = formatCandidateRolesA11y(item, hiringRole, {
     main: t.employerPrimaryRoleBadge,
     also: t.employerAlsoOpenTo,
@@ -33,7 +34,7 @@ function CandidateBrowseCardInner({
     matchSecondary: t.employerMatchSecondaryShort,
   });
   const location = String(item.location ?? '');
-  const nationality = String(item.nationality ?? '');
+  const nationality = formatNationalityDisplay(String(item.nationality ?? ''));
   const visa = String(item.visa_status ?? '');
   const salary = item.salary_expectation;
   const photoUrl = item.photo_url as string | undefined;

@@ -60,7 +60,6 @@ export function DateField({
         {...({ type: 'date', min: todayIsoLocal() } as object)}
         value={display}
         onChange={handleChange}
-        placeholder={t.datePlaceholder}
         placeholderTextColor={colors.placeholder}
         style={[styles.input, error ? styles.inputError : null]}
         accessibilityLabel={fieldA11yLabel(label, error, hint, flags, t)}

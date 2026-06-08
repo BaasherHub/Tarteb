@@ -179,7 +179,6 @@ export function EmployerStep2Contact({ navigation }: Props) {
           }}
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholder={t.emailPlaceholder}
           error={errors.email}
         />
         <LocationPicker

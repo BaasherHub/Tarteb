@@ -46,10 +46,6 @@ export const PhoneNumberField = memo(function PhoneNumberField({
   const displayValue =
     allowEmpty && !value.trim() ? '' : value || formatUaePhoneInput('');
 
-  const placeholder =
-    rest.placeholder ??
-    (allowEmpty ? t.whatsappEmptyPlaceholder : t.phonePlaceholderSpaced);
-
   const required = requiredProp ?? !allowEmpty;
   const optional = optionalProp ?? allowEmpty;
 
@@ -63,7 +59,7 @@ export const PhoneNumberField = memo(function PhoneNumberField({
         hint={hint}
         value={displayValue}
         onChangeText={handleChange}
-        placeholder={placeholder}
+        placeholder={rest.placeholder}
         keyboardType="phone-pad"
         textContentType="telephoneNumber"
         autoComplete="tel"

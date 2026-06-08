@@ -152,7 +152,6 @@ function RefineFiltersModalInner({
                 setFilters((f) => ({ ...f, nationalitySearch: n }));
               }}
               options={nationalityOptions}
-              placeholder={t.nationalityPlaceholder}
             />
           </Section>
 
@@ -184,7 +183,6 @@ function RefineFiltersModalInner({
                       salaryMin: parseInt(v, 10) || 0,
                     }))
                   }
-                  placeholder={t.salaryMinPlaceholder}
                 />
               </View>
               <View style={styles.salaryHalf}>
@@ -202,7 +200,6 @@ function RefineFiltersModalInner({
                       salaryMax: parseInt(v, 10) || SALARY_FILTER_MAX,
                     }))
                   }
-                  placeholder={t.salaryMaxPlaceholder}
                 />
               </View>
             </View>

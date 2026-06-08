@@ -47,10 +47,9 @@ export function DateField({
         accessibilityRole="button"
         accessibilityLabel={fieldA11yLabel(label, error, hint, flags, t)}
       >
-        <Text style={value && isValidDate(value) ? styles.valueText : styles.placeholderText}>
-          {display || t.datePlaceholder}
-        </Text>
-        <Text style={styles.pickHint}>{t.pickDate}</Text>
+        {display ? (
+          <Text style={styles.valueText}>{display}</Text>
+        ) : null}
       </Pressable>
       {showPicker ? (
         <DateTimePicker
@@ -90,6 +89,4 @@ const styles = StyleSheet.create({
   inputError: { borderColor: colors.error },
   pressable: { justifyContent: 'center' },
   valueText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  placeholderText: { fontSize: 16, color: colors.placeholder },
-  pickHint: { marginTop: spacing.xs, fontSize: 12, color: colors.textSecondary },
 });

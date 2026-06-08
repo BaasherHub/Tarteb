@@ -6,7 +6,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { supabase } from '@/core/lib/supabase';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
-import { FLAT_LIST_PERF, unlockItemLayout } from '@/shared/constants/listPerf';
+import { FLAT_LIST_PERF, browseItemLayout } from '@/shared/constants/listPerf';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { EmptyState } from '@/shared/widgets/EmptyState';
 import { ErrorState } from '@/shared/widgets/ErrorState';
@@ -15,13 +15,15 @@ import { BrowseListSkeleton } from '@/shared/widgets/BrowseListSkeleton';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { colors } from '@/core/theme/colors';
 import { layout, layoutStyles } from '@/core/theme/layout';
-import { spacing } from '@/core/theme/spacing';
-import {
-  UnlockListRow,
-  type UnlockRow,
-} from '@/features/employer/presentation/components/UnlockListRow';
+import { CandidateBrowseCard } from '@/features/employer/presentation/components/CandidateBrowseCard';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+type UnlockRow = {
+  id: string;
+  candidate_id: string;
+  unlocked_at: string;
+};
 
 const ListSeparator = () => <View style={styles.sep} />;
 
@@ -29,6 +31,7 @@ export function MyUnlocksScreen() {
   const { t } = useLocale();
   const navigation = useNavigation<Nav>();
   const [rows, setRows] = useState<UnlockRow[]>([]);
+  const [candidates, setCandidates] = useState<Record<string, Record<string, unknown>>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,15 +40,38 @@ export function MyUnlocksScreen() {
     if (!isRefresh) setLoading(true);
     setError(null);
     try {
-      const { data, error: qError } = await supabase
+      const { data: unlockData, error: qError } = await supabase
         .from('unlocks')
-        .select('id, candidate_id, unlocked_at, candidates(name, role, visa_status, location)')
+        .select('id, candidate_id, unlocked_at')
         .order('unlocked_at', { ascending: false });
       if (qError) throw qError;
-      setRows((data ?? []) as UnlockRow[]);
+
+      const unlockRows = (unlockData ?? []) as UnlockRow[];
+      setRows(unlockRows);
+
+      const ids = unlockRows.map((r) => r.candidate_id);
+      if (ids.length === 0) {
+        setCandidates({});
+        return;
+      }
+
+      const { data: browseData, error: browseError } = await supabase
+        .from('candidate_browse')
+        .select('*')
+        .in('id', ids);
+      if (browseError) throw browseError;
+
+      const byId: Record<string, Record<string, unknown>> = {};
+      for (const row of browseData ?? []) {
+        byId[String((row as { id: string }).id)] = row as Record<string, unknown>;
+      }
+      setCandidates(byId);
     } catch (e) {
       setError(getErrorMessage(e, t.errorLoadList));
-      if (!isRefresh) setRows([]);
+      if (!isRefresh) {
+        setRows([]);
+        setCandidates({});
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -61,22 +87,38 @@ export function MyUnlocksScreen() {
     void load(true);
   }, [load]);
 
-  const openCandidate = useCallback(
-    (item: UnlockRow) => {
-      const role = item.candidates?.role;
-      navigation.navigate('CandidateDetail', {
-        candidateId: item.candidate_id,
-        ...(role ? { hiringRole: String(role) } : {}),
-      });
-    },
-    [navigation],
+  const listData = useMemo(
+    () =>
+      rows
+        .map((row) => candidates[row.candidate_id])
+        .filter((item): item is Record<string, unknown> => Boolean(item)),
+    [rows, candidates],
   );
 
-  const keyExtractor = useCallback((item: UnlockRow) => item.id, []);
+  const openCandidate = useCallback(
+    (candidateId: string) => {
+      const item = candidates[candidateId];
+      const role = item?.role ? String(item.role) : undefined;
+      navigation.navigate('CandidateDetail', {
+        candidateId,
+        ...(role ? { hiringRole: role } : {}),
+      });
+    },
+    [candidates, navigation],
+  );
+
+  const keyExtractor = useCallback(
+    (item: Record<string, unknown>) => String(item.id),
+    [],
+  );
 
   const renderItem = useCallback(
-    ({ item }: { item: UnlockRow }) => (
-      <UnlockListRow item={item} onOpen={() => openCandidate(item)} />
+    ({ item }: { item: Record<string, unknown> }) => (
+      <CandidateBrowseCard
+        item={item}
+        hiringRole={item.role ? String(item.role) : null}
+        onPress={() => openCandidate(String(item.id))}
+      />
     ),
     [openCandidate],
   );
@@ -112,16 +154,16 @@ export function MyUnlocksScreen() {
       <View style={styles.headerPad}>
         <ScreenHeader title={t.myUnlocks} />
       </View>
-      {loading && rows.length === 0 ? (
+      {loading && listData.length === 0 ? (
         <BrowseListSkeleton rows={4} />
       ) : (
         <FlatList
           style={styles.list}
           contentContainerStyle={styles.listContent}
-          data={rows}
+          data={listData}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          getItemLayout={unlockItemLayout}
+          getItemLayout={browseItemLayout}
           {...FLAT_LIST_PERF}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

@@ -345,8 +345,6 @@ export function EmailOtpScreen({ navigation }: Props) {
 
                   autoCapitalize="none"
 
-                  placeholder={t.emailPlaceholder}
-
                   error={emailError}
 
                 />

@@ -72,7 +72,6 @@ export function EmployerStep1Company() {
               update({ companyName: v });
               setCompanyError(undefined);
             }}
-            placeholder={t.companyPlaceholder}
             error={companyError}
           />
         </View>
@@ -82,7 +81,6 @@ export function EmployerStep1Company() {
           optional
           value={data.tradeLicense}
           onChangeText={(v) => update({ tradeLicense: v })}
-          placeholder={t.tradeLicensePlaceholder}
           autoCapitalize="characters"
         />
       </SurfaceCard>

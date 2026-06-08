@@ -109,7 +109,6 @@ export function LocationPicker({
         onChangeText={commitAreaQuery}
         onSelect={selectArea}
         options={areaOptions}
-        placeholder={t.locationAreaPlaceholder}
         emptyHint={t.locationNoMatch}
         onBlur={handleAreaBlur}
       />

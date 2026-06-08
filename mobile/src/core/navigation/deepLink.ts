@@ -33,9 +33,7 @@ export function payloadToUrl(data: PushPayload): string | null {
       if (data.candidateId) return `tarteb://candidate/${data.candidateId}`;
       break;
     case 'subscription':
-      return parseSuccess(data.success)
-        ? 'tarteb://subscription?success=1'
-        : 'tarteb://subscription';
+      return 'tarteb://browse';
     case 'unlock':
       if (data.candidateId) return `tarteb://candidate/${data.candidateId}`;
       return 'tarteb://unlocks';
@@ -80,9 +78,7 @@ export function navigateFromUrl(
   }
 
   if (host === 'subscription' || pathParts[0] === 'subscription') {
-    ref.navigate('Subscription', {
-      success: parseSuccess(parsed.queryParams?.success),
-    });
+    ref.navigate('EmployerShell', { screen: 'BrowseTab' });
     clearPendingDeepLink();
     return true;
   }

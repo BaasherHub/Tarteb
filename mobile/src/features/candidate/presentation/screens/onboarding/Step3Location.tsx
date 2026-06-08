@@ -117,7 +117,6 @@ export function Step3Location() {
             update({ name: v });
             setErrors((e) => ({ ...e, name: undefined }));
           }}
-          placeholder={t.fullNamePlaceholder}
           error={errors.name}
         />
 
@@ -172,7 +171,6 @@ export function Step3Location() {
             setErrors((e) => ({ ...e, nationality: undefined }));
           }}
           options={nationalityOptions}
-          placeholder={t.nationalityPlaceholder}
           emptyHint={t.errNationalityPick}
           error={errors.nationality}
         />

@@ -97,7 +97,6 @@ export function LocationFilterSection({ locations, onChange }: Props) {
         }}
         onSelect={(area: string) => addLocation(formatLocation(emirate, area))}
         options={areaOptions}
-        placeholder={t.locationAreaPlaceholder}
         onBlur={commitArea}
       />
       <SelectableChip

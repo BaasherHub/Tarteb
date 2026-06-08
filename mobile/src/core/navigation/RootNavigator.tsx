@@ -98,11 +98,6 @@ export function RootNavigator() {
           options={{ title: t.candidateProfileTitle }}
         />
         <Stack.Screen
-          name="Subscription"
-          component={SubscriptionScreen}
-          options={{ headerShown: false, presentation: 'modal' }}
-        />
-        <Stack.Screen
           name="CandidateOnboarding"
           component={CandidateOnboardingScreen}
           options={{ headerShown: false }}
@@ -145,7 +140,6 @@ import { RoleSelectionScreen } from '@/features/auth/presentation/screens/RoleSe
 import { EmployerOnboardingScreen } from '@/features/employer/presentation/screens/EmployerOnboardingScreen';
 import { EmployerShellScreen } from '@/features/employer/presentation/screens/EmployerShellScreen';
 import { CandidateDetailScreen } from '@/features/employer/presentation/screens/CandidateDetailScreen';
-import { SubscriptionScreen } from '@/features/employer/presentation/screens/SubscriptionScreen';
 import { CandidateOnboardingScreen } from '@/features/candidate/presentation/screens/CandidateOnboardingScreen';
 import { CandidateAdditionalRolesScreen } from '@/features/candidate/presentation/screens/CandidateAdditionalRolesScreen';
 import { CandidateShellScreen } from '@/features/candidate/presentation/screens/CandidateShellScreen';

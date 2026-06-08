@@ -44,7 +44,6 @@ export const OtpCodeField = memo(function OtpCodeField({
         style={[styles.input, styles.otp, error ? styles.inputError : null]}
         keyboardType="number-pad"
         maxLength={6}
-        placeholder={t.otpPlaceholder}
         placeholderTextColor={colors.placeholder}
         value={value}
         editable={!disabled}

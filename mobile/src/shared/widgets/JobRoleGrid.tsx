@@ -143,7 +143,6 @@ export const JobRoleGrid = memo(function JobRoleGrid({
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={t.jobRoleSearchPlaceholder}
           placeholderTextColor={colors.placeholder}
           style={[
             styles.search,
