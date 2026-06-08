@@ -64,6 +64,7 @@ export interface Strings {
   currentSalaryLocked: string;
   unlockContact: string;
   contactUnlocked: string;
+  contactUnlockedNoDetails: string;
   settings: string;
   settingsSectionAccount: string;
   settingsSectionPreferences: string;
@@ -495,6 +496,8 @@ const en: Strings = {
   currentSalaryLocked: 'Unlock to see current salary',
   unlockContact: 'Unlock contact',
   contactUnlocked: 'Contact unlocked!',
+  contactUnlockedNoDetails:
+    'Contact unlocked, but this candidate has not added a phone or WhatsApp number yet.',
   settings: 'Settings',
   settingsSectionAccount: 'Account',
   settingsSectionPreferences: 'Preferences',
@@ -1009,6 +1012,8 @@ const ar: Strings = {
   currentSalaryLocked: 'افتح الملف لرؤية الراتب الحالي',
   unlockContact: 'افتح بيانات التواصل',
   contactUnlocked: 'تم فتح بيانات التواصل!',
+  contactUnlockedNoDetails:
+    'تم فتح بيانات التواصل، لكن المرشح لم يُضف رقم هاتف أو واتساب بعد.',
   settings: 'الإعدادات',
   settingsSectionAccount: 'الحساب',
   settingsSectionPreferences: 'التفضيلات',

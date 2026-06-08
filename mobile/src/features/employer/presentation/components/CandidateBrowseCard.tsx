@@ -11,6 +11,7 @@ import { formatDisplayName, formatNationalityDisplay } from '@/shared/utils/disp
 import { VisaChip } from '@/shared/widgets/VisaChip';
 import { CandidateRolesDisplay } from '@/shared/widgets/CandidateRolesDisplay';
 import { formatCandidateRolesA11y } from '@/shared/utils/candidateRoles';
+import { isCandidateUnlocked } from '@/features/employer/domain/candidateUnlock';
 
 type Props = {
   item: Record<string, unknown>;
@@ -38,7 +39,7 @@ function CandidateBrowseCardInner({
   const visa = String(item.visa_status ?? '');
   const salary = item.salary_expectation;
   const photoUrl = item.photo_url as string | undefined;
-  const unlocked = item.phone != null;
+  const unlocked = isCandidateUnlocked(item);
   const hasCv = item.has_cv === true;
   const lastActiveAt = item.last_active_at as string | undefined;
   const activeDays = lastActiveAt
