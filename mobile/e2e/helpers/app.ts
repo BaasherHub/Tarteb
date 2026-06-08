@@ -8,11 +8,14 @@ export async function completeLanguageSelectionIfNeeded(page: Page): Promise<voi
   }
 }
 
-export async function isEmployerBrowseVisible(page: Page): Promise<boolean> {
+export async function isEmployerBrowseVisible(
+  page: Page,
+  timeoutMs = 5_000,
+): Promise<boolean> {
   const browseHeading = page.getByText(
     /what role are you hiring for|ما المهنة التي توظف لها/i,
   );
-  return browseHeading.isVisible({ timeout: 5_000 }).catch(() => false);
+  return browseHeading.isVisible({ timeout: timeoutMs }).catch(() => false);
 }
 
 export async function isAuthScreenVisible(page: Page): Promise<boolean> {

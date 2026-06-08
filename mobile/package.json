@@ -55,7 +55,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test e2e/employer-browse-unlock.spec.ts",
-    "test:e2e:auth": "playwright test e2e/auth.setup.ts --headed",
+    "test:e2e:auth": "playwright test e2e/auth.setup.spec.ts",
     "lint": "eslint src",
     "generate:assets": "node scripts/generate-brand-assets.mjs"
   },
