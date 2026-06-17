@@ -58,8 +58,10 @@ export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
   const role = profile.role as string;
   if (role === 'candidate') {
     await routeCandidate(navigation, userId);
-  } else {
+  } else if (role === 'employer') {
     await routeEmployer(navigation, userId);
+  } else {
+    navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   }
 }
 

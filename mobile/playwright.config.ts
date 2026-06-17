@@ -26,5 +26,9 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        env: {
+          ...process.env,
+          EXPO_PUBLIC_E2E_AUTO_PHOTO: 'true',
+        },
       },
 });

@@ -70,6 +70,10 @@ export async function signInWithVerifiedPhone(phone: string): Promise<void> {
     .maybeSingle();
 
   if (profile) {
-    await supabase.from('profiles').update({ phone: e164 }).eq('user_id', userId);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ phone: e164 })
+      .eq('user_id', userId);
+    if (error) throw error;
   }
 }

@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
 
-  Alert,
-
   Image,
 
   Pressable,
@@ -80,6 +78,8 @@ import {
 import { layout } from '@/core/theme/layout';
 import { interaction } from '@/core/theme/interaction';
 import { CandidateCvSection } from '@/features/candidate/presentation/components/CandidateCvSection';
+import { useAppAlert } from '@/shared/hooks/useAppAlert';
+import { useConfirmDialog } from '@/shared/hooks/useConfirmDialog';
 
 
 
@@ -94,6 +94,10 @@ export function CandidateDashboardScreen() {
   const rtl = useRtlStyles();
 
   const navigation = useNavigation<Nav>();
+
+  const { showError } = useAppAlert();
+
+  const { runConfirmAction, dialog } = useConfirmDialog();
 
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
 
@@ -164,12 +168,12 @@ export function CandidateDashboardScreen() {
     try {
       await fetchCandidate();
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [fetchCandidate, t]);
+  }, [fetchCandidate, showError, t]);
 
   useEffect(() => {
     load();
@@ -185,10 +189,10 @@ export function CandidateDashboardScreen() {
     useCallback(() => {
       if (!loading) {
         void fetchCandidate().catch((e) => {
-          Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+          showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
         });
       }
-    }, [fetchCandidate, loading, t]),
+    }, [fetchCandidate, loading, showError, t]),
   );
 
 
@@ -199,58 +203,47 @@ export function CandidateDashboardScreen() {
 
     if (!userId) return;
 
-    await supabase
-
+    const { error } = await supabase
       .from('candidates')
-
       .update({
-
         is_active: value,
-
         availability_status: value ? 'looking' : 'paused',
-
       })
-
       .eq('user_id', userId);
 
-    load();
+    if (error) {
+      showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
+      return;
+    }
 
+    load();
   };
 
-
-
   const markHired = () => {
-
-    Alert.alert(t.hiredAlertTitle, t.hiredAlertMessage, [
-
-      { text: t.cancel, style: 'cancel' },
-
+    runConfirmAction(
       {
-
-        text: t.hiredAlertConfirm,
-
-        onPress: async () => {
-
-          const userId = (await supabase.auth.getUser()).data.user?.id;
-
-          if (!userId) return;
-
-          await supabase
-
-            .from('candidates')
-
-            .update({ is_active: false, availability_status: 'hired' })
-
-            .eq('user_id', userId);
-
-          load();
-
-        },
-
+        title: t.hiredAlertTitle,
+        message: t.hiredAlertMessage,
+        confirmLabel: t.hiredAlertConfirm,
+        cancelLabel: t.cancel,
       },
+      async () => {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) return;
 
-    ]);
+        const { error } = await supabase
+          .from('candidates')
+          .update({ is_active: false, availability_status: 'hired' })
+          .eq('user_id', userId);
 
+        if (error) {
+          showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
+          return;
+        }
+
+        load();
+      },
+    );
   };
 
 
@@ -372,7 +365,7 @@ export function CandidateDashboardScreen() {
 
 
   return (
-
+    <>
     <TabScreenLayout
 
       refreshControl={
@@ -662,7 +655,8 @@ export function CandidateDashboardScreen() {
       </View>
 
     </TabScreenLayout>
-
+    {dialog}
+    </>
   );
 
 }

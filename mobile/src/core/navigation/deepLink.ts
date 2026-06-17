@@ -1,6 +1,11 @@
-import * as Linking from 'expo-linking';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from '@/core/navigation/types';
+import {
+  fetchAccountRole,
+  parseDeepLinkIntent,
+  type AccountRole,
+  type DeepLinkIntent,
+} from '@/core/navigation/deepLinkRole';
 
 export type PushPayload = {
   url?: string;
@@ -17,6 +22,10 @@ export function stashPendingDeepLink(url: string): void {
 
 export function clearPendingDeepLink(): void {
   pendingUrl = null;
+}
+
+export function getPendingDeepLink(): string | null {
+  return pendingUrl;
 }
 
 /** Map push data payload → tarteb:// URL. */
@@ -44,72 +53,63 @@ export function payloadToUrl(data: PushPayload): string | null {
   return null;
 }
 
-function candidateIdFromUrl(url: string): string | null {
-  const parsed = Linking.parse(url);
-  const pathParts = (parsed.path ?? '').split('/').filter(Boolean);
-  if (pathParts[0] === 'candidate' && pathParts[1]) return pathParts[1];
-  if (parsed.hostname === 'candidate' && pathParts[0]) return pathParts[0];
-  const q = parsed.queryParams?.candidateId;
-  return typeof q === 'string' ? q : null;
+function navigateIntent(
+  ref: NavigationContainerRef<RootStackParamList>,
+  intent: DeepLinkIntent,
+  role: AccountRole | null,
+): boolean {
+  if (intent.kind === 'candidateDetail') {
+    if (role === 'employer') {
+      ref.navigate('CandidateDetail', { candidateId: intent.candidateId });
+      return true;
+    }
+    ref.navigate('CandidateShell', { screen: 'HomeTab' });
+    return true;
+  }
+
+  if (intent.kind === 'employerTab') {
+    if (role === 'employer') {
+      ref.navigate('EmployerShell', { screen: intent.tab });
+      return true;
+    }
+    ref.navigate('CandidateShell', { screen: 'HomeTab' });
+    return true;
+  }
+
+  if (intent.kind === 'candidateTab') {
+    if (role === 'candidate') {
+      ref.navigate('CandidateShell', { screen: intent.tab });
+      return true;
+    }
+    ref.navigate('EmployerShell', { screen: 'BrowseTab' });
+    return true;
+  }
+
+  return false;
 }
 
-export function navigateFromUrl(
+export async function navigateFromUrl(
   ref: NavigationContainerRef<RootStackParamList>,
   url: string,
-): boolean {
+): Promise<boolean> {
   if (!ref.isReady()) {
     stashPendingDeepLink(url);
     return false;
   }
 
-  const parsed = Linking.parse(url);
-  const pathParts = (parsed.path ?? '').split('/').filter(Boolean);
-  const host = parsed.hostname ?? pathParts[0] ?? '';
+  const intent = parseDeepLinkIntent(url);
+  if (!intent) return false;
 
-  const candidateId = candidateIdFromUrl(url);
-  if (candidateId) {
-    ref.navigate('CandidateDetail', { candidateId });
-    clearPendingDeepLink();
-    return true;
+  const role = await fetchAccountRole();
+  if (!role) {
+    stashPendingDeepLink(url);
+    ref.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+    return false;
   }
 
-  if (host === 'subscription' || pathParts[0] === 'subscription') {
-    ref.navigate('EmployerShell', { screen: 'BrowseTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  if (host === 'browse' || pathParts[0] === 'browse') {
-    ref.navigate('EmployerShell', { screen: 'BrowseTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  if (host === 'unlocks' || pathParts[0] === 'unlocks') {
-    ref.navigate('EmployerShell', { screen: 'UnlocksTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  if (host === 'dashboard' || pathParts[0] === 'dashboard') {
-    ref.navigate('CandidateShell', { screen: 'HomeTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  if (host === 'settings' || pathParts[0] === 'settings') {
-    ref.navigate('CandidateShell', { screen: 'SettingsTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  if (host === 'employer-settings' || pathParts[0] === 'employer-settings') {
-    ref.navigate('EmployerShell', { screen: 'SettingsTab' });
-    clearPendingDeepLink();
-    return true;
-  }
-
-  return false;
+  const ok = navigateIntent(ref, intent, role);
+  if (ok) clearPendingDeepLink();
+  return ok;
 }
 
 export function flushPendingDeepLink(
@@ -117,9 +117,9 @@ export function flushPendingDeepLink(
 ): void {
   if (!pendingUrl) return;
   const url = pendingUrl;
-  if (navigateFromUrl(ref, url)) {
-    clearPendingDeepLink();
-  }
+  void navigateFromUrl(ref, url).then((ok) => {
+    if (ok) clearPendingDeepLink();
+  });
 }
 
 export function handlePushPayload(
@@ -127,5 +127,5 @@ export function handlePushPayload(
   data: PushPayload,
 ): void {
   const url = payloadToUrl(data);
-  if (url) navigateFromUrl(ref, url);
+  if (url) void navigateFromUrl(ref, url);
 }

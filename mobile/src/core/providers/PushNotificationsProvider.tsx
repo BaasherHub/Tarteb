@@ -15,17 +15,13 @@ type Props = { children: React.ReactNode };
 export function PushNotificationsProvider({ children }: Props) {
   useEffect(() => {
     const onUrl = ({ url }: { url: string }) => {
-      if (navigationRef.isReady()) {
-        navigateFromUrl(navigationRef, url);
-      }
+      void navigateFromUrl(navigationRef, url);
     };
 
     const urlSub = Linking.addEventListener('url', onUrl);
 
     void Linking.getInitialURL().then((url) => {
-      if (url && navigationRef.isReady()) {
-        navigateFromUrl(navigationRef, url);
-      }
+      if (url) void navigateFromUrl(navigationRef, url);
     });
 
     return () => urlSub.remove();
