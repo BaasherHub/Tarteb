@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(data.session);
           setIsReady(true);
         });
-        return true;
+        return ready;
       });
     }, 3000);
 

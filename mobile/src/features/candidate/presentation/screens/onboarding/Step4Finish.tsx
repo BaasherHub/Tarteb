@@ -142,7 +142,7 @@ export function Step4Finish({ navigation }: Props) {
         whatsapp: whatsappResult.ok ? whatsappResult.e164 : null,
         years_experience: data.yearsExperience ?? 0,
         languages: sanitizeLanguages(data.languages),
-        uae_experience: null,
+        uae_experience: false,
         previous_employer: null,
         is_active: true,
       });

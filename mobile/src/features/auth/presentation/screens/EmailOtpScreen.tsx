@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
 
@@ -54,6 +54,7 @@ import { AppBrand } from '@/shared/widgets/AppBrand';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
 
 import { Screen } from '@/shared/widgets/Screen';
+import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
 
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 
@@ -68,6 +69,7 @@ import { OtpCodeField } from '@/shared/widgets/OtpCodeField';
 import { AuthSuccessPulse } from '@/shared/widgets/AuthSuccessPulse';
 
 import { AUTH_SUCCESS_ROUTE_DELAY_MS } from '@/shared/constants/authTiming';
+import { useAuth } from '@/core/providers/AuthProvider';
 
 
 
@@ -84,6 +86,10 @@ export function EmailOtpScreen({ navigation }: Props) {
   const { t } = useLocale();
 
   const rtl = useRtlStyles();
+
+  const { session, isReady } = useAuth();
+
+  const routedRef = useRef(false);
 
   const otpInputRef = useRef<TextInput>(null);
 
@@ -103,7 +109,23 @@ export function EmailOtpScreen({ navigation }: Props) {
 
   const [formError, setFormError] = useState<string | undefined>();
 
+  const [sessionRouting, setSessionRouting] = useState(false);
 
+  useEffect(() => {
+    if (!isReady || !session || routedRef.current) return;
+    routedRef.current = true;
+    setSessionRouting(true);
+    routeAuthenticatedUser(navigation)
+      .catch((e) => {
+        routedRef.current = false;
+        setFormError(
+          e instanceof AuthRoutingError
+            ? e.message
+            : getErrorMessage(e, t.errorGeneric),
+        );
+      })
+      .finally(() => setSessionRouting(false));
+  }, [isReady, session, navigation, t.errorGeneric]);
 
   const finishAuth = async () => {
 
@@ -242,6 +264,14 @@ export function EmailOtpScreen({ navigation }: Props) {
   };
 
 
+
+  if (!isReady || sessionRouting) {
+    return (
+      <Screen>
+        <ScreenLoading message={t.loading} />
+      </Screen>
+    );
+  }
 
   if (phase === 'success') {
 

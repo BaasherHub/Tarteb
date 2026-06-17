@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
 import { OnboardingStepIntro } from '@/features/candidate/presentation/components/OnboardingStepIntro';
@@ -16,6 +16,15 @@ import { PhotoAvatarPicker } from '@/features/candidate/presentation/components/
 import { FieldLabel } from '@/shared/widgets/FieldLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 
+/** 1×1 PNG — used when EXPO_PUBLIC_E2E_AUTO_PHOTO is set (Playwright web). */
+const E2E_TINY_PNG_DATA_URI =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+const E2E_AUTO_PHOTO =
+  Platform.OS === 'web' &&
+  (process.env.EXPO_PUBLIC_E2E_AUTO_PHOTO === 'true' ||
+    process.env.EXPO_PUBLIC_E2E_AUTO_PHOTO === '1');
+
 export function Step1Photo() {
   const { t } = useLocale();
   const { data, update, setStep } = useCandidateOnboarding();
@@ -23,6 +32,38 @@ export function Step1Photo() {
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | undefined>();
   const [permissionError, setPermissionError] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!E2E_AUTO_PHOTO || data.photoUrl || localUri) return;
+
+    let cancelled = false;
+    void (async () => {
+      setUploading(true);
+      try {
+        const url = await uploadCandidatePhoto(
+          E2E_TINY_PNG_DATA_URI,
+          'e2e-avatar.png',
+          'image/png',
+        );
+        if (cancelled) return;
+        setLocalUri(E2E_TINY_PNG_DATA_URI);
+        update({ photoUrl: url });
+        setPhotoError(undefined);
+        setPermissionError(undefined);
+      } catch (e) {
+        if (!cancelled) {
+          setPermissionError(getErrorMessage(e, t.errorGeneric));
+          setLocalUri(null);
+        }
+      } finally {
+        if (!cancelled) setUploading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data.photoUrl, localUri, t, update]);
 
   const pickImage = async (useCamera: boolean) => {
     const perm = useCamera

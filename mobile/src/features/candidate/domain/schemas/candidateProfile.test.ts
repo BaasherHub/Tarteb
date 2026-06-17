@@ -17,7 +17,7 @@ const validPayload = {
   whatsapp: null,
   years_experience: 2,
   languages: ['English', 'Arabic'],
-  uae_experience: null,
+  uae_experience: false,
   previous_employer: null,
   is_active: true as const,
 };
