@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import {
-  Alert,
   Image,
   Linking,
   ScrollView,
@@ -33,6 +32,8 @@ import { ProfileFactRow } from '@/shared/widgets/ProfileFactRow';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { useToast } from '@/core/providers/ToastProvider';
+import { useAppAlert } from '@/shared/hooks/useAppAlert';
+import { fetchAccountRole } from '@/core/navigation/deepLinkRole';
 import {
   hasCandidateContact,
   isCandidateUnlocked,
@@ -48,6 +49,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CandidateDetail'>;
 export function CandidateDetailScreen({ route, navigation }: Props) {
   const { t } = useLocale();
   const { showToast } = useToast();
+  const { showError } = useAppAlert();
   const rtl = useRtlStyles();
   const candidateId = route.params.candidateId;
 
@@ -102,7 +104,14 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
       navigation.goBack();
       return;
     }
-    navigation.navigate('EmployerShell', { screen: 'BrowseTab' });
+    void (async () => {
+      const role = await fetchAccountRole();
+      if (role === 'candidate') {
+        navigation.navigate('CandidateShell', { screen: 'HomeTab' });
+        return;
+      }
+      navigation.navigate('EmployerShell', { screen: 'BrowseTab' });
+    })();
   };
 
   const unlock = async () => {
@@ -125,7 +134,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         },
       });
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     }
   };
 
@@ -241,7 +250,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
                       const url = await getCandidateCvSignedUrl(cvPath);
                       await Linking.openURL(url);
                     } catch (e) {
-                      Alert.alert(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
+                      showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
                     }
                   }}
                 />

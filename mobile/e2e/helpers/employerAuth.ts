@@ -1,5 +1,6 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { completeLanguageSelectionIfNeeded, isEmployerBrowseVisible } from './app';
+import { isVisible, typeInto } from './rnForm';
 
 const BROWSE_HEADING = /what role are you hiring for|ما المهنة التي توظف لها/i;
 const ROLE_EMPLOYER = /^(Employer|صاحب عمل)$/i;
@@ -65,18 +66,6 @@ export async function ensureEmployerBrowseSession(page: Page): Promise<void> {
   }
 
   await expect(page.getByText(BROWSE_HEADING)).toBeVisible({ timeout: 10_000 });
-}
-
-async function isVisible(locator: Locator): Promise<boolean> {
-  return locator.isVisible({ timeout: 500 }).catch(() => false);
-}
-
-/** RN Web controlled inputs: keyboard events update React state reliably. */
-async function typeInto(page: Page, locator: Locator, value: string): Promise<void> {
-  await locator.click();
-  await page.keyboard.press('ControlOrMeta+A');
-  await page.keyboard.press('Backspace');
-  await page.keyboard.type(value, { delay: 25 });
 }
 
 async function clickWhenEnabled(page: Page, name: RegExp): Promise<void> {

@@ -83,8 +83,8 @@ export function RoleSelectionScreen({ navigation }: Props) {
   const [formError, setFormError] = useState<string | undefined>();
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      setHasSession(Boolean(data.session));
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!error) setHasSession(Boolean(data.session));
     });
   }, []);
 

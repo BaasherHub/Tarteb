@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   Pressable,
   StyleSheet,
@@ -24,6 +23,8 @@ import {
   uploadCandidateCv,
 } from '@/shared/services/candidateCv';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { useAppAlert } from '@/shared/hooks/useAppAlert';
+import { useConfirmDialog } from '@/shared/hooks/useConfirmDialog';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 
@@ -36,6 +37,8 @@ type Props = {
 export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
+  const { showError } = useAppAlert();
+  const { runConfirmAction, dialog } = useConfirmDialog();
   const [busy, setBusy] = useState(false);
 
   const pickAndUpload = async () => {
@@ -52,7 +55,7 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
     const asset = result.assets[0];
     const name = asset.name ?? 'cv.pdf';
     if (!isAllowedCvFile(name, asset.size ?? null)) {
-      Alert.alert(t.errorTitle, t.cvInvalidFile);
+      showError(t.errorTitle, t.cvInvalidFile);
       return;
     }
 
@@ -80,7 +83,7 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
 
       await onUpdated();
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.cvUploadFailed));
+      showError(t.errorTitle, getErrorMessage(e, t.cvUploadFailed));
     } finally {
       setBusy(false);
     }
@@ -95,7 +98,7 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
       if (!canOpen) throw new Error('Cannot open CV');
       await Linking.openURL(url);
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
+      showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
     } finally {
       setBusy(false);
     }
@@ -103,34 +106,33 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
 
   const removeCv = () => {
     if (!cvPath) return;
-    Alert.alert(t.cvRemoveTitle, t.cvRemoveMessage, [
-      { text: t.cancel, style: 'cancel' },
+    runConfirmAction(
       {
-        text: t.cvRemoveConfirm,
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setBusy(true);
-            try {
-              const userId = (await supabase.auth.getUser()).data.user?.id;
-              if (!userId) return;
-
-              await removeCandidateCvFile(cvPath).catch(() => {});
-              const { error } = await supabase
-                .from('candidates')
-                .update({ cv_url: null, cv_file_name: null })
-                .eq('user_id', userId);
-              if (error) throw error;
-              await onUpdated();
-            } catch (e) {
-              Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
-            } finally {
-              setBusy(false);
-            }
-          })();
-        },
+        title: t.cvRemoveTitle,
+        message: t.cvRemoveMessage,
+        confirmLabel: t.cvRemoveConfirm,
+        cancelLabel: t.cancel,
       },
-    ]);
+      async () => {
+        setBusy(true);
+        try {
+          const userId = (await supabase.auth.getUser()).data.user?.id;
+          if (!userId) return;
+
+          await removeCandidateCvFile(cvPath).catch(() => {});
+          const { error } = await supabase
+            .from('candidates')
+            .update({ cv_url: null, cv_file_name: null })
+            .eq('user_id', userId);
+          if (error) throw error;
+          await onUpdated();
+        } catch (e) {
+          showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+        } finally {
+          setBusy(false);
+        }
+      },
+    );
   };
 
   const displayName = cvFileName?.trim() || t.cvAttached;
@@ -203,6 +205,7 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
           accessibilityHint={t.cvSectionHint}
         />
       )}
+      {dialog}
     </View>
   );
 }

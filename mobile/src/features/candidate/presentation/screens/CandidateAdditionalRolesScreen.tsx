@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -35,12 +34,14 @@ import {
   toggleAdditionalRole,
 } from '@/shared/utils/candidateRoles';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { useAppAlert } from '@/shared/hooks/useAppAlert';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateAdditionalRoles'>;
 
 export function CandidateAdditionalRolesScreen({ navigation }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
+  const { showError } = useAppAlert();
   const [primaryRole, setPrimaryRole] = useState<string | null>(null);
   const [additionalRoles, setAdditionalRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,12 +72,12 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
         normalizeAdditionalRoles(primary, parseAdditionalRoles(row.additional_roles)),
       );
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
       navigation.goBack();
     } finally {
       setLoading(false);
     }
-  }, [navigation, t.errorGeneric, t.errorTitle]);
+  }, [navigation, showError, t.errorGeneric, t.errorTitle]);
 
   useEffect(() => {
     load();
@@ -125,7 +126,7 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
       if (error) throw error;
       navigation.goBack();
     } catch (e) {
-      Alert.alert(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     } finally {
       setSaving(false);
     }

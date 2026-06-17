@@ -30,7 +30,7 @@ export const candidateUpsertSchema = z.object({
     .optional(),
   years_experience: z.number().int().min(0).max(50),
   languages: z.array(z.string().min(1)).min(1).max(20),
-  uae_experience: z.null(),
+  uae_experience: z.boolean(),
   previous_employer: z.null(),
   is_active: z.literal(true),
 });

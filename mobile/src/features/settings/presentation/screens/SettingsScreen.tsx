@@ -20,8 +20,9 @@ export function SettingsScreen({ navigation }: Props) {
 
   const logout = async () => {
     await clearPushToken().catch(() => {});
-    await supabase.auth.signOut();
-    navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
   const openEditProfile = async () => {

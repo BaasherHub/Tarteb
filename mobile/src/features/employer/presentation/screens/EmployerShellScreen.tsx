@@ -68,13 +68,10 @@ function EmployerSettingsTab() {
 
 
   const logout = async () => {
-
     await clearPushToken().catch(() => {});
-
-    await supabase.auth.signOut();
-
-    stackNav.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
-
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
 

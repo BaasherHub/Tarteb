@@ -11,6 +11,8 @@ import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { SettingsLinkRow } from '@/shared/widgets/SettingsLinkRow';
 import { ConfirmDialog } from '@/shared/widgets/ConfirmDialog';
+import { useAppAlert } from '@/shared/hooks/useAppAlert';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { ListRowSkeleton } from '@/shared/widgets/ListRowSkeleton';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
@@ -74,6 +76,8 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [loading, setLoading] = useState(true);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | undefined>();
+  const { showError } = useAppAlert();
 
   useEffect(() => {
     let cancelled = false;
@@ -82,13 +86,14 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
         const user = (await supabase.auth.getUser()).data.user;
         if (!user || cancelled) return;
 
-        const { data } = await supabase
+        const { data, error: profileError } = await supabase
           .from('profiles')
           .select('role, created_at')
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (cancelled) return;
+        if (profileError) throw profileError;
 
         if (data?.role === 'candidate' || data?.role === 'employer') {
           setRole(data.role);
@@ -130,6 +135,10 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
             .maybeSingle();
           if (p?.phone) setPhone(p.phone as string);
         }
+      } catch (e) {
+        if (!cancelled) {
+          setProfileError(getErrorMessage(e, t.errorGeneric));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -137,7 +146,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
     return () => {
       cancelled = true;
     };
-  }, [lang]);
+  }, [lang, t.errorGeneric]);
 
   const roleLabel =
     role === 'candidate' ? t.roleCandidate : role === 'employer' ? t.roleEmployer : null;
@@ -149,6 +158,8 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
     try {
       await onLogout();
       setLogoutConfirmOpen(false);
+    } catch (e) {
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
     } finally {
       setLogoutLoading(false);
     }
@@ -164,6 +175,10 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
 
   return (
     <View style={styles.root}>
+      {profileError ? (
+        <Text style={[styles.profileError, { textAlign: rtl.textAlign }]}>{profileError}</Text>
+      ) : null}
+
       <SectionLabel variant="group" first>
         {t.settingsSectionAccount}
       </SectionLabel>
@@ -311,6 +326,12 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
 
 const styles = StyleSheet.create({
   root: { gap: spacing.xs },
+  profileError: {
+    ...typography.caption,
+    color: colors.error,
+    paddingHorizontal: spacing.xs,
+    lineHeight: 18,
+  },
   accountRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
