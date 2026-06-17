@@ -28,6 +28,9 @@
       "environment": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "SENTRY_SKIP_AUTO_UPLOAD": "true"
       }
     },
     "production": {
