@@ -74,9 +74,18 @@ export function EmployerStep2Contact({ navigation }: Props) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    let userId: string | undefined;
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      userId = data.user?.id;
+    } catch {
+      // Session expired or missing — send user back to auth
+      navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+      return;
+    }
     if (!userId) {
-      setSubmitError(t.errorGeneric);
+      navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
       return;
     }
 

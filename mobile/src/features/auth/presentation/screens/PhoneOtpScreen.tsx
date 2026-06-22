@@ -545,6 +545,24 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
                 </Pressable>
 
+                <Pressable
+
+                  onPress={() =>
+                    navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] })
+                  }
+
+                  accessibilityRole="link"
+
+                  accessibilityLabel={t.changeRole}
+
+                  style={({ pressed }) => pressed && styles.linkPressed}
+
+                >
+
+                  <Text style={[styles.emailLink, styles.changeRoleLink]}>{t.changeRole}</Text>
+
+                </Pressable>
+
               </View>
 
             ) : (
@@ -763,6 +781,8 @@ const styles = StyleSheet.create({
   resendLink: { alignSelf: 'center' },
 
   linkPressed: { opacity: 0.7 },
+
+  changeRoleLink: { color: colors.textSecondary, fontWeight: '400' },
 
   devBanner: {
 

@@ -78,10 +78,9 @@ async function applyPendingRole(
   userId: string,
   role: PendingAccountRole,
 ): Promise<void> {
-  const { error } = await supabase.from('profiles').insert({
-    user_id: userId,
-    role,
-  });
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ user_id: userId, role }, { onConflict: 'user_id' });
   if (error) throw error;
   await clearPendingAccountRole();
 }

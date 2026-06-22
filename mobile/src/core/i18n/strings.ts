@@ -13,6 +13,7 @@ export interface Strings {
   otpCode: string;
   enterPhone: string;
   changePhone: string;
+  changeRole: string;
   resendOtp: string;
   codeSentTo: string;
   signInWithEmail: string;
@@ -402,6 +403,7 @@ const en: Strings = {
   otpCode: 'OTP code',
   enterPhone: 'Enter your phone number',
   changePhone: 'Change phone number',
+  changeRole: 'Change role',
   resendOtp: 'Resend code',
   codeSentTo: 'Code sent to',
   signInWithEmail: 'Sign in with email instead',
@@ -918,6 +920,7 @@ const ar: Strings = {
   otpCode: 'رمز التحقق',
   enterPhone: 'أدخل رقم هاتفك',
   changePhone: 'تغيير رقم الهاتف',
+  changeRole: 'تغيير الدور',
   resendOtp: 'إعادة إرسال الرمز',
   codeSentTo: 'تم إرسال الرمز إلى',
   signInWithEmail: 'تسجيل الدخول بالبريد بدلاً من ذلك',
