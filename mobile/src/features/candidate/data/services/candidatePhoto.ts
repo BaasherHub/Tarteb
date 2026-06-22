@@ -18,12 +18,11 @@ export async function uploadCandidatePhoto(
 
   const response = await fetch(uri);
   const blob = await response.blob();
-  const arrayBuffer = await blob.arrayBuffer();
 
   const contentType =
     mimeType || (safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg');
 
-  const { error } = await supabase.storage.from(BUCKET).upload(path, arrayBuffer, {
+  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType,
     upsert: true,
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { CandidateOnboardingProvider } from '@/features/candidate/providers/CandidateOnboardingContext';
@@ -31,9 +32,11 @@ export function CandidateOnboardingScreen(props: Props) {
   const initial = props.route.params?.initial;
   const startStep = props.route.params?.startStep;
   return (
-    <CandidateOnboardingProvider initial={initial} startStep={startStep}>
-      <OnboardingSteps {...props} />
-    </CandidateOnboardingProvider>
+    <SafeAreaView style={styles.flex} edges={['top']}>
+      <CandidateOnboardingProvider initial={initial} startStep={startStep}>
+        <OnboardingSteps {...props} />
+      </CandidateOnboardingProvider>
+    </SafeAreaView>
   );
 }
 
