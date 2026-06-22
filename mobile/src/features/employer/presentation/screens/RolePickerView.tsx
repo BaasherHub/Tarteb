@@ -6,6 +6,9 @@ import { spacing } from '@/core/theme/spacing';
 import { JobRoleGrid } from '@/shared/widgets/JobRoleGrid';
 import { OnboardingStepIntro } from '@/shared/widgets/OnboardingStepIntro';
 import { useRoleCounts } from '@/features/employer/data/services/candidateBrowse';
+import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
+import { ErrorState } from '@/shared/widgets/ErrorState';
+import { getErrorMessage } from '@/shared/utils/errors';
 
 type Props = {
   onSelectRole: (role: string) => void;
@@ -13,7 +16,19 @@ type Props = {
 
 export const RolePickerView = memo(function RolePickerView({ onSelectRole }: Props) {
   const { t } = useLocale();
-  const { data: counts } = useRoleCounts();
+  const { data: counts, error, isPending, refetch } = useRoleCounts();
+
+  if (isPending) return <ScreenLoading message={t.loading} />;
+  if (error) {
+    return (
+      <ErrorState
+        title={t.errorTitle}
+        message={getErrorMessage(error, t.errorLoadList)}
+        actionLabel={t.retry}
+        onAction={() => void refetch()}
+      />
+    );
+  }
 
   return (
     <ScrollView

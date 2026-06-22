@@ -46,10 +46,8 @@ export function LanguageSelectionScreen({ navigation }: Props) {
 
           <SurfaceCard style={styles.card}>
             <LanguageRow label={COPY.english} onPress={() => pick('en')} />
-            {/* Arabic disabled until RTL glitches are resolved — re-enable ARABIC_ENABLED in LocaleContext
             <View style={styles.divider} />
             <LanguageRow label={COPY.arabic} onPress={() => pick('ar')} />
-            */}
           </SurfaceCard>
         </View>
       </ContentWidth>

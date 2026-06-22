@@ -153,7 +153,7 @@ export function Step4Finish({ navigation }: Props) {
         .upsert(payload, { onConflict: 'user_id' });
       if (error) throw error;
 
-      await clearCandidateOnboardingDraft();
+      await clearCandidateOnboardingDraft(userId);
       navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
     } catch (e) {
       setSubmitError(getErrorMessage(e, t.errorGeneric));

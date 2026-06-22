@@ -1,6 +1,7 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Animated, StyleProp, ViewStyle } from 'react-native';
 import { interaction } from '@/core/theme/interaction';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 type Options = {
   enabled?: boolean;
@@ -12,6 +13,12 @@ type Options = {
  */
 export function usePressScale({ enabled = true, scaleTo = interaction.pressScale }: Options = {}) {
   const scale = useRef(new Animated.Value(1)).current;
+  const reducedMotion = useReducedMotion();
+  const shouldAnimate = enabled && !reducedMotion;
+
+  useEffect(() => {
+    if (!shouldAnimate) scale.setValue(1);
+  }, [scale, shouldAnimate]);
 
   const animateTo = useCallback(
     (toValue: number) => {
@@ -26,14 +33,14 @@ export function usePressScale({ enabled = true, scaleTo = interaction.pressScale
   );
 
   const onPressIn = useCallback(() => {
-    if (enabled) animateTo(scaleTo);
-  }, [enabled, animateTo, scaleTo]);
+    if (shouldAnimate) animateTo(scaleTo);
+  }, [shouldAnimate, animateTo, scaleTo]);
 
   const onPressOut = useCallback(() => {
-    if (enabled) animateTo(1);
-  }, [enabled, animateTo]);
+    if (shouldAnimate) animateTo(1);
+  }, [shouldAnimate, animateTo]);
 
-  const animatedStyle: StyleProp<ViewStyle> = enabled
+  const animatedStyle: StyleProp<ViewStyle> = shouldAnimate
     ? { transform: [{ scale }] }
     : undefined;
 

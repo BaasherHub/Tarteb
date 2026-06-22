@@ -64,6 +64,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@sentry/react-native',
     'expo-dev-client',
     'expo-font',
+    'expo-image',
     [
       'expo-splash-screen',
       {

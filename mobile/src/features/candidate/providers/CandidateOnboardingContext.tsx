@@ -12,6 +12,7 @@ import {
   loadOnboardingDraft,
   saveOnboardingDraft,
 } from '@/features/candidate/data/services/onboardingDraft';
+import { useAuth } from '@/core/providers/AuthProvider';
 import {
   CandidateOnboardingData,
   emptyOnboardingData,
@@ -24,6 +25,8 @@ type Ctx = {
   totalSteps: number;
   isEditMode: boolean;
   draftSavedAt: string | null;
+  draftError: boolean;
+  isHydrated: boolean;
   setStep: (n: number) => void;
   update: (patch: Partial<CandidateOnboardingData>) => void;
   reset: (initial?: CandidateOnboardingData) => void;
@@ -56,6 +59,8 @@ export function CandidateOnboardingProvider({
   initial?: CandidateOnboardingData;
   startStep?: number;
 }) {
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? '';
   const isEditMode = Boolean(initial?.candidateId);
   const [data, setData] = useState<CandidateOnboardingData>(() =>
     mergeOnboardingData(initial),
@@ -63,35 +68,41 @@ export function CandidateOnboardingProvider({
   const initialStep = Math.min(Math.max(startStep ?? 1, 1), 5);
   const [step, setStepState] = useState(isEditMode ? initialStep : 1);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [draftError, setDraftError] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(isEditMode);
   const hydrated = useRef(false);
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const totalSteps = 5;
 
   useEffect(() => {
-    if (isEditMode || hydrated.current) return;
+    if (isEditMode || hydrated.current || !userId) return;
     hydrated.current = true;
-    loadOnboardingDraft().then((draft) => {
-      if (!draft) return;
-      setData(mergeOnboardingData(draft.data));
-      setStepState(Math.min(Math.max(draft.step, 1), totalSteps));
-      setDraftSavedAt(draft.savedAt);
-    });
-  }, [isEditMode]);
+    loadOnboardingDraft(userId)
+      .then((draft) => {
+        if (!draft) return;
+        setData(mergeOnboardingData(draft.data));
+        setStepState(Math.min(Math.max(draft.step, 1), totalSteps));
+        setDraftSavedAt(draft.savedAt);
+      })
+      .catch(() => setDraftError(true))
+      .finally(() => setIsHydrated(true));
+  }, [isEditMode, userId]);
 
   const persistDraft = useCallback(
     (nextData: CandidateOnboardingData, nextStep: number) => {
-      if (isEditMode) return;
+      if (isEditMode || !userId) return;
       if (persistTimer.current) clearTimeout(persistTimer.current);
       persistTimer.current = setTimeout(async () => {
         try {
-          await saveOnboardingDraft(nextData, nextStep);
+          await saveOnboardingDraft(userId, nextData, nextStep);
           setDraftSavedAt(new Date().toISOString());
-        } catch (e) {
-          console.warn('[onboarding] draft save failed', e);
+          setDraftError(false);
+        } catch {
+          setDraftError(true);
         }
       }, 500);
     },
-    [isEditMode],
+    [isEditMode, userId],
   );
 
   const setStep = useCallback(
@@ -119,10 +130,15 @@ export function CandidateOnboardingProvider({
   }, []);
 
   const discardDraft = useCallback(async () => {
-    await clearOnboardingDraft();
-    setDraftSavedAt(null);
-    reset();
-  }, [reset]);
+    try {
+      if (userId) await clearOnboardingDraft(userId);
+      setDraftSavedAt(null);
+      setDraftError(false);
+      reset();
+    } catch {
+      setDraftError(true);
+    }
+  }, [reset, userId]);
 
   const value = useMemo(
     () => ({
@@ -131,12 +147,25 @@ export function CandidateOnboardingProvider({
       totalSteps,
       isEditMode,
       draftSavedAt,
+      draftError,
+      isHydrated,
       setStep,
       update,
       reset,
       discardDraft,
     }),
-    [data, step, isEditMode, draftSavedAt, setStep, update, reset, discardDraft],
+    [
+      data,
+      step,
+      isEditMode,
+      draftSavedAt,
+      draftError,
+      isHydrated,
+      setStep,
+      update,
+      reset,
+      discardDraft,
+    ],
   );
 
   return (
@@ -154,6 +183,6 @@ export function useCandidateOnboarding() {
   return ctx;
 }
 
-export async function clearCandidateOnboardingDraft() {
-  await clearOnboardingDraft();
+export async function clearCandidateOnboardingDraft(userId: string) {
+  if (userId) await clearOnboardingDraft(userId);
 }

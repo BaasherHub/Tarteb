@@ -5,7 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
-import { FLAT_LIST_PERF, browseItemLayout } from '@/shared/constants/listPerf';
+import { FLAT_LIST_PERF } from '@/shared/constants/listPerf';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { EmptyState } from '@/shared/widgets/EmptyState';
 import { ErrorState } from '@/shared/widgets/ErrorState';
@@ -15,6 +15,8 @@ import { colors } from '@/core/theme/colors';
 import { layout, layoutStyles } from '@/core/theme/layout';
 import { CandidateBrowseCard } from '@/features/employer/presentation/components/CandidateBrowseCard';
 import { useUnlocks } from '@/features/employer/data/services/unlocks';
+import { InfoBanner } from '@/shared/widgets/InfoBanner';
+import { getErrorMessage } from '@/shared/utils/errors';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -96,6 +98,14 @@ export function MyUnlocksScreen() {
       <View style={styles.headerPad}>
         <ScreenHeader title={t.myUnlocks} />
       </View>
+      {error && listData.length > 0 ? (
+        <View style={styles.errorBanner}>
+          <InfoBanner
+            message={getErrorMessage(error, t.errorLoadList)}
+            variant="warning"
+          />
+        </View>
+      ) : null}
       {isLoading && listData.length === 0 ? (
         <BrowseListSkeleton rows={4} />
       ) : (
@@ -105,7 +115,6 @@ export function MyUnlocksScreen() {
           data={listData}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          getItemLayout={browseItemLayout}
           {...FLAT_LIST_PERF}
           refreshControl={
             <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
@@ -121,6 +130,7 @@ export function MyUnlocksScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.scaffold },
   headerPad: layoutStyles.screenHeaderWrap,
+  errorBanner: { ...layoutStyles.screenHeaderWrap, paddingBottom: layout.screenPaddingX },
   list: { flex: 1 },
   listContent: {
     paddingBottom: layout.screenPaddingBottom + layout.tabBarClearance,

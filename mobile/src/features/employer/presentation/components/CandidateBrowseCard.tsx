@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -74,7 +75,13 @@ function CandidateBrowseCardInner({
         accessibilityElementsHidden
       >
         {photoUrl ? (
-          <Image source={{ uri: photoUrl }} style={styles.photo} />
+          <Image
+            source={{ uri: photoUrl }}
+            style={styles.photo}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+          />
         ) : (
           <View style={styles.photoPlaceholder}>
             <Text style={styles.initials}>{name.charAt(0).toUpperCase()}</Text>

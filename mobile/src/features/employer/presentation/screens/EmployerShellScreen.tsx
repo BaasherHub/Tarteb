@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -15,6 +17,7 @@ import { useLocale } from '@/core/i18n/LocaleContext';
 import { supabase } from '@/core/lib/supabase';
 
 import { clearPushToken } from '@/core/services/notifications';
+import { clearAllBrowseCache } from '@/features/employer/data/services/browseCache';
 
 import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
 
@@ -49,6 +52,7 @@ function EmployerSettingsTab() {
   const { t } = useLocale();
   const tabNav = useNavigation<BottomTabNavigationProp<EmployerTabParamList>>();
   const stackNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const queryClient = useQueryClient();
 
   const goBrowse = useCallback(() => {
     tabNav.navigate('BrowseTab');
@@ -69,20 +73,22 @@ function EmployerSettingsTab() {
 
   const logout = async () => {
     await clearPushToken().catch(() => {});
+    await clearAllBrowseCache().catch(() => {});
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    queryClient.clear();
     stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
 
 
   const openEditCompany = async () => {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    const userId = userData.user?.id;
+    if (!userId) throw new Error(t.errorGeneric);
 
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-
-    if (!userId) return;
-
-    const { data: row } = await supabase
+    const { data: row, error } = await supabase
 
       .from('employers')
 
@@ -91,8 +97,8 @@ function EmployerSettingsTab() {
       .eq('user_id', userId)
 
       .maybeSingle();
-
-    if (!row) return;
+    if (error) throw error;
+    if (!row) throw new Error(t.errorGeneric);
 
     stackNav.navigate('EmployerOnboarding', {
 
@@ -114,7 +120,7 @@ function EmployerSettingsTab() {
 
         onLogout={logout}
 
-        onEditProfile={() => void openEditCompany()}
+        onEditProfile={openEditCompany}
 
         onOpenPrivacy={() => stackNav.navigate('PrivacyPolicy')}
 

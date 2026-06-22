@@ -83,14 +83,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryTint,
   },
   chipCompact: {
-    minHeight: 36,
+    minHeight: 44,
     minWidth: 44,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: 10,
   },
   chipDense: {
-    minHeight: 32,
+    minHeight: 44,
     minWidth: 0,
     paddingHorizontal: spacing.xs,
     paddingVertical: 6,

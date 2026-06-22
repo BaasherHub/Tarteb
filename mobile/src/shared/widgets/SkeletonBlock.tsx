@@ -2,6 +2,7 @@ import { memo, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 type Props = {
   width?: number | `${number}%`;
@@ -10,32 +11,55 @@ type Props = {
   style?: ViewStyle;
 };
 
+const sharedPulse = new Animated.Value(0.45);
+let sharedLoop: Animated.CompositeAnimation | null = null;
+let activeSkeletons = 0;
+
 export const SkeletonBlock = memo(function SkeletonBlock({
   width = '100%',
   height,
   radius = spacing.sm,
   style,
 }: Props) {
-  const pulse = useRef(new Animated.Value(0.45)).current;
+  const reducedMotion = useReducedMotion();
+  const mounted = useRef(false);
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 700,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0.45,
-          duration: 700,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+    if (reducedMotion) {
+      sharedPulse.setValue(0.65);
+      return;
+    }
+
+    mounted.current = true;
+    activeSkeletons += 1;
+    if (!sharedLoop) {
+      sharedLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(sharedPulse, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(sharedPulse, {
+            toValue: 0.45,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      sharedLoop.start();
+    }
+
+    return () => {
+      if (!mounted.current) return;
+      mounted.current = false;
+      activeSkeletons = Math.max(0, activeSkeletons - 1);
+      if (activeSkeletons === 0) {
+        sharedLoop?.stop();
+        sharedLoop = null;
+      }
+    };
+  }, [reducedMotion]);
 
   return (
     <View
@@ -51,7 +75,7 @@ export const SkeletonBlock = memo(function SkeletonBlock({
         style={[
           StyleSheet.absoluteFill,
           styles.shimmer,
-          { opacity: pulse },
+          { opacity: sharedPulse },
         ]}
       />
     </View>

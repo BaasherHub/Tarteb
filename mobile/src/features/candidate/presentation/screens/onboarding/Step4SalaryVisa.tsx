@@ -12,6 +12,7 @@ import { SelectableChip } from '@/shared/widgets/SelectableChip';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { useCandidateOnboarding } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { formatSalaryAmount, parseSalaryAmount } from '@/shared/utils/salary';
 import { VISA_STATUSES } from '@/features/candidate/domain/constants/candidate';
 
@@ -23,6 +24,7 @@ type Errors = {
 
 export function Step4SalaryVisa() {
   const { t } = useLocale();
+  const rtl = useRtlStyles();
   const { data, update, setStep } = useCandidateOnboarding();
   const [errors, setErrors] = useState<Errors>({});
 
@@ -49,7 +51,7 @@ export function Step4SalaryVisa() {
         <SectionLabel first required>
           {t.visaStatus}
         </SectionLabel>
-        <View style={onboardingStepStyles.chipGrid}>
+        <View style={[onboardingStepStyles.chipGrid, rtl.row]}>
           {VISA_STATUSES.map((status) => (
             <View key={status} style={onboardingStepStyles.chipCell}>
               <SelectableChip

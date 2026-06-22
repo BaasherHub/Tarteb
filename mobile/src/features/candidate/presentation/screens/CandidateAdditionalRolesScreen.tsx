@@ -35,6 +35,8 @@ import {
 } from '@/shared/utils/candidateRoles';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { useAppAlert } from '@/shared/hooks/useAppAlert';
+import { ErrorState } from '@/shared/widgets/ErrorState';
+import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateAdditionalRoles'>;
 
@@ -48,11 +50,16 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState<RoleCategoryId | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      const userId = userData.user?.id;
+      if (!userId) throw new Error(t.errorGeneric);
 
       const { data: row, error } = await supabase
         .from('candidates')
@@ -72,12 +79,11 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
         normalizeAdditionalRoles(primary, parseAdditionalRoles(row.additional_roles)),
       );
     } catch (e) {
-      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
-      navigation.goBack();
+      setLoadError(getErrorMessage(e, t.errorGeneric));
     } finally {
       setLoading(false);
     }
-  }, [navigation, showError, t.errorGeneric, t.errorTitle]);
+  }, [navigation, t.errorGeneric]);
 
   useEffect(() => {
     load();
@@ -132,11 +138,27 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
     }
   };
 
-  if (loading || !primaryRole) {
+  if (loading) {
     return (
       <ContentWidth style={styles.flex}>
         <ScreenHeader title={t.candidateAdditionalRolesScreenTitle} onBack={() => navigation.goBack()} />
-        <Text style={styles.loading}>{t.loading}</Text>
+        <ScreenLoading message={t.loading} />
+      </ContentWidth>
+    );
+  }
+
+  if (loadError || !primaryRole) {
+    return (
+      <ContentWidth style={styles.flex}>
+        <ScreenHeader title={t.candidateAdditionalRolesScreenTitle} onBack={() => navigation.goBack()} />
+        <ErrorState
+          title={t.errorTitle}
+          message={loadError ?? t.errorGeneric}
+          actionLabel={t.retry}
+          onAction={() => void load()}
+          secondaryLabel={t.back}
+          onSecondary={() => navigation.goBack()}
+        />
       </ContentWidth>
     );
   }
@@ -214,7 +236,6 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.scaffold },
-  loading: { padding: spacing.xl, ...typography.body, color: colors.textSecondary },
   intro: {
     ...typography.body,
     color: colors.textSecondary,

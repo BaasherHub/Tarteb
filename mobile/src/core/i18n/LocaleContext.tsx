@@ -27,8 +27,14 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 export const LANGUAGE_STORAGE_KEY = 'app_language';
 /** Separate from app_language so an old saved locale does not skip the picker. */
 export const LANGUAGE_SELECTION_DONE_KEY = 'language_selection_done_v1';
-/** Set to true when Arabic RTL glitches are resolved and the language option is ready. */
-export const ARABIC_ENABLED = false;
+export const ARABIC_ENABLED = true;
+
+function keepNativeLayoutLtr() {
+  // Tarteb mirrors rows explicitly through useRtlStyles so language changes work
+  // immediately. Native RTL would mirror those rows a second time.
+  I18nManager.allowRTL(false);
+  I18nManager.forceRTL(false);
+}
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en');
@@ -42,8 +48,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     ]).then(([stored, done]) => {
       const lang: Lang = ARABIC_ENABLED && stored === 'ar' ? 'ar' : 'en';
       setLangState(lang);
-      I18nManager.allowRTL(ARABIC_ENABLED);
-      I18nManager.forceRTL(ARABIC_ENABLED && lang === 'ar');
+      keepNativeLayoutLtr();
       setHasCompletedLanguageSelection(done === '1');
       setIsHydrated(true);
     });
@@ -56,8 +61,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       [LANGUAGE_STORAGE_KEY, next],
       [LANGUAGE_SELECTION_DONE_KEY, '1'],
     ]);
-    I18nManager.allowRTL(ARABIC_ENABLED);
-    I18nManager.forceRTL(ARABIC_ENABLED && next === 'ar');
+    keepNativeLayoutLtr();
   }, []);
 
   const resetLanguageSelection = useCallback(() => {

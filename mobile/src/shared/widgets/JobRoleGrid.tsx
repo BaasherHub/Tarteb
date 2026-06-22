@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
+  FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -128,6 +129,67 @@ export const JobRoleGrid = memo(function JobRoleGrid({
   );
 
   const hasActiveFilters = Boolean(query.trim() || categoryId);
+  const renderRole = useCallback(
+    ({ item: role }: { item: string }) => {
+      const selected = selectedSet.has(role);
+      const disabled = excludedSet.has(role) || (atSelectionCap && !selected);
+      const count = counts?.[role];
+      const a11y = chipA11yProps(role, selected, t);
+
+      return (
+        <Pressable
+          onPress={() => {
+            if (disabled) return;
+            onSelectRole(role);
+          }}
+          disabled={disabled}
+          style={({ pressed }) => [
+            styles.listRow,
+            rtl.row,
+            selected && styles.listRowSelected,
+            disabled && styles.listRowDisabled,
+            pressed && !disabled && styles.pressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={a11y.accessibilityLabel}
+          accessibilityHint={a11y.accessibilityHint}
+          accessibilityState={{ selected, disabled }}
+        >
+          <Text
+            style={[
+              styles.listLabel,
+              selected && styles.listLabelSelected,
+              disabled && styles.listLabelDisabled,
+            ]}
+            numberOfLines={2}
+          >
+            {role}
+          </Text>
+          <View style={[styles.listMeta, rtl.row]}>
+            {count != null && count > 0 ? (
+              <Text style={styles.count}>{count}</Text>
+            ) : null}
+            {selected ? (
+              <AppIcon
+                name="checkmark-circle"
+                size={22}
+                color={colors.primary}
+              />
+            ) : null}
+          </View>
+        </Pressable>
+      );
+    },
+    [
+      atSelectionCap,
+      counts,
+      excludedSet,
+      onSelectRole,
+      rtl.row,
+      selectedSet,
+      t,
+    ],
+  );
 
   return (
     <View style={styles.root}>
@@ -208,60 +270,18 @@ export const JobRoleGrid = memo(function JobRoleGrid({
               {activeCategoryLabel}
             </Text>
           ) : null}
-          <View style={styles.list}>
-            {filteredListRoles.map((role, index) => {
-              const selected = selectedSet.has(role);
-              const disabled =
-                excludedSet.has(role) || (atSelectionCap && !selected);
-              const count = counts?.[role];
-              const a11y = chipA11yProps(role, selected, t);
-              return (
-                <Pressable
-                  key={role}
-                  onPress={() => {
-                    if (disabled) return;
-                    onSelectRole(role);
-                  }}
-                  disabled={disabled}
-                  style={({ pressed }) => [
-                    styles.listRow,
-                    rtl.row,
-                    index > 0 && styles.listRowBorder,
-                    selected && styles.listRowSelected,
-                    disabled && styles.listRowDisabled,
-                    pressed && !disabled && styles.pressed,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={a11y.accessibilityLabel}
-                  accessibilityHint={a11y.accessibilityHint}
-                  accessibilityState={{ selected, disabled }}
-                >
-                  <Text
-                    style={[
-                      styles.listLabel,
-                      selected && styles.listLabelSelected,
-                      disabled && styles.listLabelDisabled,
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {role}
-                  </Text>
-                  <View style={[styles.listMeta, rtl.row]}>
-                    {count != null && count > 0 ? (
-                      <Text style={styles.count}>{count}</Text>
-                    ) : null}
-                    {selected ? (
-                      <AppIcon
-                        name="checkmark-circle"
-                        size={22}
-                        color={colors.primary}
-                      />
-                    ) : null}
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
+          <FlatList
+            style={styles.list}
+            data={filteredListRoles}
+            keyExtractor={(role) => role}
+            renderItem={renderRole}
+            ItemSeparatorComponent={RoleSeparator}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+            initialNumToRender={12}
+            maxToRenderPerBatch={10}
+            windowSize={7}
+          />
         </View>
       ) : null}
 
@@ -273,6 +293,8 @@ export const JobRoleGrid = memo(function JobRoleGrid({
     </View>
   );
 });
+
+const RoleSeparator = () => <View style={styles.listRowBorder} />;
 
 function HorizontalChipScroller({
   children,
@@ -510,6 +532,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   list: {
+    maxHeight: 440,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.divider,
@@ -525,8 +548,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   listRowBorder: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
   },
   listRowSelected: {
     backgroundColor: colors.primaryTint,

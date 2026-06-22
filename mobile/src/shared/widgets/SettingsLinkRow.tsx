@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -12,6 +12,7 @@ type Props = {
   danger?: boolean;
   showChevron?: boolean;
   accessibilityLabel?: string;
+  loading?: boolean;
 };
 
 export function SettingsLinkRow({
@@ -21,12 +22,14 @@ export function SettingsLinkRow({
   danger,
   showChevron = true,
   accessibilityLabel,
+  loading = false,
 }: Props) {
   const rtl = useRtlStyles();
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={loading}
       style={({ pressed }) => [styles.row, rtl.row, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
@@ -48,7 +51,9 @@ export function SettingsLinkRow({
           </Text>
         ) : null}
       </View>
-      {showChevron ? (
+      {loading ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : showChevron ? (
         <AppIcon
           name={rtl.isRtl ? 'chevron-back' : 'chevron-forward'}
           size={20}

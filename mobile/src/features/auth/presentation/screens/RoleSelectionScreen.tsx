@@ -12,7 +12,7 @@ import { RootStackParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
 import {
   AuthRoutingError,
-  routeAuthenticatedUser,
+  routeAuthenticatedUserAndFlush,
 } from '@/features/auth/data/services/authNavigation';
 import {
   setPendingAccountRole,
@@ -78,15 +78,18 @@ export function RoleSelectionScreen({ navigation }: Props) {
   const copy = ROLE_SELECTION_COPY[lang];
   const rtl = useRtlStyles();
   const [hasSession, setHasSession] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   const [selected, setSelected] = useState<PendingAccountRole | null>(null);
   const [loading, setLoading] = useState<'candidate' | 'employer' | null>(null);
   const [formError, setFormError] = useState<string | undefined>();
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data, error }) => {
-      if (!error) setHasSession(Boolean(data.session));
+      if (error) setFormError(t.errorGeneric);
+      else setHasSession(Boolean(data.session));
+      setSessionChecked(true);
     });
-  }, []);
+  }, [t.errorGeneric]);
 
   useEffect(() => {
     if (isHydrated && !hasCompletedLanguageSelection) {
@@ -94,7 +97,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
     }
   }, [isHydrated, hasCompletedLanguageSelection, navigation]);
 
-  if (!isHydrated || !hasCompletedLanguageSelection) {
+  if (!isHydrated || !hasCompletedLanguageSelection || !sessionChecked) {
     return (
       <Screen style={styles.screen}>
         <View style={[styles.flex, styles.boot]}>
@@ -120,7 +123,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
           { onConflict: 'user_id' },
         );
         if (error) throw error;
-        await routeAuthenticatedUser(navigation);
+        await routeAuthenticatedUserAndFlush(navigation);
         return;
       }
 

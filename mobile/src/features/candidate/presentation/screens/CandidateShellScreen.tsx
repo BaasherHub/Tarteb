@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
@@ -27,6 +28,7 @@ function CandidateSettingsTab() {
   const { t } = useLocale();
   const tabNav = useNavigation<BottomTabNavigationProp<CandidateTabParamList>>();
   const stackNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const queryClient = useQueryClient();
 
   const goHome = useCallback(() => {
     tabNav.navigate('HomeTab');
@@ -47,18 +49,22 @@ function CandidateSettingsTab() {
     await clearPushToken().catch(() => {});
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    queryClient.clear();
     stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
   const openEditProfile = async () => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
-    const { data: row } = await supabase
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    const userId = userData.user?.id;
+    if (!userId) throw new Error(t.errorGeneric);
+    const { data: row, error } = await supabase
       .from('candidates')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
-    if (!row) return;
+    if (error) throw error;
+    if (!row) throw new Error(t.errorGeneric);
     stackNav.navigate('CandidateOnboarding', {
       initial: onboardingFromRow(row as Record<string, unknown>),
       startStep: 3,

@@ -10,11 +10,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import {
   AuthRoutingError,
-  routeAuthenticatedUser,
+  routeAuthenticatedUserAndFlush,
 } from '@/core/navigation/authNavigation';
 import { useAuth } from '@/core/providers/AuthProvider';
-import { flushPendingDeepLink } from '@/core/navigation/deepLink';
-import { navigationRef } from '@/core/navigation/navigationRef';
 import { supabase } from '@/core/lib/supabase';
 import { colors } from '@/core/theme/colors';
 import { layoutStyles } from '@/core/theme/layout';
@@ -55,8 +53,7 @@ export function SplashScreen({ navigation }: Props) {
         if (cancelled) return;
         if (error) throw error;
         if (data.session) {
-          await routeAuthenticatedUser(navigation);
-          if (!cancelled) flushPendingDeepLink(navigationRef);
+          await routeAuthenticatedUserAndFlush(navigation);
           return;
         }
         if (!cancelled) navigation.replace('RoleSelection');

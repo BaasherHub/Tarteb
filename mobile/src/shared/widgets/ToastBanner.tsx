@@ -12,6 +12,7 @@ import { colors } from '@/core/theme/colors';
 import { interaction } from '@/core/theme/interaction';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 export type ToastVariant = 'default' | 'success' | 'error';
 
@@ -53,11 +54,18 @@ export const ToastBanner = memo(function ToastBanner({
 }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
+  const reducedMotion = useReducedMotion();
   const slide = useRef(new Animated.Value(24)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const palette = VARIANT_STYLES[variant];
 
   useEffect(() => {
+    if (reducedMotion) {
+      slide.setValue(0);
+      opacity.setValue(1);
+      return;
+    }
+
     Animated.parallel([
       Animated.spring(slide, {
         toValue: 0,
@@ -71,7 +79,7 @@ export const ToastBanner = memo(function ToastBanner({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [opacity, slide]);
+  }, [opacity, reducedMotion, slide]);
 
   return (
     <Animated.View

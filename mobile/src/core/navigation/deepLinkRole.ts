@@ -4,7 +4,9 @@ import { supabase } from '@/core/lib/supabase';
 export type AccountRole = 'candidate' | 'employer';
 
 export async function fetchAccountRole(): Promise<AccountRole | null> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const userId = userData.user?.id;
   if (!userId) return null;
 
   const { data, error } = await supabase
@@ -13,7 +15,8 @@ export async function fetchAccountRole(): Promise<AccountRole | null> {
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (error || !data?.role) return null;
+  if (error) throw error;
+  if (!data?.role) return null;
   if (data.role === 'candidate' || data.role === 'employer') {
     return data.role;
   }

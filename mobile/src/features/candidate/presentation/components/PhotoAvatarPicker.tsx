@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -95,6 +96,9 @@ export function PhotoAvatarPicker({
                   borderRadius: (ring - 12) / 2,
                 },
               ]}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
             />
             <View style={[styles.checkBadge, rtl.isRtl ? styles.checkRtl : styles.checkLtr]}>
               <AppIcon name="checkmark-circle" size={26} color={colors.secondary} />

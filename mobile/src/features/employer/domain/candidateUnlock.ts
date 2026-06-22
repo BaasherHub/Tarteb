@@ -13,7 +13,7 @@ export async function employerHasUnlockedCandidate(candidateId: string): Promise
     .eq('candidate_id', candidateId)
     .limit(1)
     .maybeSingle();
-  if (error) return false;
+  if (error) throw error;
   return Boolean(data);
 }
 

@@ -20,10 +20,6 @@ export function PushNotificationsProvider({ children }: Props) {
 
     const urlSub = Linking.addEventListener('url', onUrl);
 
-    void Linking.getInitialURL().then((url) => {
-      if (url) void navigateFromUrl(navigationRef, url);
-    });
-
     return () => urlSub.remove();
   }, []);
 

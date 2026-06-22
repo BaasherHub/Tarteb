@@ -7,13 +7,15 @@ import { useCandidateOnboarding } from '@/features/candidate/providers/Candidate
 export function OnboardingDraftBanner() {
   const { t } = useLocale();
   const rtl = useRtlStyles();
-  const { isEditMode, draftSavedAt, discardDraft } = useCandidateOnboarding();
+  const { isEditMode, draftSavedAt, draftError, discardDraft } = useCandidateOnboarding();
 
-  if (isEditMode || !draftSavedAt) return null;
+  if (isEditMode || (!draftSavedAt && !draftError)) return null;
 
   return (
     <View style={[styles.row, rtl.row]}>
-      <Text style={styles.text}>{t.draftSavedBanner}</Text>
+      <Text style={[styles.text, draftError && styles.error]}>
+        {draftError ? t.errorGeneric : t.draftSavedBanner}
+      </Text>
       <Pressable onPress={discardDraft} accessibilityRole="button">
         <Text style={styles.discard}>{t.discardDraftLink}</Text>
       </Pressable>
@@ -31,4 +33,5 @@ const styles = StyleSheet.create({
   },
   text: { fontSize: 12, color: colors.textSecondary },
   discard: { fontSize: 12, color: colors.textSecondary, textDecorationLine: 'underline' },
+  error: { color: colors.error },
 });

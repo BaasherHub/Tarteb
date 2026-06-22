@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native';
 import type { LinkingOptions } from '@react-navigation/native';
@@ -9,12 +9,78 @@ import { navigationRef } from '@/core/navigation/navigationRef';
 import { RootStackParamList } from './types';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { useAuth } from '@/core/providers/AuthProvider';
+import { fetchAccountRole } from '@/core/navigation/deepLinkRole';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { isRtl, isHydrated, hasCompletedLanguageSelection } = useLocale();
-  const stackAnimation = isRtl ? 'slide_from_left' : 'slide_from_right';
+  const { session, isReady: authReady } = useAuth();
+  const reducedMotion = useReducedMotion();
+  const stackAnimation = reducedMotion
+    ? 'none'
+    : isRtl
+      ? 'slide_from_left'
+      : 'slide_from_right';
+  const fadeAnimation = reducedMotion ? 'none' : 'fade';
+
+  const guardCurrentRoute = useCallback(async () => {
+    if (!authReady || !navigationRef.isReady()) return;
+    const routeName = navigationRef.getCurrentRoute()?.name;
+    if (!routeName) return;
+
+    const candidateRoutes = new Set([
+      'CandidateOnboarding',
+      'CandidateAdditionalRoles',
+      'CandidateShell',
+      'CandidateDashboard',
+      'Settings',
+    ]);
+    const employerRoutes = new Set([
+      'EmployerOnboarding',
+      'EmployerShell',
+      'CandidateDetail',
+    ]);
+    const protectedRoute =
+      candidateRoutes.has(routeName) || employerRoutes.has(routeName);
+
+    if (protectedRoute && !session) {
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: 'RoleSelection' }],
+      });
+      return;
+    }
+    if (!session || !protectedRoute) return;
+
+    try {
+      const role = await fetchAccountRole();
+      if (!role) {
+        navigationRef.reset({
+          index: 0,
+          routes: [{ name: 'RoleSelection' }],
+        });
+      } else if (candidateRoutes.has(routeName) && role !== 'candidate') {
+        navigationRef.reset({
+          index: 0,
+          routes: [{ name: 'EmployerShell' }],
+        });
+      } else if (employerRoutes.has(routeName) && role !== 'employer') {
+        navigationRef.reset({
+          index: 0,
+          routes: [{ name: 'CandidateShell' }],
+        });
+      }
+    } catch {
+      // Preserve the current route during transient account-role failures.
+    }
+  }, [authReady, session]);
+
+  useEffect(() => {
+    void guardCurrentRoute();
+  }, [guardCurrentRoute]);
 
   const gatedLinking = useMemo((): LinkingOptions<RootStackParamList> => {
     if (hasCompletedLanguageSelection) {
@@ -61,6 +127,7 @@ export function RootNavigator() {
       ref={navigationRef}
       linking={gatedLinking}
       onReady={() => flushPendingDeepLink(navigationRef)}
+      onStateChange={() => void guardCurrentRoute()}
     >
       <Stack.Navigator
         initialRouteName={initialRouteName}
@@ -72,12 +139,12 @@ export function RootNavigator() {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{ headerShown: false, animation: 'fade' }}
+          options={{ headerShown: false, animation: fadeAnimation }}
         />
         <Stack.Screen
           name="LanguageSelection"
           component={LanguageSelectionScreen}
-          options={{ headerShown: false, animation: 'fade' }}
+          options={{ headerShown: false, animation: fadeAnimation }}
         />
         <Stack.Screen
           name="PhoneOtp"
@@ -102,7 +169,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="EmployerShell"
           component={EmployerShellScreen}
-          options={{ headerShown: false, animation: 'fade' }}
+          options={{ headerShown: false, animation: fadeAnimation }}
         />
         <Stack.Screen
           name="CandidateDetail"
@@ -122,7 +189,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="CandidateShell"
           component={CandidateShellScreen}
-          options={{ headerShown: false, animation: 'fade' }}
+          options={{ headerShown: false, animation: fadeAnimation }}
         />
         <Stack.Screen
           name="CandidateDashboard"

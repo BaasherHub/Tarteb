@@ -1,11 +1,5 @@
 import { Platform } from 'react-native';
 
-/** CandidateBrowseCard minHeight + hairline separator */
-export const BROWSE_ROW_HEIGHT = 85;
-
-/** MyUnlocks row minHeight + separator */
-export const UNLOCK_ROW_HEIGHT = 73;
-
 /** Tuned for mid-range Android; conservative on iOS */
 export const FLAT_LIST_PERF = Platform.select({
   android: {
@@ -28,19 +22,3 @@ export const FLAT_LIST_PERF = Platform.select({
   initialNumToRender: number;
   updateCellsBatchingPeriod: number;
 };
-
-export function browseItemLayout(_: unknown, index: number) {
-  return {
-    length: BROWSE_ROW_HEIGHT,
-    offset: BROWSE_ROW_HEIGHT * index,
-    index,
-  };
-}
-
-export function unlockItemLayout(_: unknown, index: number) {
-  return {
-    length: UNLOCK_ROW_HEIGHT,
-    offset: UNLOCK_ROW_HEIGHT * index,
-    index,
-  };
-}

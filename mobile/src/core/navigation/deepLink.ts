@@ -1,5 +1,6 @@
 import type { NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from '@/core/navigation/types';
+import { supabase } from '@/core/lib/supabase';
 import {
   fetchAccountRole,
   parseDeepLinkIntent,
@@ -100,10 +101,20 @@ export async function navigateFromUrl(
   const intent = parseDeepLinkIntent(url);
   if (!intent) return false;
 
-  const role = await fetchAccountRole();
+  let role: AccountRole | null;
+  try {
+    role = await fetchAccountRole();
+  } catch {
+    stashPendingDeepLink(url);
+    return false;
+  }
   if (!role) {
     stashPendingDeepLink(url);
-    ref.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
+    const { data } = await supabase.auth.getUser();
+    ref.reset({
+      index: 0,
+      routes: [{ name: data.user ? 'RoleSelection' : 'PhoneOtp' }],
+    });
     return false;
   }
 

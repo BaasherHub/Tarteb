@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-
-  Image,
-
   Pressable,
 
   RefreshControl,
@@ -17,6 +14,7 @@ import {
   View,
 
 } from 'react-native';
+import { Image } from 'expo-image';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -46,6 +44,7 @@ import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
 
 import { DashboardSkeleton } from '@/shared/widgets/DashboardSkeleton';
+import { ErrorState } from '@/shared/widgets/ErrorState';
 
 import { ProfileFactRow } from '@/shared/widgets/ProfileFactRow';
 
@@ -80,6 +79,7 @@ import { interaction } from '@/core/theme/interaction';
 import { CandidateCvSection } from '@/features/candidate/presentation/components/CandidateCvSection';
 import { useAppAlert } from '@/shared/hooks/useAppAlert';
 import { useConfirmDialog } from '@/shared/hooks/useConfirmDialog';
+import { InfoBanner } from '@/shared/widgets/InfoBanner';
 
 
 
@@ -106,6 +106,9 @@ export function CandidateDashboardScreen() {
   const [loading, setLoading] = useState(true);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [routingToOnboarding, setRoutingToOnboarding] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
 
 
@@ -120,26 +123,31 @@ export function CandidateDashboardScreen() {
   const pushPromptDone = useRef(false);
 
   const fetchCandidate = useCallback(async () => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    const userId = userData.user?.id;
+    if (!userId) throw new Error(t.errorGeneric);
 
-    const { data: row } = await supabase
+    const { data: row, error: candidateError } = await supabase
       .from('candidates')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
+    if (candidateError) throw candidateError;
 
     if (!row) {
-      navigation.navigate('CandidateOnboarding', {});
+      setRoutingToOnboarding(true);
+      navigation.replace('CandidateOnboarding', {});
       return;
     }
 
     let candidateRow = row as Record<string, unknown>;
 
-    const { data: unlockRows } = await supabase
+    const { data: unlockRows, error: unlockError } = await supabase
       .from('unlocks')
       .select('id')
       .eq('candidate_id', candidateRow.id as string);
+    if (unlockError) throw unlockError;
 
     const sanitizedLangs = sanitizeLanguages(candidateRow.languages);
     if (
@@ -162,22 +170,19 @@ export function CandidateDashboardScreen() {
       .eq('user_id', userId);
 
     registerPushTokenIfGranted().catch(() => {});
-  }, [navigation]);
+  }, [navigation, t.errorGeneric]);
 
   const load = useCallback(async () => {
+    setLoadError(null);
     try {
       await fetchCandidate();
     } catch (e) {
-      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+      setLoadError(getErrorMessage(e, t.errorGeneric));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [fetchCandidate, showError, t]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  }, [fetchCandidate, t]);
 
   useEffect(() => {
     if (loading || !candidate || pushPromptDone.current) return;
@@ -187,36 +192,33 @@ export function CandidateDashboardScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!loading) {
-        void fetchCandidate().catch((e) => {
-          showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
-        });
-      }
-    }, [fetchCandidate, loading, showError, t]),
+      void load();
+    }, [load]),
   );
 
 
 
   const toggleActive = async (value: boolean) => {
+    setStatusUpdating(true);
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) throw new Error(t.errorGeneric);
 
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+      const { error } = await supabase
+        .from('candidates')
+        .update({
+          is_active: value,
+          availability_status: value ? 'looking' : 'paused',
+        })
+        .eq('user_id', userId);
 
-    if (!userId) return;
-
-    const { error } = await supabase
-      .from('candidates')
-      .update({
-        is_active: value,
-        availability_status: value ? 'looking' : 'paused',
-      })
-      .eq('user_id', userId);
-
-    if (error) {
+      if (error) throw error;
+      await load();
+    } catch (error) {
       showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
-      return;
+    } finally {
+      setStatusUpdating(false);
     }
-
-    load();
   };
 
   const markHired = () => {
@@ -228,27 +230,30 @@ export function CandidateDashboardScreen() {
         cancelLabel: t.cancel,
       },
       async () => {
-        const userId = (await supabase.auth.getUser()).data.user?.id;
-        if (!userId) return;
+        setStatusUpdating(true);
+        try {
+          const userId = (await supabase.auth.getUser()).data.user?.id;
+          if (!userId) throw new Error(t.errorGeneric);
 
-        const { error } = await supabase
-          .from('candidates')
-          .update({ is_active: false, availability_status: 'hired' })
-          .eq('user_id', userId);
+          const { error } = await supabase
+            .from('candidates')
+            .update({ is_active: false, availability_status: 'hired' })
+            .eq('user_id', userId);
 
-        if (error) {
+          if (error) throw error;
+          await load();
+        } catch (error) {
           showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
-          return;
+        } finally {
+          setStatusUpdating(false);
         }
-
-        load();
       },
     );
   };
 
 
 
-  if (loading) {
+  if (loading || routingToOnboarding) {
 
     return (
 
@@ -265,7 +270,22 @@ export function CandidateDashboardScreen() {
 
 
 
-  if (!candidate) return null;
+  if (!candidate) {
+    return (
+      <TabScreenLayout>
+        <ScreenHeader title={t.home} />
+        <ErrorState
+          title={t.errorTitle}
+          message={loadError ?? t.errorGeneric}
+          actionLabel={t.retry}
+          onAction={() => {
+            setLoading(true);
+            void load();
+          }}
+        />
+      </TabScreenLayout>
+    );
+  }
 
 
 
@@ -395,6 +415,7 @@ export function CandidateDashboardScreen() {
       />
 
       <View style={styles.sections}>
+        {loadError ? <InfoBanner message={loadError} variant="warning" /> : null}
         {isHired ? (
 
           <View style={[styles.banner, styles.bannerHired]}>
@@ -429,7 +450,7 @@ export function CandidateDashboardScreen() {
                 value={isActive}
                 onValueChange={toggleActive}
                 accessibilityLabel={t.profileActive}
-                disabled={isHired}
+                disabled={isHired || statusUpdating}
               />
             </View>
             <Pressable
@@ -449,7 +470,13 @@ export function CandidateDashboardScreen() {
 
             {photoUrl ? (
 
-              <Image source={{ uri: photoUrl }} style={styles.photo} />
+              <Image
+                source={{ uri: photoUrl }}
+                style={styles.photo}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={180}
+              />
 
             ) : (
 
@@ -645,6 +672,7 @@ export function CandidateDashboardScreen() {
             label={t.homeGotHired}
 
             onPress={markHired}
+            loading={statusUpdating}
 
             accessibilityHint={t.markHiredA11y}
 

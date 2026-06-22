@@ -63,7 +63,8 @@ export async function fetchRoleCounts(): Promise<Record<string, number>> {
     .select('role, additional_roles')
     .eq('is_active', true);
 
-  if (error || !data) return {};
+  if (error) throw error;
+  if (!data) return {};
 
   return data.reduce<Record<string, number>>((acc, row) => {
     const primary = row.role as string;

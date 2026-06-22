@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale, ARABIC_ENABLED } from '@/core/i18n/LocaleContext';
 import type { Lang } from '@/core/i18n/strings';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
@@ -19,7 +19,7 @@ import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
 
 type Props = {
   onLogout: () => void | Promise<void>;
-  onEditProfile?: () => void;
+  onEditProfile?: () => void | Promise<void>;
   onOpenPrivacy: () => void;
 };
 
@@ -77,6 +77,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | undefined>();
+  const [editLoading, setEditLoading] = useState(false);
   const { showError } = useAppAlert();
 
   useEffect(() => {
@@ -103,20 +104,22 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
         }
 
         if (data?.role === 'candidate') {
-          const { data: candidate } = await supabase
+          const { data: candidate, error: candidateError } = await supabase
             .from('candidates')
             .select('name')
             .eq('user_id', user.id)
             .maybeSingle();
+          if (candidateError) throw candidateError;
           if (!cancelled && candidate?.name) {
             setDisplayName(String(candidate.name).trim());
           }
         } else if (data?.role === 'employer') {
-          const { data: employer } = await supabase
+          const { data: employer, error: employerError } = await supabase
             .from('employers')
             .select('contact_name, company_name')
             .eq('user_id', user.id)
             .maybeSingle();
+          if (employerError) throw employerError;
           if (!cancelled && employer) {
             const name =
               String(employer.contact_name ?? '').trim() ||
@@ -128,11 +131,12 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
         const authPhone = user.phone;
         if (authPhone) setPhone(authPhone);
         else {
-          const { data: p } = await supabase
+          const { data: p, error: phoneError } = await supabase
             .from('profiles')
             .select('phone')
             .eq('user_id', user.id)
             .maybeSingle();
+          if (phoneError) throw phoneError;
           if (p?.phone) setPhone(p.phone as string);
         }
       } catch (e) {
@@ -166,6 +170,17 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   };
 
   const phoneDisplay = phone ? formatPhoneForDisplay(phone) : null;
+  const runEditProfile = async () => {
+    if (!onEditProfile || editLoading) return;
+    setEditLoading(true);
+    try {
+      await onEditProfile();
+    } catch (e) {
+      showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+    } finally {
+      setEditLoading(false);
+    }
+  };
   const showEditAccount =
     (role === 'candidate' || role === 'employer') && Boolean(onEditProfile);
   const editAccountLabel =
@@ -216,7 +231,11 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
                 {(displayName || phoneDisplay || memberSince) ? (
                   <View style={styles.rowDivider} />
                 ) : null}
-                <SettingsLinkRow label={editAccountLabel} onPress={onEditProfile!} />
+                <SettingsLinkRow
+                  label={editAccountLabel}
+                  onPress={() => void runEditProfile()}
+                  loading={editLoading}
+                />
               </>
             ) : null}
             {phoneDisplay ? (
@@ -249,9 +268,6 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
             </Pressable>
           ) : null}
         </View>
-        {Platform.OS !== 'web' ? (
-          <Text style={[styles.rtlHint, { textAlign: rtl.textAlign }]}>{t.settingsRtlReloadHint}</Text>
-        ) : null}
       </SurfaceCard>
 
       <SectionLabel variant="group">{t.settingsSectionHelp}</SectionLabel>
@@ -387,13 +403,6 @@ const styles = StyleSheet.create({
   chipOn: { borderColor: colors.primary, backgroundColor: colors.primaryTint },
   chipText: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
   chipTextOn: { color: colors.primary },
-  rtlHint: {
-    ...typography.caption,
-    color: colors.placeholder,
-    lineHeight: 18,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
   rowDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.divider,

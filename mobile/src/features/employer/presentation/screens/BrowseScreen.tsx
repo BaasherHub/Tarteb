@@ -20,14 +20,14 @@ import { interaction } from '@/core/theme/interaction';
 import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
-import { browseItemLayout, FLAT_LIST_PERF } from '@/shared/constants/listPerf';
+import { FLAT_LIST_PERF } from '@/shared/constants/listPerf';
 import { BrowseListSkeleton } from '@/shared/widgets/BrowseListSkeleton';
 import { EmptyState } from '@/shared/widgets/EmptyState';
 import { ErrorState } from '@/shared/widgets/ErrorState';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { supabase } from '@/core/lib/supabase';
-import { isLikelyNetworkError } from '@/shared/utils/errors';
+import { getErrorMessage, isLikelyNetworkError } from '@/shared/utils/errors';
 import {
   BrowseFilters,
   filtersForRole,
@@ -60,6 +60,7 @@ export function BrowseScreen() {
   const [filters, setFilters] = useState<BrowseFilters | null>(null);
   const [refineOpen, setRefineOpen] = useState(false);
   const [employerProfile, setEmployerProfile] = useState<Record<string, unknown> | null>(null);
+  const [employerProfileError, setEmployerProfileError] = useState<string | null>(null);
   const [showRoleLegend, setShowRoleLegend] = useState(false);
 
   const {
@@ -98,19 +99,25 @@ export function BrowseScreen() {
   }, []);
 
   const loadEmployerProfile = useCallback(async () => {
+    setEmployerProfileError(null);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
-      const { data: employer } = await supabase
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      const userId = userData.user?.id;
+      if (!userId) throw new Error(t.errorGeneric);
+      const { data: employer, error: employerError } = await supabase
         .from('employers')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
+      if (employerError) throw employerError;
       setEmployerProfile(employer as Record<string, unknown> | null);
     } catch (e) {
-      console.warn('[browse] failed to load employer profile', e);
+      setEmployerProfileError(
+        getErrorMessage(e, t.errorGeneric),
+      );
     }
-  }, []);
+  }, [t.errorGeneric]);
 
   useEffect(() => {
     loadEmployerProfile();
@@ -199,11 +206,11 @@ export function BrowseScreen() {
         title={t.noCandidates}
         message={t.noCandidatesHint}
         icon="👥"
-        actionLabel={refined ? t.resetFilters : t.browseRefine}
-        onAction={refined ? resetRefine : () => setRefineOpen(true)}
+        actionLabel={refined ? t.resetFilters : t.browseBackToRoles}
+        onAction={refined ? resetRefine : backToRoles}
       />
     );
-  }, [loadError, refined, resetRefine, retryLoad, t]);
+  }, [backToRoles, loadError, refined, resetRefine, retryLoad, t]);
 
   const employerCompletion =
     employerProfile ? employerProfileCompletion(employerProfile) : null;
@@ -239,6 +246,11 @@ export function BrowseScreen() {
         {employerCompletion && employerCompletion.percent < 100
           ? employerCompletionCard
           : null}
+        {employerProfileError ? (
+          <View style={styles.cacheBanner}>
+            <InfoBanner message={employerProfileError} variant="warning" />
+          </View>
+        ) : null}
         <RolePickerView onSelectRole={selectRole} />
       </ContentWidth>
     );
@@ -330,6 +342,11 @@ export function BrowseScreen() {
           <InfoBanner message={t.offlineCachedHint} variant="warning" />
         </View>
       ) : null}
+      {loadError && items.length > 0 ? (
+        <View style={styles.cacheBanner}>
+          <InfoBanner message={loadError} variant="warning" />
+        </View>
+      ) : null}
 
       {showSkeleton ? (
         <BrowseListSkeleton />
@@ -340,7 +357,6 @@ export function BrowseScreen() {
           data={items}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          getItemLayout={browseItemLayout}
           {...FLAT_LIST_PERF}
           refreshControl={
             <RefreshControl refreshing={isRefetching && !isFetchingNextPage} onRefresh={onRefresh} />

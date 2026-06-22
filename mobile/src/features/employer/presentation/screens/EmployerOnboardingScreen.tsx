@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 
@@ -17,6 +17,7 @@ import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnb
 import { EmployerStep1Company } from './onboarding/EmployerStep1Company';
 
 import { EmployerStep2Contact } from './onboarding/EmployerStep2Contact';
+import { StepTransition } from '@/shared/widgets/StepTransition';
 
 
 
@@ -26,15 +27,32 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EmployerOnboarding'>;
 
 function Steps(props: Props) {
 
-  const { step } = useEmployerOnboarding();
+  const { step, setStep } = useEmployerOnboarding();
+  const previousStep = useRef(step);
+  const direction: 1 | -1 = step >= previousStep.current ? 1 : -1;
+
+  useEffect(() => {
+    previousStep.current = step;
+  }, [step]);
+
+  useEffect(
+    () =>
+      props.navigation.addListener('beforeRemove', (event) => {
+        if (step <= 1) return;
+        const actionType = event.data.action.type;
+        if (actionType !== 'GO_BACK' && actionType !== 'POP') return;
+        event.preventDefault();
+        setStep(step - 1);
+      }),
+    [props.navigation, setStep, step],
+  );
 
   return (
-
-    <View style={styles.flex}>
-
-      {step === 1 ? <EmployerStep1Company /> : <EmployerStep2Contact {...props} />}
-
-    </View>
+    <StepTransition key={step} direction={direction}>
+      <View style={styles.flex}>
+        {step === 1 ? <EmployerStep1Company /> : <EmployerStep2Contact {...props} />}
+      </View>
+    </StepTransition>
 
   );
 

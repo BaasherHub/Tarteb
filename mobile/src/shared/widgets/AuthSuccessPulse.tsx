@@ -5,6 +5,7 @@ import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { playSuccessHaptic } from '@/shared/utils/successHaptic';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 
 type Props = {
   title: string;
@@ -17,6 +18,7 @@ export const AuthSuccessPulse = memo(function AuthSuccessPulse({
   subtitle,
 }: Props) {
   const rtl = useRtlStyles();
+  const reducedMotion = useReducedMotion();
   const scale = useRef(new Animated.Value(0.5)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const checkScale = useRef(new Animated.Value(0)).current;
@@ -24,6 +26,14 @@ export const AuthSuccessPulse = memo(function AuthSuccessPulse({
 
   useEffect(() => {
     void playSuccessHaptic();
+
+    if (reducedMotion) {
+      scale.setValue(1);
+      opacity.setValue(1);
+      checkScale.setValue(1);
+      circlePulse.setValue(1);
+      return;
+    }
 
     Animated.sequence([
       Animated.parallel([
@@ -59,7 +69,7 @@ export const AuthSuccessPulse = memo(function AuthSuccessPulse({
         }),
       ]),
     ]).start();
-  }, [checkScale, circlePulse, opacity, scale]);
+  }, [checkScale, circlePulse, opacity, reducedMotion, scale]);
 
   return (
     <Animated.View

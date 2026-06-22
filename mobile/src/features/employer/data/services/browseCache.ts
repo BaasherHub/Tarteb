@@ -41,3 +41,13 @@ export async function writeBrowseCache(
     // Non-critical — ignore storage failures
   }
 }
+
+export async function clearAllBrowseCache(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const browseKeys = keys.filter((k) => k.startsWith(PREFIX));
+    if (browseKeys.length > 0) await AsyncStorage.multiRemove(browseKeys);
+  } catch {
+    // Non-critical
+  }
+}

@@ -1,5 +1,7 @@
 import React, { RefObject } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -62,7 +64,10 @@ export function EmployerOnboardingStep({
   );
 
   return (
-    <View style={styles.flex}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ContentWidth style={styles.flex} variant="plain">
         <OnboardingProgress
           step={step}
@@ -83,7 +88,7 @@ export function EmployerOnboardingStep({
           />
         </ScreenFooter>
       </ContentWidth>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

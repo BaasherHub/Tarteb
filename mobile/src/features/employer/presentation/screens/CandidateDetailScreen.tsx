@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import {
-  Image,
   Linking,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { getCandidateCvSignedUrl } from '@/shared/services/candidateCv';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
@@ -57,10 +57,15 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
   const {
     data: candidate,
+    error: candidateError,
     isPending: candidateLoading,
+    isRefetching: candidateRefetching,
     refetch: refetchCandidate,
   } = useCandidateDetail(candidateId, t.errorLoadList);
-  const { data: alreadyUnlocked = false } = useEmployerUnlockStatus(candidateId);
+  const {
+    data: alreadyUnlocked = false,
+    error: unlockStatusError,
+  } = useEmployerUnlockStatus(candidateId);
   const unlockMutation = useUnlockCandidate();
 
   const isUnlocked =
@@ -150,29 +155,47 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
 
   if (!candidate) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <ErrorState
-          title={t.errorTitle}
-          message={t.errorLoadList}
-          actionLabel={t.back}
-          onAction={() => navigation.goBack()}
-        />
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        {candidateRefetching ? (
+          <ScreenLoading message={t.loading} />
+        ) : (
+          <ErrorState
+            title={t.errorTitle}
+            message={getErrorMessage(candidateError, t.errorLoadList)}
+            actionLabel={t.retry}
+            onAction={() => void refetchCandidate()}
+            secondaryLabel={t.back}
+            onSecondary={goBack}
+          />
+        )}
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
     <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
       <ContentWidth grow={false}>
         <ScreenHeader
           title={displayName || t.candidateProfileTitle}
           onBack={goBack}
         />
+        {unlockStatusError ? (
+          <InfoBanner
+            message={getErrorMessage(unlockStatusError, t.errorGeneric)}
+            variant="warning"
+          />
+        ) : null}
         <SurfaceCard inset style={styles.profileCard}>
           <View style={[styles.profileHero, rtl.row]}>
             {candidate.photo_url ? (
-              <Image source={{ uri: String(candidate.photo_url) }} style={styles.photo} />
+              <Image
+                source={{ uri: String(candidate.photo_url) }}
+                style={styles.photo}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={180}
+              />
             ) : (
               <View style={[styles.photo, styles.photoPh]}>
                 <Text style={styles.initials}>

@@ -26,14 +26,17 @@ export function SettingsScreen({ navigation }: Props) {
   };
 
   const openEditProfile = async () => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
-    const { data: row } = await supabase
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    const userId = userData.user?.id;
+    if (!userId) throw new Error(t.errorGeneric);
+    const { data: row, error } = await supabase
       .from('candidates')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
-    if (!row) return;
+    if (error) throw error;
+    if (!row) throw new Error(t.errorGeneric);
     navigation.navigate('CandidateOnboarding', {
       initial: onboardingFromRow(row as Record<string, unknown>),
       startStep: 3,

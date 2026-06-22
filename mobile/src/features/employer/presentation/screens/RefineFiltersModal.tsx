@@ -1,6 +1,8 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -108,12 +110,16 @@ function RefineFiltersModalInner({
       onRequestClose={onClose}
       accessibilityViewIsModal
     >
-      <SafeAreaView
+      <KeyboardAvoidingView
         style={styles.sheet}
-        edges={['top', 'bottom']}
-        accessibilityLabel={t.a11yFilterModal}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.header} accessibilityRole="header">
+        <SafeAreaView
+          style={styles.sheet}
+          edges={['top', 'bottom']}
+          accessibilityLabel={t.a11yFilterModal}
+        >
+          <View style={styles.header} accessibilityRole="header">
           <Text
             style={[styles.title, { textAlign: rtl.textAlign }]}
             numberOfLines={2}
@@ -135,13 +141,13 @@ function RefineFiltersModalInner({
           >
             {t.filterOptionalHint}
           </Text>
-        </View>
+          </View>
 
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-        >
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
           <Section title={t.nationality} first>
             <AutocompleteField
               label={t.nationality}
@@ -262,21 +268,22 @@ function RefineFiltersModalInner({
               }
             />
           </Section>
-        </ScrollView>
+          </ScrollView>
 
-        <View style={styles.footer}>
-          <SecondaryButton
-            label={t.reset}
-            onPress={reset}
-            accessibilityHint={t.a11yResetFilters}
-          />
-          <PrimaryButton
-            label={t.apply}
-            onPress={apply}
-            accessibilityHint={t.a11yApplyFilters}
-          />
-        </View>
-      </SafeAreaView>
+          <View style={styles.footer}>
+            <SecondaryButton
+              label={t.reset}
+              onPress={reset}
+              accessibilityHint={t.a11yResetFilters}
+            />
+            <PrimaryButton
+              label={t.apply}
+              onPress={apply}
+              accessibilityHint={t.a11yApplyFilters}
+            />
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

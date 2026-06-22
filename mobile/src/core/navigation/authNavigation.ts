@@ -5,6 +5,8 @@ import {
   getPendingAccountRole,
   type PendingAccountRole,
 } from '@/core/services/pendingAccountRole';
+import { flushPendingDeepLink } from '@/core/navigation/deepLink';
+import { navigationRef } from '@/core/navigation/navigationRef';
 
 export class AuthRoutingError extends Error {
   constructor(
@@ -63,6 +65,13 @@ export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
   } else {
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   }
+}
+
+export async function routeAuthenticatedUserAndFlush(
+  navigation: Nav,
+): Promise<void> {
+  await routeAuthenticatedUser(navigation);
+  setTimeout(() => flushPendingDeepLink(navigationRef), 0);
 }
 
 async function applyPendingRole(

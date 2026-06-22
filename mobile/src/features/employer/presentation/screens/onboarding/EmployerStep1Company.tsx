@@ -35,7 +35,10 @@ export function EmployerStep1Company() {
     setCompanyError(undefined);
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
+      if (!userId) {
+        setCompanyError(t.errorGeneric);
+        return;
+      }
 
       const available = await isCompanyNameAvailable(companyName, userId);
       if (!available) {

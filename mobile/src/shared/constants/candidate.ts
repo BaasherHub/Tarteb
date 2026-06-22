@@ -25,9 +25,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'food-beverage',
     label: 'Food & Beverage',
-    labelAr: '╪º┘ä╪ú╪║╪░┘è╪⌐ ┘ê╪º┘ä┘à╪┤╪▒┘ê╪¿╪º╪¬',
+    labelAr: 'الأغذية والمشروبات',
     shortLabel: 'Food',
-    shortLabelAr: '┘à╪╖╪º╪╣┘à',
+    shortLabelAr: 'طعام',
     roles: [
       'Barista',
       'Waiter',
@@ -43,9 +43,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'cleaning-housekeeping',
     label: 'Cleaning & Housekeeping',
-    labelAr: '╪º┘ä┘å╪╕╪º┘ü╪⌐ ┘ê╪º┘ä╪¬╪»╪¿┘è╪▒',
+    labelAr: 'التنظيف والتدبير المنزلي',
     shortLabel: 'Cleaning',
-    shortLabelAr: '┘å╪╕╪º┘ü╪⌐',
+    shortLabelAr: 'تنظيف',
     roles: [
       'Office Cleaner',
       'Residential Cleaner',
@@ -58,9 +58,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'drivers-delivery',
     label: 'Drivers & Delivery',
-    labelAr: '╪º┘ä╪│╪º╪ª┘é┘ê┘å ┘ê╪º┘ä╪¬┘ê╪╡┘è┘ä',
+    labelAr: 'السائقون والتوصيل',
     shortLabel: 'Drivers',
-    shortLabelAr: '╪│╪º╪ª┘é┘ê┘å',
+    shortLabelAr: 'سائقون',
     roles: [
       'Personal Driver',
       'Delivery Driver',
@@ -73,9 +73,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'beauty-wellness',
     label: 'Beauty & Wellness',
-    labelAr: '╪º┘ä╪¼┘à╪º┘ä ┘ê╪º┘ä╪╣╪º┘ü┘è╪⌐',
+    labelAr: 'الجمال والعافية',
     shortLabel: 'Beauty',
-    shortLabelAr: '╪¼┘à╪º┘ä',
+    shortLabelAr: 'جمال',
     roles: [
       'Barber',
       'Hairdresser',
@@ -88,17 +88,17 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'security',
     label: 'Security',
-    labelAr: '╪º┘ä╪ú┘à┘å',
+    labelAr: 'الأمن',
     shortLabel: 'Security',
-    shortLabelAr: '╪ú┘à┘å',
+    shortLabelAr: 'أمن',
     roles: ['Security Guard', 'CCTV Operator', 'Bouncer'],
   },
   {
     id: 'retail-sales',
     label: 'Retail & Sales',
-    labelAr: '╪º┘ä╪¬╪¼╪▓╪ª╪⌐ ┘ê╪º┘ä┘à╪¿┘è╪╣╪º╪¬',
+    labelAr: 'التجزئة والمبيعات',
     shortLabel: 'Retail',
-    shortLabelAr: '╪¬╪¼╪▓╪ª╪⌐',
+    shortLabelAr: 'تجزئة',
     roles: [
       'Sales Associate',
       'Retail Cashier',
@@ -114,9 +114,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'construction-trades',
     label: 'Construction & Trades',
-    labelAr: '╪º┘ä╪¿┘å╪º╪í ┘ê╪º┘ä┘à┘ç┘å',
+    labelAr: 'البناء والمهن',
     shortLabel: 'Trades',
-    shortLabelAr: '┘à┘ç┘å',
+    shortLabelAr: 'مهن',
     roles: [
       'General Laborer',
       'Painter',
@@ -135,9 +135,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'domestic-help',
     label: 'Domestic Help',
-    labelAr: '╪º┘ä╪«╪»┘à╪⌐ ╪º┘ä┘à┘å╪▓┘ä┘è╪⌐',
+    labelAr: 'الخدمة المنزلية',
     shortLabel: 'Domestic',
-    shortLabelAr: '┘à┘å╪▓┘ä┘è',
+    shortLabelAr: 'منزلي',
     roles: [
       'Nanny/Babysitter',
       'Home Cook',
@@ -152,9 +152,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'warehouse',
     label: 'Warehouse',
-    labelAr: '╪º┘ä┘à╪│╪¬┘ê╪»╪╣╪º╪¬',
+    labelAr: 'المستودعات',
     shortLabel: 'Warehouse',
-    shortLabelAr: '┘à╪│╪¬┘ê╪»╪╣',
+    shortLabelAr: 'مستودع',
     roles: [
       'Warehouse Worker',
       'Storekeeper',
@@ -167,9 +167,9 @@ export const ONBOARDING_ROLE_CATEGORIES: RoleCategory[] = [
   {
     id: 'office-support',
     label: 'Office Support',
-    labelAr: '╪º┘ä╪»╪╣┘à ╪º┘ä┘à┘â╪¬╪¿┘è',
+    labelAr: 'الدعم المكتبي',
     shortLabel: 'Office',
-    shortLabelAr: '┘à┘â╪¬╪¿',
+    shortLabelAr: 'مكتبي',
     roles: [
       'Office Boy',
       'Tea Boy/Girl',
@@ -231,7 +231,7 @@ export const VISA_STATUSES = [
 /** @deprecated Use UAE_EMIRATES from uaeLocations.ts */
 export { UAE_EMIRATES as LOCATIONS } from '@/shared/constants/uaeLocations';
 
-/** All languages relevant to the UAE workforce ΓÇö shown in full, no "more" toggle. */
+/** All languages relevant to the UAE workforce — shown in full, no "more" toggle. */
 export const LANGUAGE_OPTIONS = [
   'English',
   'Arabic',

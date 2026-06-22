@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
-    minHeight: 40,
+    minHeight: 44,
   },
   rowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,

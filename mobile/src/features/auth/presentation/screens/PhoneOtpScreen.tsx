@@ -56,7 +56,7 @@ import {
 
   AuthRoutingError,
 
-  routeAuthenticatedUser,
+  routeAuthenticatedUserAndFlush,
 
 } from '@/features/auth/data/services/authNavigation';
 
@@ -106,6 +106,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
   const { session, isReady } = useAuth();
 
   const routedRef = useRef(false);
+  const submittingRef = useRef(false);
 
   const otpInputRef = useRef<TextInput>(null);
 
@@ -135,13 +136,13 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   useEffect(() => {
 
-    if (!isReady || !session || routedRef.current) return;
+    if (!isReady || !session || routedRef.current || submittingRef.current) return;
 
     routedRef.current = true;
 
     setSessionRouting(true);
 
-    routeAuthenticatedUser(navigation)
+    routeAuthenticatedUserAndFlush(navigation)
 
       .catch((e) => {
 
@@ -199,7 +200,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
     await new Promise((r) => setTimeout(r, AUTH_SUCCESS_ROUTE_DELAY_MS));
 
-    await routeAuthenticatedUser(navigation);
+    await routeAuthenticatedUserAndFlush(navigation);
 
   };
 
@@ -226,6 +227,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
     try {
 
       if (otpBypass) {
+        submittingRef.current = true;
 
         await signInWithVerifiedPhone(e164);
 
@@ -347,6 +349,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
       }
 
+      submittingRef.current = true;
       await signInWithVerifiedPhone(sentPhone);
 
       await finishAuth();
@@ -364,6 +367,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
       );
 
     } finally {
+      submittingRef.current = false;
 
       if (phase !== 'success') {
 
@@ -525,7 +529,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
                 <Pressable
 
-                  onPress={() => navigation.navigate('EmailOtp')}
+                  onPress={() => navigation.replace('EmailOtp')}
 
                   accessibilityRole="link"
 

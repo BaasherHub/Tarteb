@@ -75,7 +75,10 @@ export function EmployerStep2Contact({ navigation }: Props) {
     if (Object.keys(nextErrors).length) return;
 
     const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) return;
+    if (!userId) {
+      setSubmitError(t.errorGeneric);
+      return;
+    }
 
     setLoading(true);
     setSubmitError(undefined);
@@ -112,7 +115,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
       });
       if (error) throw error;
       await promptForPushNotifications(t, 'employer');
-      navigation.replace('EmployerShell');
+      navigation.reset({ index: 0, routes: [{ name: 'EmployerShell' }] });
     } catch (e) {
       if (isCompanyNameConflict(e)) {
         setSubmitError(t.errCompanyTaken);
