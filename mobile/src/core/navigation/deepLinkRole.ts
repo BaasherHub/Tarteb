@@ -25,13 +25,19 @@ export type DeepLinkIntent =
   | { kind: 'employerTab'; tab: 'BrowseTab' | 'UnlocksTab' | 'SettingsTab' }
   | { kind: 'candidateTab'; tab: 'HomeTab' | 'SettingsTab' };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function candidateIdFromUrl(url: string): string | null {
   const parsed = Linking.parse(url);
   const pathParts = (parsed.path ?? '').split('/').filter(Boolean);
-  if (pathParts[0] === 'candidate' && pathParts[1]) return pathParts[1];
-  if (parsed.hostname === 'candidate' && pathParts[0]) return pathParts[0];
-  const q = parsed.queryParams?.candidateId;
-  return typeof q === 'string' ? q : null;
+  let id: string | null = null;
+  if (pathParts[0] === 'candidate' && pathParts[1]) id = pathParts[1];
+  else if (parsed.hostname === 'candidate' && pathParts[0]) id = pathParts[0];
+  else {
+    const q = parsed.queryParams?.candidateId;
+    id = typeof q === 'string' ? q : null;
+  }
+  return id && UUID_RE.test(id) ? id : null;
 }
 
 export function parseDeepLinkIntent(url: string): DeepLinkIntent | null {

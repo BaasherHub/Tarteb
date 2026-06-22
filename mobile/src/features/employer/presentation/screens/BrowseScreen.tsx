@@ -107,8 +107,8 @@ export function BrowseScreen() {
         .eq('user_id', userId)
         .maybeSingle();
       setEmployerProfile(employer as Record<string, unknown> | null);
-    } catch {
-      setEmployerProfile(null);
+    } catch (e) {
+      console.warn('[browse] failed to load employer profile', e);
     }
   }, []);
 

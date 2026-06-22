@@ -149,7 +149,7 @@ export function EmailOtpScreen({ navigation }: Props) {
 
     const trimmed = email.trim();
 
-    if (!trimmed.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
 
       setEmailError(t.enterEmail);
 
