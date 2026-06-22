@@ -16,16 +16,6 @@ export function RootNavigator() {
   const { isRtl, isHydrated, hasCompletedLanguageSelection } = useLocale();
   const stackAnimation = isRtl ? 'slide_from_left' : 'slide_from_right';
 
-  if (!isHydrated) {
-    return (
-      <View style={styles.boot}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
-  }
-
-  const initialRouteName = hasCompletedLanguageSelection ? 'Splash' : 'LanguageSelection';
-
   const gatedLinking = useMemo((): LinkingOptions<RootStackParamList> => {
     if (hasCompletedLanguageSelection) {
       return {
@@ -55,6 +45,16 @@ export function RootNavigator() {
       },
     };
   }, [hasCompletedLanguageSelection]);
+
+  if (!isHydrated) {
+    return (
+      <View style={styles.boot}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  const initialRouteName = hasCompletedLanguageSelection ? 'Splash' : 'LanguageSelection';
 
   return (
     <NavigationContainer
