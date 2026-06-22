@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
 import { OnboardingStepIntro } from '@/features/candidate/presentation/components/OnboardingStepIntro';
@@ -27,6 +28,7 @@ const E2E_AUTO_PHOTO =
 
 export function Step1Photo() {
   const { t } = useLocale();
+  const navigation = useNavigation();
   const { data, update, setStep } = useCandidateOnboarding();
   const [uploading, setUploading] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
@@ -116,6 +118,8 @@ export function Step1Photo() {
       primaryLabel={t.continue}
       onPrimary={next}
       primaryLoading={uploading}
+      backLabel={t.back}
+      onBack={() => navigation.goBack()}
     >
       <OnboardingStepIntro>{t.onboardingStepPhotoIntro}</OnboardingStepIntro>
 

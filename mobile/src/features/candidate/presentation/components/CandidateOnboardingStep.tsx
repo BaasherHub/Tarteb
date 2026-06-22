@@ -131,7 +131,7 @@ export function CandidateOnboardingStep({
               </Text>
             </View>
           ) : null}
-          {backLabel && onBack && step > 1 ? (
+          {backLabel && onBack ? (
             <SecondaryButton label={backLabel} onPress={onBack} />
           ) : null}
           <PrimaryButton

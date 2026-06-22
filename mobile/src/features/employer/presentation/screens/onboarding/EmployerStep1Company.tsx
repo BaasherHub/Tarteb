@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { supabase } from '@/core/lib/supabase';
 import { EmployerOnboardingStep } from '@/features/employer/presentation/components/EmployerOnboardingStep';
@@ -18,6 +19,7 @@ import {
 
 export function EmployerStep1Company() {
   const { t } = useLocale();
+  const navigation = useNavigation();
   const { data, update, setStep, isEditMode } = useEmployerOnboarding();
   const [companyError, setCompanyError] = useState<string | undefined>();
   const [checking, setChecking] = useState(false);
@@ -57,6 +59,8 @@ export function EmployerStep1Company() {
       primaryLabel={t.continue}
       onPrimary={next}
       primaryLoading={checking}
+      backLabel={isEditMode ? undefined : t.back}
+      onBack={isEditMode ? undefined : () => navigation.goBack()}
     >
       <OnboardingStepIntro>
         {isEditMode ? t.employerOnboardingEditStep1Intro : t.employerOnboardingStep1Intro}
