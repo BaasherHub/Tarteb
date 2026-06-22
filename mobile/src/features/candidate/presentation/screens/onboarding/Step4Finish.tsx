@@ -53,7 +53,7 @@ function hasDistrict(location: string | undefined): boolean {
 export function Step4Finish({ navigation }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
-  const { data, update, setStep } = useCandidateOnboarding();
+  const { data, update, setStep, isEditMode } = useCandidateOnboarding();
   const [availableFrom, setAvailableFrom] = useState<Date | null>(() =>
     data.availableFrom ? parseIsoDateLocal(data.availableFrom) : null,
   );
@@ -154,7 +154,11 @@ export function Step4Finish({ navigation }: Props) {
       if (error) throw error;
 
       await clearCandidateOnboardingDraft(userId);
-      navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
+      if (isEditMode) {
+        navigation.goBack();
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
+      }
     } catch (e) {
       setSubmitError(getErrorMessage(e, t.errorGeneric));
     } finally {

@@ -343,7 +343,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
       if (!ok) {
 
-        setOtpError(t.errorGeneric);
+        setOtpError(t.errorWrongCode);
 
         return;
 

@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 import {
   clearOnboardingDraft,
   loadOnboardingDraft,
@@ -72,6 +73,8 @@ export function CandidateOnboardingProvider({
   const [isHydrated, setIsHydrated] = useState(isEditMode);
   const hydrated = useRef(false);
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dataRef = useRef(data);
+  const stepRef = useRef(step);
   const totalSteps = 5;
 
   useEffect(() => {
@@ -104,6 +107,25 @@ export function CandidateOnboardingProvider({
     },
     [isEditMode, userId],
   );
+
+  // Keep refs in sync so the AppState flush handler always has fresh data.
+  useEffect(() => { dataRef.current = data; }, [data]);
+  useEffect(() => { stepRef.current = step; }, [step]);
+
+  // Flush draft immediately when the app backgrounds so data survives OS kills.
+  useEffect(() => {
+    if (isEditMode || !userId) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        if (persistTimer.current) {
+          clearTimeout(persistTimer.current);
+          persistTimer.current = null;
+        }
+        saveOnboardingDraft(userId, dataRef.current, stepRef.current).catch(() => {});
+      }
+    });
+    return () => sub.remove();
+  }, [isEditMode, userId]);
 
   const setStep = useCallback(
     (n: number) => {

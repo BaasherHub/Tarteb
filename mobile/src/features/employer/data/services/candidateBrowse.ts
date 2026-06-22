@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/shared/utils/errors';
 import { postgrestRoleOrFilter } from '@/shared/utils/candidateRoles';
 
 export const PAGE_SIZE = 20;
-export const SALARY_FILTER_MAX = 10000;
+export const SALARY_FILTER_MAX = 25000;
 
 export type BrowseFilters = {
   roles: string[];

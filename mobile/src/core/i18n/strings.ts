@@ -11,6 +11,7 @@ export interface Strings {
   continueWithoutOtp: string;
   verify: string;
   otpCode: string;
+  errorWrongCode: string;
   enterPhone: string;
   changePhone: string;
   changeRole: string;
@@ -333,6 +334,7 @@ export interface Strings {
   errLocation: string;
   errAvailableFrom: string;
   errSalary: string;
+  errSalaryRange: string;
   errCurrentSalary: string;
   errExpectedSalary: string;
   errPhone: string;
@@ -401,6 +403,7 @@ const en: Strings = {
   continueWithoutOtp: 'Continue',
   verify: 'Verify',
   otpCode: 'OTP code',
+  errorWrongCode: 'Wrong code. Check the SMS and try again.',
   enterPhone: 'Enter your phone number',
   changePhone: 'Change phone number',
   changeRole: 'Change role',
@@ -838,6 +841,7 @@ const en: Strings = {
   errLocationArea: 'Pick your district from the list',
   errAvailableFrom: 'Select when you are available to start',
   errSalary: 'Enter expected monthly salary',
+  errSalaryRange: 'Minimum salary cannot exceed maximum salary.',
   errCurrentSalary: 'Enter your current monthly salary',
   errExpectedSalary: 'Enter your expected monthly salary',
   errPhone: 'Enter your phone number',
@@ -918,6 +922,7 @@ const ar: Strings = {
   continueWithoutOtp: 'متابعة',
   verify: 'تحقق',
   otpCode: 'رمز التحقق',
+  errorWrongCode: 'الرمز خاطئ. تحقق من الرسالة وحاول مجدداً.',
   enterPhone: 'أدخل رقم هاتفك',
   changePhone: 'تغيير رقم الهاتف',
   changeRole: 'تغيير الدور',
@@ -1351,6 +1356,7 @@ const ar: Strings = {
   errLocationArea: 'اختر الحي من القائمة',
   errAvailableFrom: 'اختر تاريخ بدء التوفر',
   errSalary: 'أدخل الراتب الشهري المتوقع',
+  errSalaryRange: 'لا يمكن أن يتجاوز الحد الأدنى للراتب الحد الأقصى.',
   errCurrentSalary: 'أدخل راتبك الشهري الحالي',
   errExpectedSalary: 'أدخل راتبك الشهري المتوقع',
   errPhone: 'أدخل رقم الهاتف',

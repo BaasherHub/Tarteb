@@ -34,6 +34,7 @@ export function Step1Photo() {
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | undefined>();
   const [permissionError, setPermissionError] = useState<string | undefined>();
+  const [uploadError, setUploadError] = useState<string | undefined>();
 
   useEffect(() => {
     if (!E2E_AUTO_PHOTO || data.photoUrl || localUri) return;
@@ -54,7 +55,7 @@ export function Step1Photo() {
         setPermissionError(undefined);
       } catch (e) {
         if (!cancelled) {
-          setPermissionError(getErrorMessage(e, t.errorGeneric));
+          setUploadError(getErrorMessage(e, t.errorGeneric));
           setLocalUri(null);
         }
       } finally {
@@ -94,7 +95,7 @@ export function Step1Photo() {
       update({ photoUrl: url });
       setPhotoError(undefined);
     } catch (e) {
-      setPermissionError(getErrorMessage(e, t.errorGeneric));
+      setUploadError(getErrorMessage(e, t.errorGeneric));
       setLocalUri(null);
     } finally {
       setUploading(false);
@@ -136,6 +137,7 @@ export function Step1Photo() {
         />
         {!hasPhoto ? <PhotoEmptyEncouragement /> : null}
         {permissionError ? <InfoBanner message={permissionError} variant="warning" /> : null}
+        {uploadError ? <InfoBanner message={uploadError} variant="warning" /> : null}
         <FieldError message={photoError} />
       </SurfaceCard>
     </CandidateOnboardingStep>

@@ -77,6 +77,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | undefined>();
+  const [retryCount, setRetryCount] = useState(0);
   const [editLoading, setEditLoading] = useState(false);
   const { showError } = useAppAlert();
 
@@ -150,7 +151,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
     return () => {
       cancelled = true;
     };
-  }, [lang, t.errorGeneric]);
+  }, [lang, t.errorGeneric, retryCount]);
 
   const roleLabel =
     role === 'candidate' ? t.roleCandidate : role === 'employer' ? t.roleEmployer : null;
@@ -191,7 +192,21 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   return (
     <View style={styles.root}>
       {profileError ? (
-        <Text style={[styles.profileError, { textAlign: rtl.textAlign }]}>{profileError}</Text>
+        <View style={styles.profileErrorRow}>
+          <Text style={[styles.profileError, { textAlign: rtl.textAlign }]}>{profileError}</Text>
+          <Pressable
+            onPress={() => {
+              setProfileError(undefined);
+              setLoading(true);
+              setRetryCount((n) => n + 1);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.retry}
+            style={({ pressed }) => pressed && styles.retryPressed}
+          >
+            <Text style={styles.retryText}>{t.retry}</Text>
+          </Pressable>
+        </View>
       ) : null}
 
       <SectionLabel variant="group" first>
@@ -344,12 +359,21 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
 
 const styles = StyleSheet.create({
   root: { gap: spacing.xs },
+  profileErrorRow: {
+    gap: spacing.xs,
+    paddingHorizontal: spacing.xs,
+  },
   profileError: {
     ...typography.caption,
     color: colors.error,
-    paddingHorizontal: spacing.xs,
     lineHeight: 18,
   },
+  retryText: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  retryPressed: { opacity: 0.6 },
   accountRow: {
     alignItems: 'center',
     justifyContent: 'space-between',

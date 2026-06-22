@@ -22,6 +22,7 @@ import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { SectionLabel } from '@/shared/widgets/SectionLabel';
+import { FieldError } from '@/shared/widgets/FieldError';
 import { FormField } from '@/shared/widgets/FormField';
 import { LocationFilterSection } from '@/features/employer/presentation/components/LocationFilterSection';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -55,6 +56,7 @@ function RefineFiltersModalInner({
   const [filters, setFilters] = useState(initial);
   const [showAllLanguages, setShowAllLanguages] = useState(false);
   const [nationalityQuery, setNationalityQuery] = useState(initial.nationalitySearch);
+  const [salaryError, setSalaryError] = useState<string | undefined>();
 
   useEffect(() => {
     if (visible) {
@@ -88,11 +90,16 @@ function RefineFiltersModalInner({
   );
 
   const apply = useCallback(() => {
+    if (filters.salaryMin > 0 && filters.salaryMax > 0 && filters.salaryMin > filters.salaryMax) {
+      setSalaryError(t.errSalaryRange);
+      return;
+    }
+    setSalaryError(undefined);
     const nationality =
       resolveNationality(nationalityQuery) ?? nationalityQuery.trim();
     onApply({ ...filters, roles: [role], nationalitySearch: nationality });
     onClose();
-  }, [filters, nationalityQuery, onApply, onClose, role]);
+  }, [filters, nationalityQuery, onApply, onClose, role, t.errSalaryRange]);
 
   const reset = useCallback(() => {
     const base = filtersForRole(role);
@@ -209,6 +216,7 @@ function RefineFiltersModalInner({
                 />
               </View>
             </View>
+            {salaryError ? <FieldError message={salaryError} /> : null}
           </Section>
 
           <Section title={t.filterExperience}>

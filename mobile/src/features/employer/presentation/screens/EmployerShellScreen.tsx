@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -18,6 +19,7 @@ import { supabase } from '@/core/lib/supabase';
 
 import { clearPushToken } from '@/core/services/notifications';
 import { clearAllBrowseCache } from '@/features/employer/data/services/browseCache';
+import { LANGUAGE_SELECTION_DONE_KEY } from '@/core/i18n/LocaleContext';
 
 import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
 
@@ -74,6 +76,7 @@ function EmployerSettingsTab() {
   const logout = async () => {
     await clearPushToken().catch(() => {});
     await clearAllBrowseCache().catch(() => {});
+    await AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY).catch(() => {});
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     queryClient.clear();

@@ -128,6 +128,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
     } catch (e) {
       if (isCompanyNameConflict(e)) {
         setSubmitError(t.errCompanyTaken);
+        setStep(1);
         return;
       }
       setSubmitError(getErrorMessage(e, t.errorGeneric));

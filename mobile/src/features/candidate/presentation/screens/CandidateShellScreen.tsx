@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,6 +14,7 @@ import { useLocale } from '@/core/i18n/LocaleContext';
 import { RootStackParamList, CandidateTabParamList } from '@/core/navigation/types';
 import { supabase } from '@/core/lib/supabase';
 import { clearPushToken } from '@/core/services/notifications';
+import { LANGUAGE_SELECTION_DONE_KEY } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
@@ -47,6 +49,7 @@ function CandidateSettingsTab() {
 
   const logout = async () => {
     await clearPushToken().catch(() => {});
+    await AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY).catch(() => {});
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     queryClient.clear();
@@ -67,7 +70,7 @@ function CandidateSettingsTab() {
     if (!row) throw new Error(t.errorGeneric);
     stackNav.navigate('CandidateOnboarding', {
       initial: onboardingFromRow(row as Record<string, unknown>),
-      startStep: 3,
+      startStep: 1,
     });
   };
 

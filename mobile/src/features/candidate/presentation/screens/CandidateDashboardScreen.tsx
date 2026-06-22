@@ -200,6 +200,10 @@ export function CandidateDashboardScreen() {
 
   const toggleActive = async (value: boolean) => {
     setStatusUpdating(true);
+    // Optimistic update so the toggle doesn't flicker back before the API responds.
+    setCandidate((prev) =>
+      prev ? { ...prev, is_active: value, availability_status: value ? 'looking' : 'paused' } : prev,
+    );
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) throw new Error(t.errorGeneric);
@@ -215,6 +219,10 @@ export function CandidateDashboardScreen() {
       if (error) throw error;
       await load();
     } catch (error) {
+      // Revert optimistic update on failure.
+      setCandidate((prev) =>
+        prev ? { ...prev, is_active: !value, availability_status: !value ? 'looking' : 'paused' } : prev,
+      );
       showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
     } finally {
       setStatusUpdating(false);
