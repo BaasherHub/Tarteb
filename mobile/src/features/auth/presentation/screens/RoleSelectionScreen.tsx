@@ -26,7 +26,7 @@ import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { ChangeLanguageLink } from '@/features/auth/presentation/components/ChangeLanguageLink';
 import { RoleVisualCard, type RoleCardTheme } from '@/features/auth/presentation/components/RoleVisualCard';
-import { useLocale } from '@/core/i18n/LocaleContext';
+import { useLocale, ARABIC_ENABLED } from '@/core/i18n/LocaleContext';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
@@ -151,9 +151,11 @@ export function RoleSelectionScreen({ navigation }: Props) {
     <Screen style={styles.screen}>
       <View style={styles.flex}>
         <ContentWidth style={styles.flex} variant={contentWidthVariant}>
-          <View style={[layoutStyles.screenContent, styles.langWrap]}>
-            <ChangeLanguageLink onPress={goToLanguageSelection} />
-          </View>
+          {ARABIC_ENABLED ? (
+            <View style={[layoutStyles.screenContent, styles.langWrap]}>
+              <ChangeLanguageLink onPress={goToLanguageSelection} />
+            </View>
+          ) : null}
 
           <ScrollView
             style={styles.flex}
