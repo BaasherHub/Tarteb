@@ -20,33 +20,29 @@ export async function uploadCandidatePhoto(
   const contentType =
     mimeType || (safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg');
 
-  // Hermes does not support creating Blobs from ArrayBuffer, which the Supabase
-  // storage SDK does internally. Call the REST API directly with FormData instead —
-  // React Native's native fetch handles { uri, name, type } file objects natively.
+  // Hermes blocks Blob-from-ArrayBuffer (used internally by the Supabase SDK).
+  // Use XMLHttpRequest + FormData instead — RN's native XHR implementation
+  // handles { uri, name, type } file objects without any Blob conversion.
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
   if (!token) throw new Error('No active session');
 
-  const formData = new FormData();
-  formData.append('file', { uri, name: fileName || `photo.${safeExt}`, type: contentType } as unknown as Blob);
-
-  const res = await fetch(
-    `${env.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: env.supabaseAnonKey,
-        'x-upsert': 'true',
-      },
-      body: formData,
-    },
-  );
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => res.status.toString());
-    throw new Error(`Photo upload failed: ${body}`);
-  }
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${env.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('apikey', env.supabaseAnonKey);
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Photo upload failed (${xhr.status}): ${xhr.responseText}`));
+    };
+    xhr.onerror = () => reject(new Error('Network error during photo upload'));
+    const fd = new FormData();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fd.append('file', { uri, name: fileName || `photo.${safeExt}`, type: contentType } as any);
+    xhr.send(fd);
+  });
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return data.publicUrl;
