@@ -58,26 +58,16 @@ export function hasRefineFilters(filters: BrowseFilters): boolean {
 
 /** Returns a map of role → active candidate count for the role picker. */
 export async function fetchRoleCounts(): Promise<Record<string, number>> {
-  const { data, error } = await supabase
-    .from('candidates')
-    .select('role, additional_roles')
-    .eq('is_active', true);
-
+  const { data, error } = await supabase.rpc('get_active_role_counts');
   if (error) throw error;
   if (!data) return {};
-
-  return data.reduce<Record<string, number>>((acc, row) => {
-    const primary = row.role as string;
-    if (primary) acc[primary] = (acc[primary] ?? 0) + 1;
-    const extra = row.additional_roles;
-    if (Array.isArray(extra)) {
-      for (const r of extra) {
-        const role = String(r);
-        if (role) acc[role] = (acc[role] ?? 0) + 1;
-      }
-    }
-    return acc;
-  }, {});
+  return (data as { role: string; cnt: number }[]).reduce<Record<string, number>>(
+    (acc, row) => {
+      if (row.role) acc[row.role] = Number(row.cnt);
+      return acc;
+    },
+    {},
+  );
 }
 
 export function useRoleCounts() {

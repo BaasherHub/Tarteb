@@ -38,6 +38,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const EXPO_BATCH_SIZE = 100;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -61,27 +64,43 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  let candidates: { user_id: string; id: string }[] = [];
+  const messages: Record<string, { title: string; body: string }> = {
+    still_looking: {
+      title: 'Still looking for work? 👋',
+      body: 'Employers are browsing Tarteb right now. Keep your profile active to be found.',
+    },
+    no_views: {
+      title: 'Boost your chances 💪',
+      body: 'No views in 30 days? Try updating your profile — a fresh photo and current availability help.',
+    },
+  };
+  const msg = messages[job] ?? messages.still_looking;
+
+  // Batch-fetch candidates AND their push tokens in a single JOIN query.
+  let tokens: string[] = [];
 
   if (job === 'still_looking') {
-    // All active candidates who have a push token
     const { data } = await supabase
       .from('candidates')
-      .select('user_id, id')
+      .select('profiles!inner(push_token)')
       .eq('is_active', true)
-      .eq('availability_status', 'looking');
+      .eq('availability_status', 'looking')
+      .not('profiles.push_token', 'is', null);
 
-    candidates = data ?? [];
+    tokens = (data ?? [])
+      .map((r: { profiles: { push_token: string | null } }) => r.profiles?.push_token ?? '')
+      .filter(Boolean);
+
   } else if (job === 'no_views') {
-    // Candidates active but with 0 employer unlocks in last 30 days
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: allActive } = await supabase
       .from('candidates')
-      .select('user_id, id, created_at')
+      .select('id, profiles!inner(push_token)')
       .eq('is_active', true)
       .eq('availability_status', 'looking')
-      .lt('created_at', cutoff); // only candidates older than 30 days
+      .lt('created_at', cutoff)
+      .not('profiles.push_token', 'is', null);
 
     if (!allActive?.length) {
       return new Response(JSON.stringify({ sent: 0 }), {
@@ -94,49 +113,43 @@ serve(async (req) => {
       .select('candidate_id')
       .gte('unlocked_at', cutoff);
 
-    const recentSet = new Set((recentUnlocks ?? []).map((u: { candidate_id: string }) => u.candidate_id));
-    candidates = allActive.filter((c) => !recentSet.has(c.id));
+    const recentSet = new Set(
+      (recentUnlocks ?? []).map((u: { candidate_id: string }) => u.candidate_id),
+    );
+
+    tokens = (allActive as { id: string; profiles: { push_token: string | null } }[])
+      .filter((c) => !recentSet.has(c.id))
+      .map((c) => c.profiles?.push_token ?? '')
+      .filter(Boolean);
   }
 
-  const messages: Record<string, { title: string; body: string }> = {
-    still_looking: {
-      title: 'Still looking for work? 👋',
-      body: 'Employers are browsing Tarteb right now. Keep your profile active to be found.',
-    },
-    no_views: {
-      title: 'Boost your chances 💪',
-      body: 'No views in 30 days? Try updating your profile — a fresh photo and current availability help.',
-    },
-  };
+  if (!tokens.length) {
+    return new Response(JSON.stringify({ sent: 0, job }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
-  const msg = messages[job] ?? messages.still_looking;
+  // Send in batches of 100 using Expo's bulk push API.
   let sent = 0;
+  for (let i = 0; i < tokens.length; i += EXPO_BATCH_SIZE) {
+    const batch = tokens.slice(i, i + EXPO_BATCH_SIZE).map((to) => ({
+      to,
+      title: msg.title,
+      body: msg.body,
+      sound: 'default',
+      data: { job },
+    }));
 
-  for (const candidate of candidates) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('push_token')
-      .eq('user_id', candidate.user_id)
-      .single();
-
-    if (!profile?.push_token) continue;
-
-    await fetch('https://exp.host/--/api/v2/push/send', {
+    await fetch(EXPO_PUSH_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: profile.push_token,
-        title: msg.title,
-        body: msg.body,
-        sound: 'default',
-        data: { job, candidate_id: candidate.id },
-      }),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(batch),
     });
 
-    sent++;
+    sent += batch.length;
   }
 
-  return new Response(JSON.stringify({ sent, job, total: candidates.length }), {
+  return new Response(JSON.stringify({ sent, job, total: tokens.length }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 });

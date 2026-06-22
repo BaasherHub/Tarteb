@@ -71,15 +71,16 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
         asset.size,
       );
 
-      if (cvPath && cvPath !== path) {
-        await removeCandidateCvFile(cvPath).catch(() => {});
-      }
-
       const { error } = await supabase
         .from('candidates')
         .update({ cv_url: path, cv_file_name: fileName })
         .eq('user_id', userId);
       if (error) throw error;
+
+      // Delete old file only after DB is updated to avoid orphaning the record.
+      if (cvPath && cvPath !== path) {
+        await removeCandidateCvFile(cvPath).catch(() => {});
+      }
 
       await onUpdated();
     } catch (e) {

@@ -676,7 +676,7 @@ const en: Strings = {
   homeCurrentSalaryLabel: 'Current salary',
   homeCurrentSalaryPrivate: 'Only visible to you until an employer unlocks you',
   cvSectionTitle: 'CV / resume',
-  cvSectionHint: 'Optional. PDF or Word, up to 8 MB. Employers see it after they unlock you.',
+  cvSectionHint: 'Optional. PDF or Word, up to 5 MB. Employers see it after they unlock you.',
   cvUpload: 'Upload CV',
   cvReplace: 'Replace',
   cvAttached: 'CV attached',

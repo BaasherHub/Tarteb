@@ -97,8 +97,10 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
     return parsed ? formatIsoDateLocal(parsed) : '';
   }, [candidate?.available_from]);
 
+  const hasNotifiedRef = React.useRef(false);
   useEffect(() => {
-    if (!candidate || isUnlocked) return;
+    if (!candidate || isUnlocked || hasNotifiedRef.current) return;
+    hasNotifiedRef.current = true;
     supabase.functions
       .invoke('notify-candidate', {
         body: { candidate_id: candidateId, event: 'viewed' },

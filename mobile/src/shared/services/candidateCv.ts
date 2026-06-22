@@ -1,7 +1,7 @@
 import { supabase } from '@/core/lib/supabase';
 
 const BUCKET = 'candidate-cvs';
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 5 * 1024 * 1024;
 
 const ALLOWED_EXT = new Set(['pdf', 'doc', 'docx']);
 
