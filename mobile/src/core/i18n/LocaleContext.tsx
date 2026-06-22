@@ -27,6 +27,8 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 export const LANGUAGE_STORAGE_KEY = 'app_language';
 /** Separate from app_language so an old saved locale does not skip the picker. */
 export const LANGUAGE_SELECTION_DONE_KEY = 'language_selection_done_v1';
+/** Set to true when Arabic RTL glitches are resolved and the language option is ready. */
+export const ARABIC_ENABLED = false;
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en');
@@ -38,11 +40,10 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       AsyncStorage.getItem(LANGUAGE_STORAGE_KEY),
       AsyncStorage.getItem(LANGUAGE_SELECTION_DONE_KEY),
     ]).then(([stored, done]) => {
-      if (stored === 'ar' || stored === 'en') {
-        setLangState(stored);
-        I18nManager.allowRTL(true);
-        I18nManager.forceRTL(stored === 'ar');
-      }
+      const lang: Lang = ARABIC_ENABLED && stored === 'ar' ? 'ar' : 'en';
+      setLangState(lang);
+      I18nManager.allowRTL(ARABIC_ENABLED);
+      I18nManager.forceRTL(ARABIC_ENABLED && lang === 'ar');
       setHasCompletedLanguageSelection(done === '1');
       setIsHydrated(true);
     });
@@ -55,8 +56,8 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       [LANGUAGE_STORAGE_KEY, next],
       [LANGUAGE_SELECTION_DONE_KEY, '1'],
     ]);
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(next === 'ar');
+    I18nManager.allowRTL(ARABIC_ENABLED);
+    I18nManager.forceRTL(ARABIC_ENABLED && next === 'ar');
   }, []);
 
   const resetLanguageSelection = useCallback(() => {
