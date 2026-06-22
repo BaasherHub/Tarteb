@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useLocale } from '@/core/i18n/LocaleContext';
+import { useLocale, ARABIC_ENABLED } from '@/core/i18n/LocaleContext';
 import type { Lang } from '@/core/i18n/strings';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { supabase } from '@/core/lib/supabase';
@@ -238,14 +238,16 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
           >
             <Text style={[styles.chipText, lang === 'en' && styles.chipTextOn]}>{t.english}</Text>
           </Pressable>
-          <Pressable
-            style={[styles.chip, lang === 'ar' && styles.chipOn]}
-            onPress={() => setLang('ar')}
-            accessibilityRole="button"
-            accessibilityState={{ selected: lang === 'ar' }}
-          >
-            <Text style={[styles.chipText, lang === 'ar' && styles.chipTextOn]}>{t.arabic}</Text>
-          </Pressable>
+          {ARABIC_ENABLED ? (
+            <Pressable
+              style={[styles.chip, lang === 'ar' && styles.chipOn]}
+              onPress={() => setLang('ar')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: lang === 'ar' }}
+            >
+              <Text style={[styles.chipText, lang === 'ar' && styles.chipTextOn]}>{t.arabic}</Text>
+            </Pressable>
+          ) : null}
         </View>
         {Platform.OS !== 'web' ? (
           <Text style={[styles.rtlHint, { textAlign: rtl.textAlign }]}>{t.settingsRtlReloadHint}</Text>

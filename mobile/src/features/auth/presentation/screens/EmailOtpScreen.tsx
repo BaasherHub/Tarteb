@@ -151,7 +151,7 @@ export function EmailOtpScreen({ navigation }: Props) {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
 
-      setEmailError(t.enterEmail);
+      setEmailError(t.errEmailInvalid);
 
       return;
 

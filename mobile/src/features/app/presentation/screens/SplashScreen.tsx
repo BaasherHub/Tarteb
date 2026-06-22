@@ -33,29 +33,8 @@ export function SplashScreen({ navigation }: Props) {
   const rtl = useRtlStyles();
   const { isReady } = useAuth();
   const [routeError, setRouteError] = useState<string | undefined>();
+  const [retryCount, setRetryCount] = useState(0);
   const bootstrapped = useRef(false);
-
-  const bootstrapRoute = async () => {
-    setRouteError(undefined);
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
-
-      if (data.session) {
-        await routeAuthenticatedUser(navigation);
-        flushPendingDeepLink(navigationRef);
-        return;
-      }
-      navigation.replace('RoleSelection');
-    } catch (e) {
-      bootstrapped.current = false;
-      if (e instanceof AuthRoutingError) {
-        setRouteError(e.message);
-        return;
-      }
-      setRouteError(t.errorGeneric);
-    }
-  };
 
   useEffect(() => {
     if (isHydrated && !hasCompletedLanguageSelection) {
@@ -67,8 +46,31 @@ export function SplashScreen({ navigation }: Props) {
     if (!isReady || !isHydrated || !hasCompletedLanguageSelection) return;
     if (bootstrapped.current) return;
     bootstrapped.current = true;
-    void bootstrapRoute();
-  }, [isReady, isHydrated, hasCompletedLanguageSelection]);
+    let cancelled = false;
+
+    const run = async () => {
+      setRouteError(undefined);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (error) throw error;
+        if (data.session) {
+          await routeAuthenticatedUser(navigation);
+          if (!cancelled) flushPendingDeepLink(navigationRef);
+          return;
+        }
+        if (!cancelled) navigation.replace('RoleSelection');
+      } catch (e) {
+        if (cancelled) return;
+        bootstrapped.current = false;
+        if (e instanceof AuthRoutingError) { setRouteError(e.message); return; }
+        setRouteError(t.errorGeneric);
+      }
+    };
+
+    void run();
+    return () => { cancelled = true; };
+  }, [isReady, isHydrated, hasCompletedLanguageSelection, retryCount]);
 
   return (
     <Screen style={styles.screen}>
@@ -87,7 +89,7 @@ export function SplashScreen({ navigation }: Props) {
                   style={styles.retryBtn}
                   onPress={() => {
                     bootstrapped.current = false;
-                    void bootstrapRoute();
+                    setRetryCount((c) => c + 1);
                   }}
                 >
                   <Text style={styles.retryText}>{t.retry}</Text>

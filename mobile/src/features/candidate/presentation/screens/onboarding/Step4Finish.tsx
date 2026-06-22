@@ -97,6 +97,7 @@ export function Step4Finish({ navigation }: Props) {
   };
 
   const submit = async () => {
+    if (loading) return;
     const prereq = prerequisiteError();
     if (prereq) {
       setSubmitError(prereq);
@@ -126,7 +127,7 @@ export function Step4Finish({ navigation }: Props) {
 
       const payload = parseCandidateUpsertPayload({
         user_id: userId,
-        name: String(data.name).trim(),
+        name: (data.name ?? '').trim(),
         photo_url: data.photoUrl ?? null,
         role: data.role,
         additional_roles: data.candidateId

@@ -557,9 +557,9 @@ const en: Strings = {
   experienceBucketLabel: (years) => {
     if (years === 0) return 'No experience';
     if (years === 1) return '1 year';
-    if (years === 2) return '2–3 years';
+    if (years === 2 || years === 3) return '2–3 years';
     if (years === 4) return '4–5 years';
-    if (years === 5) return '5+ years';
+    if (years >= 5) return '5+ years';
     return `${years} years`;
   },
   languageLabel: (lang) => {
@@ -768,9 +768,9 @@ const en: Strings = {
   email: 'Email',
   searchPlaceholder: '',
   unlockedBadge: 'Unlocked',
-  salaryPerMonth: (amount) => `AED ${formatSalaryAmount(amount)}/mo`,
-  currentSalaryPerMonth: (amount) => `Current: AED ${formatSalaryAmount(amount)}/mo`,
-  expectedSalaryPerMonth: (amount) => `Expected: AED ${formatSalaryAmount(amount)}/mo`,
+  salaryPerMonth: (amount) => { const s = formatSalaryAmount(amount); return s ? `AED ${s}/mo` : ''; },
+  currentSalaryPerMonth: (amount) => { const s = formatSalaryAmount(amount); return s ? `Current: AED ${s}/mo` : ''; },
+  expectedSalaryPerMonth: (amount) => { const s = formatSalaryAmount(amount); return s ? `Expected: AED ${s}/mo` : ''; },
   call: 'Call',
   whatsApp: 'WhatsApp',
   noUnlocksYet: 'No unlocks yet',
@@ -1073,9 +1073,9 @@ const ar: Strings = {
   experienceBucketLabel: (years) => {
     if (years === 0) return 'بدون خبرة';
     if (years === 1) return 'سنة واحدة';
-    if (years === 2) return '2–3 سنوات';
+    if (years === 2 || years === 3) return '2–3 سنوات';
     if (years === 4) return '4–5 سنوات';
-    if (years === 5) return '+5 سنوات';
+    if (years >= 5) return '+5 سنوات';
     return `${years} سنوات`;
   },
   languageLabel: (lang) => {

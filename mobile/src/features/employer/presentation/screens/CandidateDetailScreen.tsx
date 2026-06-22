@@ -21,7 +21,9 @@ import { getErrorMessage } from '@/shared/utils/errors';
 import { formatDisplayName, formatNationalityDisplay } from '@/shared/utils/displayFormat';
 import { formatIsoDateLocal, parseIsoDateLocal } from '@/shared/utils/dateFormat';
 import { formatLanguagesSummary, sanitizeLanguages } from '@/shared/utils/languages';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
+import { ErrorState } from '@/shared/widgets/ErrorState';
 import { VisaChip } from '@/shared/widgets/VisaChip';
 import { CandidateRolesDisplay } from '@/shared/widgets/CandidateRolesDisplay';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
@@ -146,9 +148,21 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  if (!candidate) return null;
+  if (!candidate) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ErrorState
+          title={t.errorTitle}
+          message={t.errorLoadList}
+          actionLabel={t.back}
+          onAction={() => navigation.goBack()}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
     <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
       <ContentWidth grow={false}>
         <ScreenHeader
@@ -268,11 +282,13 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         )}
       </ContentWidth>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.scaffold },
+  safe: { flex: 1, backgroundColor: colors.scaffold },
+  scroll: { flex: 1 },
   scrollContent: {
     ...layoutStyles.screenContent,
     paddingTop: spacing.lg,
