@@ -59,7 +59,7 @@ export async function signInWithVerifiedPhone(phone: string): Promise<void> {
   if (authError) throw authError;
 
   const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) return;
+  if (!userId) throw new Error('Anonymous sign-in succeeded but no user ID returned');
 
   await supabase.auth.updateUser({ data: { phone: e164 } });
 

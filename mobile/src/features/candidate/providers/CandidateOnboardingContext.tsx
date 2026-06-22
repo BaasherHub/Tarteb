@@ -83,8 +83,12 @@ export function CandidateOnboardingProvider({
       if (isEditMode) return;
       if (persistTimer.current) clearTimeout(persistTimer.current);
       persistTimer.current = setTimeout(async () => {
-        await saveOnboardingDraft(nextData, nextStep);
-        setDraftSavedAt(new Date().toISOString());
+        try {
+          await saveOnboardingDraft(nextData, nextStep);
+          setDraftSavedAt(new Date().toISOString());
+        } catch (e) {
+          console.warn('[onboarding] draft save failed', e);
+        }
       }, 500);
     },
     [isEditMode],
