@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
   card: { overflow: 'hidden' },
   row: {
     flexDirection: 'row',
-    direction: 'ltr',
     alignItems: 'center',
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
