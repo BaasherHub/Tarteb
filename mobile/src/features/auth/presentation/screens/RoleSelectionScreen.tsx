@@ -115,7 +115,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
           navigation.replace('PhoneOtp');
           return;
         }
-        const { error } = await supabase.from('profiles').insert({
+        const { error } = await supabase.from('profiles').upsert({
           user_id: userId,
           role,
         });

@@ -87,14 +87,16 @@ async function routeCandidate(navigation: Nav, userId: string): Promise<void> {
 
     if (error) throw error;
 
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: candidate ? 'CandidateShell' : 'CandidateOnboarding',
-        },
-      ],
-    });
+    if (candidate) {
+      navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
+    } else {
+      // Onboarding not yet complete — keep RoleSelection in the back stack so
+      // the user can go back and change their role before they finish.
+      navigation.reset({
+        index: 1,
+        routes: [{ name: 'RoleSelection' }, { name: 'CandidateOnboarding' }],
+      });
+    }
   } catch (cause) {
     throw new AuthRoutingError('Could not load candidate profile.', cause);
   }
@@ -110,14 +112,14 @@ async function routeEmployer(navigation: Nav, userId: string): Promise<void> {
 
     if (error) throw error;
 
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: employer ? 'EmployerShell' : 'EmployerOnboarding',
-        },
-      ],
-    });
+    if (employer) {
+      navigation.reset({ index: 0, routes: [{ name: 'EmployerShell' }] });
+    } else {
+      navigation.reset({
+        index: 1,
+        routes: [{ name: 'RoleSelection' }, { name: 'EmployerOnboarding' }],
+      });
+    }
   } catch (cause) {
     throw new AuthRoutingError('Could not load employer profile.', cause);
   }
