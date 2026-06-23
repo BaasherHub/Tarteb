@@ -45,4 +45,5 @@ jobs:
       - name: Expo doctor
         run: npx expo-doctor
 
-      # Lint: skipped — mobile/package.json has no "lint" script and no ESLint config yet.
+      - name: Lint
+        run: npm run lint

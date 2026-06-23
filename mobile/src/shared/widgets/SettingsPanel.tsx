@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale, ARABIC_ENABLED } from '@/core/i18n/LocaleContext';
+import { isPushPermissionDenied } from '@/core/services/notifications';
 import type { Lang } from '@/core/i18n/strings';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { supabase } from '@/core/lib/supabase';
@@ -78,6 +79,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | undefined>();
   const [retryCount, setRetryCount] = useState(0);
+  const [pushDenied, setPushDenied] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const { showError } = useAppAlert();
 
@@ -152,6 +154,10 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
       cancelled = true;
     };
   }, [lang, t.errorGeneric, retryCount]);
+
+  useEffect(() => {
+    isPushPermissionDenied().then(setPushDenied).catch(() => {});
+  }, []);
 
   const roleLabel =
     role === 'candidate' ? t.roleCandidate : role === 'employer' ? t.roleEmployer : null;
@@ -258,6 +264,22 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
             ) : null}
           </SurfaceCard>
         )
+      ) : null}
+
+      {pushDenied ? (
+        <View style={styles.pushDeniedRow}>
+          <Text style={[styles.pushDeniedNote, { textAlign: rtl.textAlign }]}>
+            {t.pushDeniedNote}
+          </Text>
+          <Pressable
+            onPress={() => void Linking.openSettings()}
+            accessibilityRole="button"
+            accessibilityLabel={t.pushDeniedCta}
+            style={({ pressed }) => pressed && styles.retryPressed}
+          >
+            <Text style={styles.pushDeniedCta}>{t.pushDeniedCta}</Text>
+          </Pressable>
+        </View>
       ) : null}
 
       <SectionLabel variant="group">{t.settingsSectionPreferences}</SectionLabel>
@@ -374,6 +396,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   retryPressed: { opacity: 0.6 },
+  pushDeniedRow: {
+    backgroundColor: colors.warningTint,
+    borderRadius: 10,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  pushDeniedNote: {
+    ...typography.caption,
+    color: colors.warningText,
+  },
+  pushDeniedCta: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '600',
+  },
   accountRow: {
     alignItems: 'center',
     justifyContent: 'space-between',

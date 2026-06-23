@@ -2,7 +2,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 import fs from 'fs';
 import path from 'path';
 
-const BRAND_PRIMARY = '#1A6FFF';
+const BRAND_PRIMARY = '#1358CE';
 
 const projectRoot = __dirname;
 const googleServicesJson = path.join(projectRoot, 'google-services.json');
@@ -13,6 +13,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Tarteb',
   slug: 'tarteb',
   version: '1.0.0',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    url: 'https://u.expo.dev/626b8ae5-2553-487f-bddf-76ce3015191c',
+  },
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   scheme: 'tarteb',

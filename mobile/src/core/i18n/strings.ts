@@ -386,6 +386,8 @@ export interface Strings {
   employerProfileCompleteHeadline: string;
   notificationAllow: string;
   notificationNotNow: string;
+  pushDeniedNote: string;
+  pushDeniedCta: string;
   toastUnlockSuccess: string;
   toastNewUnlock: string;
   toastProfileViewed: string;
@@ -898,6 +900,8 @@ const en: Strings = {
   employerProfileCompleteHeadline: 'Company profile complete',
   notificationAllow: 'Enable notifications',
   notificationNotNow: 'Not now',
+  pushDeniedNote: "Notifications are off — you won't receive job alerts.",
+  pushDeniedCta: 'Enable in Settings',
   toastUnlockSuccess: 'Contact unlocked. You can call or message this candidate.',
   toastNewUnlock: 'An employer unlocked your contact details.',
   toastProfileViewed: 'An employer viewed your profile.',
@@ -1413,6 +1417,8 @@ const ar: Strings = {
   employerProfileCompleteHeadline: 'ملف الشركة مكتمل',
   notificationAllow: 'تفعيل الإشعارات',
   notificationNotNow: 'ليس الآن',
+  pushDeniedNote: 'الإشعارات معطّلة — لن تصلك تنبيهات الوظائف.',
+  pushDeniedCta: 'التفعيل من الإعدادات',
   toastUnlockSuccess: 'تم فتح بيانات التواصل. يمكنك الاتصال أو المراسلة.',
   toastNewUnlock: 'قام صاحب عمل بفتح بيانات تواصلك.',
   toastProfileViewed: 'قام صاحب عمل بمشاهدة ملفك.',

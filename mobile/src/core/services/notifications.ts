@@ -302,3 +302,11 @@ export async function promptForPushNotifications(
 
 }
 
+/** Returns true when the user has explicitly denied push permission at the OS level. */
+export async function isPushPermissionDenied(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+  if (!canRegisterNativePushToken()) return false;
+  const Notifications = await ensureNotificationHandler();
+  const { status } = await Notifications.getPermissionsAsync();
+  return status === 'denied';
+}

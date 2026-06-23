@@ -39,7 +39,6 @@ export async function uploadCandidatePhoto(
     };
     xhr.onerror = () => reject(new Error('Network error during photo upload'));
     const fd = new FormData();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fd.append('file', { uri, name: fileName || `photo.${safeExt}`, type: contentType } as any);
     xhr.send(fd);
   });
