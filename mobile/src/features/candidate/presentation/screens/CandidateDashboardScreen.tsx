@@ -715,11 +715,11 @@ const styles = StyleSheet.create({
 
   },
 
-  bannerText: { color: colors.warning, lineHeight: 20, fontWeight: '500' },
+  bannerText: { color: colors.warningText, lineHeight: 20, fontWeight: '500' },
 
   bannerHired: { backgroundColor: colors.secondaryTint },
 
-  bannerTextHired: { color: colors.secondary, fontWeight: '600', lineHeight: 20 },
+  bannerTextHired: { color: colors.secondaryDark, fontWeight: '600', lineHeight: 20 },
 
   profileToolbar: {
     width: '100%',

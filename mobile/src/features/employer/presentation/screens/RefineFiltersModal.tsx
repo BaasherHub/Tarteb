@@ -131,7 +131,7 @@ function RefineFiltersModalInner({
             style={[styles.title, { textAlign: rtl.textAlign }]}
             numberOfLines={2}
             accessibilityRole="header"
-            maxFontSizeMultiplier={1.3}
+            maxFontSizeMultiplier={1.5}
           >
             {t.browseRefine}
           </Text>

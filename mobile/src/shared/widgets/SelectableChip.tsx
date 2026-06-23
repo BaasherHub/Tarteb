@@ -57,7 +57,7 @@ export const SelectableChip = memo(function SelectableChip({
           ]}
           numberOfLines={dense ? 1 : 2}
           ellipsizeMode="tail"
-          maxFontSizeMultiplier={1.25}
+          maxFontSizeMultiplier={1.5}
         >
           {label}
         </Text>

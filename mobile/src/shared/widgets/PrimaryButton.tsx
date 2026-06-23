@@ -58,7 +58,7 @@ export const PrimaryButton = memo(function PrimaryButton({
             numberOfLines={2}
             adjustsFontSizeToFit
             minimumFontScale={0.85}
-            maxFontSizeMultiplier={1.3}
+            maxFontSizeMultiplier={1.5}
           >
             {label}
           </Text>

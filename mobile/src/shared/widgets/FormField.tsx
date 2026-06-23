@@ -53,7 +53,7 @@ export function FormField({
         <Text
           style={[styles.hint, { textAlign: rtl.textAlign }]}
           numberOfLines={3}
-          maxFontSizeMultiplier={1.3}
+          maxFontSizeMultiplier={1.5}
         >
           {hint}
         </Text>

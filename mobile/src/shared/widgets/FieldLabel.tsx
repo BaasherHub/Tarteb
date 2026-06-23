@@ -48,7 +48,7 @@ export function FieldLabel({
       nativeID={nativeID}
       style={[styles.label, { textAlign }, style]}
       numberOfLines={numberOfLines}
-      maxFontSizeMultiplier={1.3}
+      maxFontSizeMultiplier={1.5}
     >
       {label}
       {required ? (

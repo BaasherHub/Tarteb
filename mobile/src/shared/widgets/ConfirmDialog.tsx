@@ -65,7 +65,7 @@ export function ConfirmDialog({
             ]}
             numberOfLines={3}
             accessibilityRole="header"
-            maxFontSizeMultiplier={1.3}
+            maxFontSizeMultiplier={1.5}
           >
             {title}
           </Text>
@@ -75,13 +75,13 @@ export function ConfirmDialog({
               { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
             ]}
             numberOfLines={6}
-            maxFontSizeMultiplier={1.3}
+            maxFontSizeMultiplier={1.5}
           >
             {message}
           </Text>
           {highlight?.trim() ? (
             <View style={styles.highlightBox} accessibilityRole="text">
-              <Text style={styles.highlight} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+              <Text style={styles.highlight} numberOfLines={2} maxFontSizeMultiplier={1.5}>
                 {highlight}
               </Text>
             </View>

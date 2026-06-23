@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   matchLineSecondary: {
     ...typography.caption,
-    color: colors.secondary,
+    color: colors.secondaryDark,
     fontWeight: '600',
   },
   cardLabel: {

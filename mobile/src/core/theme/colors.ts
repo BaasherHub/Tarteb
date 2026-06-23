@@ -7,16 +7,17 @@
  */
 export const colors = {
   // ── Brand ──────────────────────────────────────────────
-  /** Main interactive color — buttons, links, active states */
-  primary: '#1A6FFF',
+  /** Main interactive color — buttons, links, active states. WCAG AA 6.3:1 on white. */
+  primary: '#1358CE',
   /** Darker shade for gradients, hover/pressed states */
   primaryDark: '#0038CC',
   /** Light tint for backgrounds, selected chips */
   primaryTint: '#E8F0FF',
 
-  /** Success / hired / active / green dot */
+  /** Success / hired / active / green dot (icons & backgrounds — 3:1+ on white). */
   secondary: '#00C853',
-  secondaryDark: '#009624',
+  /** Use for green text on white — WCAG AA 5.1:1. */
+  secondaryDark: '#15803D',
   secondaryTint: '#E6F9EE',
 
   // ── Neutrals ────────────────────────────────────────────
@@ -40,10 +41,13 @@ export const colors = {
   inputBorder: '#D1D5DB',
 
   // ── Semantic ────────────────────────────────────────────
-  error: '#EF4444',
+  /** Error text/border on white — WCAG AA 5.9:1. */
+  error: '#C41C1C',
   errorTint: '#FEF2F2',
   warning: '#F59E0B',
   warningTint: '#FFFBEB',
+  /** Warning text on white — WCAG AA 7.1:1. Use instead of `warning` for text. */
+  warningText: '#92400E',
 } as const;
 
 export type ColorKey = keyof typeof colors;

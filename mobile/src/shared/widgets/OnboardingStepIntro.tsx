@@ -14,7 +14,7 @@ export function OnboardingStepIntro({ children }: Props) {
   return (
     <Text
       style={[onboardingStepStyles.intro, { textAlign: rtl.textAlign }]}
-      maxFontSizeMultiplier={1.3}
+      maxFontSizeMultiplier={1.5}
     >
       {children}
     </Text>

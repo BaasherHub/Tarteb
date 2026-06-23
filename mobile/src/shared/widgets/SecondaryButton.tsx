@@ -58,7 +58,7 @@ export const SecondaryButton = memo(function SecondaryButton({
             numberOfLines={2}
             adjustsFontSizeToFit
             minimumFontScale={0.85}
-            maxFontSizeMultiplier={1.3}
+            maxFontSizeMultiplier={1.5}
           >
             {label}
           </Text>

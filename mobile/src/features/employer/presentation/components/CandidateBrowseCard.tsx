@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexShrink: 0,
   },
-  unlockedText: { fontSize: 11, fontWeight: '700', color: colors.secondary },
+  unlockedText: { fontSize: 11, fontWeight: '700', color: colors.secondaryDark },
   cvBadge: {
     backgroundColor: colors.primaryTint,
     paddingHorizontal: spacing.sm,
@@ -223,5 +223,5 @@ const styles = StyleSheet.create({
   },
   cvBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
   activeAgo: { fontSize: 11, color: colors.textSecondary, marginTop: spacing.xs },
-  activeAgoFresh: { color: colors.secondary, fontWeight: '600' },
+  activeAgoFresh: { color: colors.secondaryDark, fontWeight: '600' },
 });

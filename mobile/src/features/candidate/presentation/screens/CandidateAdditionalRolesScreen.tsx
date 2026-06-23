@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Pressable,
   StyleSheet,
@@ -44,6 +45,7 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const { showError } = useAppAlert();
+  const insets = useSafeAreaInsets();
   const [primaryRole, setPrimaryRole] = useState<string | null>(null);
   const [additionalRoles, setAdditionalRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +166,7 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
       <ContentWidth style={styles.flex}>
         <ScreenHeader
           title={t.candidateAdditionalRolesScreenTitle}
@@ -272,6 +274,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${colors.primary}44`,
     maxWidth: '100%',
+    minHeight: 44,
   },
   chipText: {
     ...typography.caption,
@@ -284,6 +287,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
     paddingHorizontal: spacing.sm,
+    minWidth: 44,
+    textAlign: 'center',
   },
   empty: {
     ...typography.caption,

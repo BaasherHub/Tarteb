@@ -14,7 +14,7 @@ export function FieldError({ message }: { message?: string }) {
       accessibilityRole="alert"
       accessibilityLiveRegion="assertive"
       numberOfLines={4}
-      maxFontSizeMultiplier={1.3}
+      maxFontSizeMultiplier={1.5}
     >
       {message}
     </Text>

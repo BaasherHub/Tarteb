@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ActivityIndicator,
   FlatList,
@@ -56,6 +57,7 @@ export function BrowseScreen() {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [filters, setFilters] = useState<BrowseFilters | null>(null);
   const [refineOpen, setRefineOpen] = useState(false);
@@ -240,7 +242,7 @@ export function BrowseScreen() {
   if (!selectedRole) {
     return (
       <ContentWidth style={styles.container}>
-        <View style={styles.headerPad}>
+        <View style={[styles.headerPad, { paddingTop: insets.top }]}>
           <ScreenHeader title={t.browsePickRole} />
         </View>
         {employerCompletion && employerCompletion.percent < 100

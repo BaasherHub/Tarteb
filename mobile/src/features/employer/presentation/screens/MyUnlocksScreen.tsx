@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -25,6 +26,7 @@ const ListSeparator = () => <View style={styles.sep} />;
 export function MyUnlocksScreen() {
   const { t } = useLocale();
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const { data, isLoading, isRefetching, refetch, error } = useUnlocks(t.errorLoadList);
 
   const onRefresh = useCallback(() => {
@@ -95,7 +97,7 @@ export function MyUnlocksScreen() {
 
   return (
     <ContentWidth style={styles.container}>
-      <View style={styles.headerPad}>
+      <View style={[styles.headerPad, { paddingTop: insets.top }]}>
         <ScreenHeader title={t.myUnlocks} />
       </View>
       {error && listData.length > 0 ? (
