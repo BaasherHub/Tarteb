@@ -16,13 +16,13 @@ serve(async (req) => {
     const decodedPhone = decodeURIComponent(phone ?? '');
     if (!/^\+[1-9]\d{6,14}$/.test(decodedPhone)) {
       return new Response(
-        JSON.stringify({ approved: false, error: 'Invalid phone number' }),
+        JSON.stringify({ approved: false }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
     if (!/^\d{6}$/.test(String(code ?? ''))) {
       return new Response(
-        JSON.stringify({ approved: false, error: 'Code must be 6 digits' }),
+        JSON.stringify({ approved: false }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -35,14 +35,14 @@ serve(async (req) => {
     // Bypass only allowed when Twilio is not configured (dev/test environments).
     if (Deno.env.get('OTP_BYPASS_ENABLED') === 'true' && !twilioConfigured) {
       return new Response(
-        JSON.stringify({ approved: true, bypass: true }),
+        JSON.stringify({ approved: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
     if (!twilioConfigured) {
       return new Response(
-        JSON.stringify({ approved: false, error: 'Twilio secrets not configured' }),
+        JSON.stringify({ approved: false }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -70,9 +70,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     );
-  } catch (error) {
+  } catch (_error) {
     return new Response(
-      JSON.stringify({ approved: false, error: error.message }),
+      JSON.stringify({ approved: false }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

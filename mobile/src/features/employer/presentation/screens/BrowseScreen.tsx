@@ -262,7 +262,7 @@ export function BrowseScreen() {
 
   return (
     <ContentWidth style={styles.container}>
-      <View style={styles.headerPad}>
+      <View style={[styles.headerPad, { paddingTop: insets.top }]}>
         <Pressable
           onPress={backToRoles}
           style={({ pressed }) => [styles.backBtn, rtl.row, pressed && styles.pillPressed]}
