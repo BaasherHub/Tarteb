@@ -75,10 +75,7 @@ export async function signInWithVerifiedPhone(phone: string): Promise<void> {
     .maybeSingle();
 
   if (profile) {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ phone: e164 })
-      .eq('user_id', userId);
-    if (error) throw error;
+    // Best-effort — column may not exist yet if migration is pending.
+    await supabase.from('profiles').update({ phone: e164 }).eq('user_id', userId);
   }
 }
