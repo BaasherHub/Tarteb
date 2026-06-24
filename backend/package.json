@@ -1,0 +1,28 @@
+{
+  "name": "tarteb-backend",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": ">=22" },
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "npm run migrate && node src/server.js",
+    "migrate": "node src/db/migrate.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1071.0",
+    "@aws-sdk/lib-storage": "^3.1071.0",
+    "@aws-sdk/s3-request-presigner": "^3.1071.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "expo-server-sdk": "^6.1.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.1",
+    "twilio": "^5.9.0",
+    "uuid": "^11.0.2"
+  }
+}
