@@ -4,8 +4,6 @@ import { isValidUaeMobileE164, normalizeE164 } from '@/shared/utils/phone';
 
 export { normalizeE164, isValidUaeMobileE164 } from '@/shared/utils/phone';
 
-let otpSessionPhoneE164: string | null = null;
-
 /** TESTING ONLY — when true, no Twilio SMS (see archive/flutter/TESTING_OTP_BYPASS.md). */
 export function isOtpBypassEnabled(): boolean {
   return env.skipOtpVerification;
@@ -16,7 +14,6 @@ export async function sendOtp(phone: string): Promise<void> {
   if (!isValidUaeMobileE164(e164)) {
     throw new Error('Invalid phone number format');
   }
-  otpSessionPhoneE164 = e164;
 
   if (isOtpBypassEnabled()) return;
 
@@ -31,8 +28,8 @@ export async function sendOtp(phone: string): Promise<void> {
 }
 
 export async function verifyOtp(phone: string, code: string): Promise<boolean> {
-  const e164 = otpSessionPhoneE164 ?? normalizeE164(phone);
-  if (!e164) throw new Error('No OTP session — send code first');
+  const e164 = normalizeE164(phone);
+  if (!e164) throw new Error('No phone number — send code first');
 
   if (isOtpBypassEnabled()) return true;
 
@@ -55,11 +52,18 @@ export async function verifyOtp(phone: string, code: string): Promise<boolean> {
 
 export async function signInWithVerifiedPhone(phone: string): Promise<void> {
   const e164 = normalizeE164(phone);
-  const { error: authError } = await supabase.auth.signInAnonymously();
-  if (authError) throw authError;
+
+  // Only create a new anonymous session if there is no existing one.
+  // Calling signInAnonymously unconditionally would assign a new user ID to
+  // returning users, silently destroying their profile and all app data.
+  const { data: { session: existingSession } } = await supabase.auth.getSession();
+  if (!existingSession) {
+    const { error: authError } = await supabase.auth.signInAnonymously();
+    if (authError) throw authError;
+  }
 
   const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) throw new Error('Anonymous sign-in succeeded but no user ID returned');
+  if (!userId) throw new Error('Sign-in succeeded but no user ID returned');
 
   const { error: updateError } = await supabase.auth.updateUser({ data: { phone: e164 } });
   if (updateError) throw updateError;

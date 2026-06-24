@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -18,17 +17,17 @@ import { colors } from '@/core/theme/colors';
 import { layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SectionHint } from '@/shared/widgets/SectionLabel';
+import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
+import { typography } from '@/core/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export function SplashScreen({ navigation }: Props) {
   const { t, isHydrated, hasCompletedLanguageSelection } = useLocale();
-  const rtl = useRtlStyles();
   const { isReady } = useAuth();
   const [routeError, setRouteError] = useState<string | undefined>();
   const [retryCount, setRetryCount] = useState(0);
@@ -60,6 +59,15 @@ export function SplashScreen({ navigation }: Props) {
       } catch (e) {
         if (cancelled) return;
         bootstrapped.current = false;
+        // Check both the top-level error and the wrapped cause for JWT/auth errors
+        const isAuthError = (err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          return msg.includes('JWT') || msg.includes('token') || msg.includes('not authenticated') || msg.includes('AuthApiError');
+        };
+        if (isAuthError(e) || (e instanceof AuthRoutingError && isAuthError(e.cause))) {
+          navigation.replace('PhoneOtp');
+          return;
+        }
         if (e instanceof AuthRoutingError) { setRouteError(e.message); return; }
         setRouteError(t.errorGeneric);
       }
@@ -79,18 +87,14 @@ export function SplashScreen({ navigation }: Props) {
           <View style={styles.center}>
             {routeError ? (
               <View style={styles.errorBlock}>
-                <Text style={[styles.errorText, { textAlign: rtl.textAlignCenter }]}>
-                  {routeError}
-                </Text>
-                <Pressable
-                  style={styles.retryBtn}
+                <Text style={styles.errorText}>{routeError}</Text>
+                <PrimaryButton
+                  label={t.retry}
                   onPress={() => {
                     bootstrapped.current = false;
                     setRetryCount((c) => c + 1);
                   }}
-                >
-                  <Text style={styles.retryText}>{t.retry}</Text>
-                </Pressable>
+                />
               </View>
             ) : (
               <ActivityIndicator color={colors.primary} style={styles.spinner} />
@@ -112,13 +116,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxxl,
   },
   spinner: { marginTop: spacing.lg },
-  errorBlock: { alignItems: 'center', gap: spacing.md },
-  errorText: { color: colors.textSecondary, fontSize: 15, lineHeight: 22 },
-  retryBtn: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 10,
-    backgroundColor: colors.primary,
-  },
-  retryText: { color: '#fff', fontWeight: '600' },
+  errorBlock: { alignItems: 'stretch', gap: spacing.md, width: '100%', maxWidth: 320 },
+  errorText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
 });

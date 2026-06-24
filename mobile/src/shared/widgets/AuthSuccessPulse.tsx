@@ -1,11 +1,12 @@
 import { memo, useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, Text } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { playSuccessHaptic } from '@/shared/utils/successHaptic';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { AppIcon } from '@/shared/widgets/AppIcon';
 
 type Props = {
   title: string;
@@ -77,19 +78,17 @@ export const AuthSuccessPulse = memo(function AuthSuccessPulse({
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
     >
-      <Animated.View
-        style={[
-          styles.circle,
-          { transform: [{ scale: circlePulse }] },
-          Platform.OS === 'android' ? styles.circleAndroid : null,
-        ]}
-      >
-        <Animated.Text
-          style={[styles.check, { transform: [{ scale: checkScale }] }]}
-          accessibilityLabel={title}
+      <Animated.View style={[styles.ring, { transform: [{ scale: circlePulse }] }]}>
+        <View
+          style={[
+            styles.circle,
+            Platform.OS === 'android' ? styles.circleAndroid : null,
+          ]}
         >
-          ✓
-        </Animated.Text>
+          <Animated.View style={{ transform: [{ scale: checkScale }] }} accessibilityLabel={title}>
+            <AppIcon name="checkmark" size={44} color="#fff" />
+          </Animated.View>
+        </View>
       </Animated.View>
       <Text
         style={[
@@ -122,28 +121,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
+  ring: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: `${colors.secondary}18`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   circle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.secondaryTint,
-    borderWidth: 3,
-    borderColor: colors.secondary,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.secondary,
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   circleAndroid: {
-    elevation: 4,
-  },
-  check: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: colors.secondary,
-    lineHeight: 44,
+    elevation: 8,
   },
   title: { ...typography.h2, color: colors.textPrimary },
   sub: { ...typography.body, color: colors.textSecondary },

@@ -13,7 +13,8 @@
       },
       "ios": {
         "simulator": false
-      }
+      },
+      "channel": "development"
     },
     "development-simulator": {
       "developmentClient": true,
@@ -21,7 +22,8 @@
       "environment": "development",
       "ios": {
         "simulator": true
-      }
+      },
+      "channel": "development-simulator"
     },
     "preview": {
       "distribution": "internal",
@@ -38,12 +40,6 @@
       "autoIncrement": true,
       "environment": "production",
       "channel": "production"
-    }
-  },
-  "update": {
-    "production": {
-      "channel": "production",
-      "message": "OTA update"
     }
   },
   "submit": {

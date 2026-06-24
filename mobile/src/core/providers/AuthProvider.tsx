@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         return ready;
       });
-    }, 3000);
+    }, 1000);
 
     return () => {
       mounted = false;

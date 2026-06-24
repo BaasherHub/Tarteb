@@ -25,7 +25,7 @@ type Nav = {
   }) => void;
 };
 
-export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
+export async function routeAuthenticatedUser(navigation: Nav, _depth = 0): Promise<void> {
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) {
     navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
@@ -51,7 +51,9 @@ export async function routeAuthenticatedUser(navigation: Nav): Promise<void> {
     const pendingRole = await getPendingAccountRole();
     if (pendingRole) {
       await applyPendingRole(userId, pendingRole);
-      return routeAuthenticatedUser(navigation);
+      if (_depth < 1) return routeAuthenticatedUser(navigation, _depth + 1);
+      navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
+      return;
     }
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
     return;

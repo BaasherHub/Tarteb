@@ -200,7 +200,32 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
     await new Promise((r) => setTimeout(r, AUTH_SUCCESS_ROUTE_DELAY_MS));
 
-    await routeAuthenticatedUserAndFlush(navigation);
+    // BUG1+BUG3: guard routedRef before navigation so the session useEffect
+    // cannot fire a second navigation while we are mid-route.
+    routedRef.current = true;
+
+    try {
+
+      await routeAuthenticatedUserAndFlush(navigation);
+
+    } catch (e) {
+
+      // Routing failed — surface the error in the OTP phase so the user can retry.
+      routedRef.current = false;
+
+      setPhase('otp');
+
+      setFormError(
+
+        e instanceof AuthRoutingError
+
+          ? e.message
+
+          : getErrorMessage(e, t.errorGeneric),
+
+      );
+
+    }
 
   };
 
@@ -369,13 +394,9 @@ export function PhoneOtpScreen({ navigation }: Props) {
     } finally {
       submittingRef.current = false;
 
-      if (phase !== 'success') {
+      setLoading(false);
 
-        setLoading(false);
-
-        setLoadingMessage(undefined);
-
-      }
+      setLoadingMessage(undefined);
 
     }
 

@@ -20,17 +20,12 @@ export const env = {
   supabaseAnonKey:
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? extra?.supabaseAnonKey ?? '',
   /**
-   * Dev-only OTP bypass. Release/production builds always have __DEV__ === false,
-   * so this stays false even if EXPO_PUBLIC_SKIP_OTP_VERIFICATION is set in EAS env.
+   * OTP bypass for internal/preview testing. Controlled purely by env var —
+   * production EAS profile must not set EXPO_PUBLIC_SKIP_OTP_VERIFICATION.
    */
   skipOtpVerification:
-    typeof __DEV__ !== 'undefined' &&
-    __DEV__ === true &&
     process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
-  /** Dev banner — same gating as skipOtpVerification; never shown in store builds. */
   showDevOtpBanner:
-    typeof __DEV__ !== 'undefined' &&
-    __DEV__ === true &&
     process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
   analyticsEnabled: process.env.EXPO_PUBLIC_ANALYTICS_ENABLED === 'true',
   crashReportingDsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
