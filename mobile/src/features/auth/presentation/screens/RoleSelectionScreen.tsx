@@ -33,6 +33,7 @@ import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenFooter } from '@/shared/widgets/ScreenFooter';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
+import { AppBrand } from '@/shared/widgets/AppBrand';
 import type { Lang } from '@/core/i18n/strings';
 
 /** Role card colors — same hues as brand tokens, softened via icon opacity in RoleVisualCard. */
@@ -166,14 +167,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.centerBlock}>
-              <View style={[styles.brandRow, rtl.row, styles.brandRowCentered]}>
-                <View style={styles.mark}>
-                  <Text style={styles.markLetter}>T</Text>
-                </View>
-                <Text style={styles.brandName} numberOfLines={1}>
-                  {t.appName}
-                </Text>
-              </View>
+              <AppBrand showTagline={false} style={styles.brandLogo} />
 
               <Text
                 style={[
@@ -272,28 +266,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     alignSelf: 'center',
   },
-  brandRow: {
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  brandRowCentered: { justifyContent: 'center' },
-  mark: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markLetter: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  brandName: {
-    fontSize: 24,
-    fontWeight: '500',
-    letterSpacing: -0.3,
-    color: colors.textPrimary,
-    flexShrink: 1,
-  },
+  brandLogo: { marginBottom: spacing.sm },
   tagline: {
     ...typography.body,
     color: colors.textSecondary,

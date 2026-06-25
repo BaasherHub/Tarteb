@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const BRAND_PRIMARY = '#1358CE';
+const BRAND_SCAFFOLD = '#F5F7FB';
 
 const projectRoot = __dirname;
 const googleServicesJson = path.join(projectRoot, 'google-services.json');
@@ -76,7 +77,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/splash.png',
         resizeMode: 'contain',
-        backgroundColor: BRAND_PRIMARY,
+        backgroundColor: BRAND_SCAFFOLD,
       },
     ],
     [
