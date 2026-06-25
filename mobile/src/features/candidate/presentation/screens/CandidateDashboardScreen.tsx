@@ -61,7 +61,10 @@ import { getErrorMessage } from '@/shared/utils/errors';
 
 import { ProfileCompletionCard } from '@/shared/widgets/ProfileCompletionCard';
 
-import { candidateProfileCompletion } from '@/shared/utils/profileCompletion';
+import {
+  candidateCompletionRoute,
+  candidateProfileCompletion,
+} from '@/shared/utils/profileCompletion';
 
 import { parseAdditionalRoles } from '@/shared/utils/candidateRoles';
 
@@ -323,6 +326,15 @@ export function CandidateDashboardScreen() {
 
 
 
+  const openCompletionTarget = () => {
+    const target = candidateCompletionRoute(completion.nextItem?.id);
+    if (target.kind === 'additionalRoles') {
+      openAdditionalRoles();
+      return;
+    }
+    openProfileEditorAt(target.startStep);
+  };
+
   const completionCard = (
 
     <ProfileCompletionCard
@@ -333,9 +345,7 @@ export function CandidateDashboardScreen() {
 
         completion.percent < 100
 
-          ? completion.nextItem?.id === 'alsoRoles'
-            ? openAdditionalRoles
-            : openProfileEditor
+          ? openCompletionTarget
           : undefined
 
       }
