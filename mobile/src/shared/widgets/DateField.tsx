@@ -14,6 +14,7 @@ type Props = FieldLabelFlags & {
   label: string;
   value: Date | null;
   onChange: (date: Date) => void;
+  onClear?: () => void;
   error?: string;
   hint?: string;
 };
@@ -22,6 +23,7 @@ export function DateField({
   label,
   value,
   onChange,
+  onClear,
   error,
   hint,
   required,
@@ -69,6 +71,18 @@ export function DateField({
           }}
         />
       ) : null}
+      {optional && value && onClear ? (
+        <Pressable
+          onPress={onClear}
+          accessibilityRole="button"
+          accessibilityLabel={t.clearDate}
+          style={styles.clearButton}
+        >
+          <Text style={[styles.clearText, { textAlign: rtl.textAlign }]}>
+            {t.clearDate}
+          </Text>
+        </Pressable>
+      ) : null}
       <FieldError message={error} />
     </View>
   );
@@ -88,4 +102,6 @@ const styles = StyleSheet.create({
   inputError: { borderColor: colors.error },
   pressable: { justifyContent: 'center' },
   valueText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  clearButton: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
+  clearText: { color: colors.primary, fontSize: 13, fontWeight: '700' },
 });
