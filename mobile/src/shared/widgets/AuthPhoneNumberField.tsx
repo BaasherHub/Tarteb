@@ -109,8 +109,14 @@ export function AuthPhoneNumberField({
         accessibilityViewIsModal
         statusBarTranslucent
       >
-        <Pressable style={styles.overlay} onPress={() => setPickerOpen(false)}>
-          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+        <View style={styles.overlay}>
+          <Pressable
+            style={styles.backdrop}
+            onPress={() => setPickerOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel={t.cancel}
+          />
+          <View style={styles.sheet}>
             <Text style={[styles.sheetTitle, { textAlign: rtl.textAlignCenter }]}>
               {t.phoneSelectCountry}
             </Text>
@@ -152,8 +158,8 @@ export function AuthPhoneNumberField({
                 })}
               </ScrollView>
             </SurfaceCard>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -212,6 +218,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   sheet: {
     maxHeight: '70%',
