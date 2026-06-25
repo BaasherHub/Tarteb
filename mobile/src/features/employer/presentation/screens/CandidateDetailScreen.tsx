@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { createElement, useEffect, useMemo, useState } from 'react';
 import {
   Linking,
+  Modal,
+  Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,6 +21,7 @@ import { layout, layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { openExternalUrl } from '@/shared/utils/openExternalUrl';
 import { formatDisplayName, formatNationalityDisplay } from '@/shared/utils/displayFormat';
 import { formatIsoDateLocal, parseIsoDateLocal } from '@/shared/utils/dateFormat';
 import { formatLanguagesSummary, sanitizeLanguages } from '@/shared/utils/languages';
@@ -54,6 +58,8 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   const { showError } = useAppAlert();
   const rtl = useRtlStyles();
   const candidateId = route.params.candidateId;
+  const [webCvUrl, setWebCvUrl] = useState<string | null>(null);
+  const [webCvOpen, setWebCvOpen] = useState(false);
 
   const {
     data: candidate,
@@ -77,6 +83,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   const hasContact = candidate ? hasCandidateContact(candidate) : false;
   const visa = String(candidate?.visa_status ?? '');
   const displayName = formatDisplayName(String(candidate?.name ?? ''));
+  const cvDisplayName = displayName ? `${displayName} CV` : t.cvView;
   const nationality = formatNationalityDisplay(String(candidate?.nationality ?? ''));
   const experience =
     typeof candidate?.years_experience === 'number' ? candidate.years_experience : null;
@@ -135,6 +142,47 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
       });
     } catch (e) {
       showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
+    }
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !isUnlocked || !cvPath) {
+      setWebCvUrl(null);
+      setWebCvOpen(false);
+      return;
+    }
+
+    let cancelled = false;
+    setWebCvUrl(null);
+    void getCandidateCvSignedUrl(cvPath, 3600, candidateId)
+      .then((url) => {
+        if (!cancelled) setWebCvUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setWebCvUrl(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [candidateId, cvPath, isUnlocked]);
+
+  const openCandidateCv = async () => {
+    if (!cvPath) return;
+    if (Platform.OS === 'web' && webCvUrl) {
+      setWebCvOpen(true);
+      return;
+    }
+
+    try {
+      const url = await getCandidateCvSignedUrl(cvPath, 3600, candidateId);
+      await openExternalUrl(url, {
+        platform: Platform.OS,
+        canOpenURL: Linking.canOpenURL,
+        openURL: Linking.openURL,
+      });
+    } catch (e) {
+      showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
     }
   };
 
@@ -275,14 +323,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
               {cvPath ? (
                 <SecondaryButton
                   label={t.cvView}
-                  onPress={async () => {
-                    try {
-                      const url = await getCandidateCvSignedUrl(cvPath, 3600, candidateId);
-                      await Linking.openURL(url);
-                    } catch (e) {
-                      showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
-                    }
-                  }}
+                  onPress={() => void openCandidateCv()}
                 />
               ) : null}
             </View>
@@ -298,6 +339,34 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
         )}
       </ContentWidth>
     </ScrollView>
+    {Platform.OS === 'web' && webCvUrl ? (
+      <Modal
+        visible={webCvOpen}
+        animationType="slide"
+        onRequestClose={() => setWebCvOpen(false)}
+      >
+        <View style={styles.webViewer}>
+          <View style={[styles.webViewerHeader, rtl.row]}>
+            <Text style={[styles.webViewerTitle, { textAlign: rtl.textAlign }]} numberOfLines={1}>
+              {cvDisplayName}
+            </Text>
+            <Pressable
+              onPress={() => setWebCvOpen(false)}
+              style={({ pressed }) => [styles.webViewerClose, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel={t.cancel}
+            >
+              <Text style={styles.webViewerCloseText}>{t.cancel}</Text>
+            </Pressable>
+          </View>
+          {createElement('iframe', {
+            src: webCvUrl,
+            title: cvDisplayName,
+            style: { border: 0, flex: 1, height: '100%', width: '100%' },
+          })}
+        </View>
+      </Modal>
+    ) : null}
     </SafeAreaView>
   );
 }
@@ -334,4 +403,33 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   actions: { gap: spacing.md },
+  webViewer: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  webViewerHeader: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    gap: spacing.md,
+  },
+  webViewerTitle: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  webViewerClose: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  webViewerCloseText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  pressed: { opacity: 0.85 },
 });
