@@ -178,16 +178,6 @@ export function RootNavigator() {
           options={{ headerShown: false, animation: fadeAnimation }}
         />
         <Stack.Screen
-          name="CandidateDashboard"
-          component={CandidateDashboardScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="PrivacyPolicy"
           component={PrivacyPolicyScreen}
           options={{ headerShown: false }}
@@ -208,8 +198,6 @@ import { CandidateDetailScreen } from '@/features/employer/presentation/screens/
 import { CandidateOnboardingScreen } from '@/features/candidate/presentation/screens/CandidateOnboardingScreen';
 import { CandidateAdditionalRolesScreen } from '@/features/candidate/presentation/screens/CandidateAdditionalRolesScreen';
 import { CandidateShellScreen } from '@/features/candidate/presentation/screens/CandidateShellScreen';
-import { CandidateDashboardScreen } from '@/features/candidate/presentation/screens/CandidateDashboardScreen';
-import { SettingsScreen } from '@/features/settings/presentation/screens/SettingsScreen';
 import { PrivacyPolicyScreen } from '@/features/settings/presentation/screens/PrivacyPolicyScreen';
 
 const styles = StyleSheet.create({

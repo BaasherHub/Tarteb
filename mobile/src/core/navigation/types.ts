@@ -23,10 +23,8 @@ export type RootStackParamList = {
   EmployerShell: NavigatorScreenParams<EmployerTabParamList> | undefined;
   CandidateOnboarding: { initial?: CandidateOnboardingData; startStep?: number };
   CandidateAdditionalRoles: undefined;
-  CandidateDashboard: undefined;
   CandidateShell: NavigatorScreenParams<CandidateTabParamList> | undefined;
   CandidateDetail: { candidateId: string; hiringRole?: string };
-  Settings: undefined;
   PrivacyPolicy: undefined;
 };
 
