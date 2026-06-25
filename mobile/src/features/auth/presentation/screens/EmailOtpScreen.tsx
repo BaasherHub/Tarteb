@@ -26,7 +26,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '@/core/navigation/types';
 
-import { supabase } from '@/core/lib/supabase';
 
 import {
 
@@ -168,15 +167,7 @@ export function EmailOtpScreen({ navigation }: Props) {
 
     try {
 
-      const { error } = await supabase.auth.signInWithOtp({
-
-        email: trimmed,
-
-        options: { shouldCreateUser: true },
-
-      });
-
-      if (error) throw error;
+      throw new Error('Email sign-in is not supported');
 
       setPhase('otp');
 
@@ -225,17 +216,7 @@ export function EmailOtpScreen({ navigation }: Props) {
 
     try {
 
-      const { error } = await supabase.auth.verifyOtp({
-
-        email: email.trim(),
-
-        token: code,
-
-        type: 'email',
-
-      });
-
-      if (error) throw error;
+      throw new Error('Email sign-in is not supported');
 
       await finishAuth();
 
@@ -403,6 +384,8 @@ export function EmailOtpScreen({ navigation }: Props) {
                   accessibilityLabel={t.signInWithPhone}
 
                   accessibilityHint={t.a11yBackHint}
+
+                  android_ripple={{ color: 'rgba(19,88,206,0.1)', borderless: true }}
 
                   style={({ pressed }) => pressed && styles.linkPressed}
 

@@ -12,7 +12,8 @@ import {
   routeAuthenticatedUserAndFlush,
 } from '@/core/navigation/authNavigation';
 import { useAuth } from '@/core/providers/AuthProvider';
-import { supabase } from '@/core/lib/supabase';
+import { ApiError } from '@/core/lib/api';
+import { clearSession, hasSession } from '@/core/services/tokenStorage';
 import { colors } from '@/core/theme/colors';
 import { layoutStyles } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
@@ -22,6 +23,7 @@ import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
 import { SectionHint } from '@/shared/widgets/SectionLabel';
 import { PrimaryButton } from '@/shared/widgets/PrimaryButton';
+import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 import { typography } from '@/core/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
@@ -48,10 +50,9 @@ export function SplashScreen({ navigation }: Props) {
     const run = async () => {
       setRouteError(undefined);
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const sessionExists = await hasSession();
         if (cancelled) return;
-        if (error) throw error;
-        if (data.session) {
+        if (sessionExists) {
           await routeAuthenticatedUserAndFlush(navigation);
           return;
         }
@@ -60,7 +61,8 @@ export function SplashScreen({ navigation }: Props) {
         if (cancelled) return;
         bootstrapped.current = false;
         // Check both the top-level error and the wrapped cause for JWT/auth errors
-        const isAuthError = (err: unknown) => {
+        const isAuthError = (err: unknown): boolean => {
+          if (err instanceof ApiError && err.status === 401) return true;
           const msg = err instanceof Error ? err.message : String(err);
           return msg.includes('JWT') || msg.includes('token') || msg.includes('not authenticated') || msg.includes('AuthApiError');
         };
@@ -93,6 +95,13 @@ export function SplashScreen({ navigation }: Props) {
                   onPress={() => {
                     bootstrapped.current = false;
                     setRetryCount((c) => c + 1);
+                  }}
+                />
+                <SecondaryButton
+                  label="Sign in again"
+                  onPress={async () => {
+                    await clearSession();
+                    navigation.replace('PhoneOtp');
                   }}
                 />
               </View>

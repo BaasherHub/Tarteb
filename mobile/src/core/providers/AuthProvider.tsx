@@ -6,60 +6,57 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import {
+  clearSession,
+  getStoredUser,
+  hasSession,
+  type StoredUser,
+} from '@/core/services/tokenStorage';
+
+export type AuthUser = StoredUser;
+export type AuthSession = { user: AuthUser };
 
 type AuthContextValue = {
-  session: Session | null;
+  session: AuthSession | null;
   isReady: boolean;
   signOut: () => Promise<void>;
+  /** Re-read session from storage — call after a successful login. */
+  refreshSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  const loadSession = useCallback(async () => {
+    const [loggedIn, user] = await Promise.all([hasSession(), getStoredUser()]);
+    setSession(loggedIn && user ? { user } : null);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
+    void loadSession()
+      .catch(() => setSession(null))
+      .finally(() => { if (mounted) setIsReady(true); });
+    return () => { mounted = false; };
+  }, [loadSession]);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!mounted) return;
-      setSession(nextSession);
-      setIsReady(true);
-    });
-
-    const fallback = setTimeout(() => {
-      if (!mounted) return;
-      setIsReady((ready) => {
-        if (ready) return ready;
-        void supabase.auth.getSession().then(({ data }) => {
-          if (!mounted) return;
-          setSession(data.session);
-          setIsReady(true);
-        });
-        return ready;
-      });
-    }, 1000);
-
-    return () => {
-      mounted = false;
-      clearTimeout(fallback);
-      subscription.unsubscribe();
-    };
-  }, []);
+  const refreshSession = useCallback(async () => {
+    await loadSession();
+  }, [loadSession]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try { await api.auth.logout(); } catch { /* clear local state regardless */ }
+    await clearSession();
     setSession(null);
   }, []);
 
   const value = useMemo(
-    () => ({ session, isReady, signOut }),
-    [session, isReady, signOut],
+    () => ({ session, isReady, signOut, refreshSession }),
+    [session, isReady, signOut, refreshSession],
   );
 
   return (
@@ -69,8 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }

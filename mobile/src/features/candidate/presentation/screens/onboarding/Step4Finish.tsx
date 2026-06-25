@@ -18,7 +18,8 @@ import { useCandidateOnboarding } from '@/features/candidate/providers/Candidate
 import { clearCandidateOnboardingDraft } from '@/features/candidate/providers/CandidateOnboardingContext';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 import { resolveNationality } from '@/shared/constants/nationalities';
 import { parseLocation } from '@/shared/constants/uaeLocations';
 import { formatIsoDateLocal, parseIsoDateLocal } from '@/shared/utils/dateFormat';
@@ -53,7 +54,7 @@ function hasDistrict(location: string | undefined): boolean {
 export function Step4Finish({ navigation }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
-  const { data, update, setStep, isEditMode } = useCandidateOnboarding();
+  const { data, update, setStep } = useCandidateOnboarding();
   const [availableFrom, setAvailableFrom] = useState<Date | null>(() =>
     data.availableFrom ? parseIsoDateLocal(data.availableFrom) : null,
   );
@@ -119,14 +120,12 @@ export function Step4Finish({ navigation }: Props) {
     const phoneE164 = (data.phone ?? '').trim();
     const whatsappResult = validateOptionalAuthPhone(data.whatsapp);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error('Not signed in');
-
       const nationality =
         resolveNationality(data.nationality ?? '') ?? data.nationality?.trim() ?? '';
 
+      const userId = await getCurrentUserId();
       const payload = parseCandidateUpsertPayload({
-        user_id: userId,
+        user_id: userId ?? '00000000-0000-0000-0000-000000000000',
         name: (data.name ?? '').trim(),
         photo_url: data.photoUrl ?? null,
         role: data.role,
@@ -148,17 +147,15 @@ export function Step4Finish({ navigation }: Props) {
         is_active: true,
       });
 
-      const { error } = await supabase
-        .from('candidates')
-        .upsert(payload, { onConflict: 'user_id' });
-      if (error) throw error;
-
-      await clearCandidateOnboardingDraft(userId);
-      if (isEditMode) {
-        navigation.goBack();
+      const { user_id: _uid, ...apiPayload } = payload as Record<string, unknown> & { user_id: string };
+      if (data.candidateId) {
+        await api.candidates.update(apiPayload);
       } else {
-        navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
+        await api.candidates.create(apiPayload);
       }
+
+      await clearCandidateOnboardingDraft(userId ?? '');
+      navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
     } catch (e) {
       setSubmitError(getErrorMessage(e, t.errorGeneric));
     } finally {

@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getCurrentUserId, hasSession as checkHasSession } from '@/core/services/tokenStorage';
 import {
   AuthRoutingError,
   routeAuthenticatedUserAndFlush,
@@ -84,9 +85,11 @@ export function RoleSelectionScreen({ navigation }: Props) {
   const [formError, setFormError] = useState<string | undefined>();
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (error) setFormError(t.errorGeneric);
-      else setHasSession(Boolean(data.session));
+    void checkHasSession().then((ok) => {
+      setHasSession(ok);
+      setSessionChecked(true);
+    }).catch(() => {
+      setFormError(t.errorGeneric);
       setSessionChecked(true);
     });
   }, [t.errorGeneric]);
@@ -112,17 +115,13 @@ export function RoleSelectionScreen({ navigation }: Props) {
     setFormError(undefined);
     try {
       if (hasSession) {
-        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const userId = await getCurrentUserId();
         if (!userId) {
           await setPendingAccountRole(role);
           navigation.replace('PhoneOtp');
           return;
         }
-        const { error } = await supabase.from('profiles').upsert(
-          { user_id: userId, role },
-          { onConflict: 'user_id' },
-        );
-        if (error) throw error;
+        await api.profiles.upsert({ role });
         await routeAuthenticatedUserAndFlush(navigation);
         return;
       }

@@ -1,4 +1,4 @@
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 
 export function isCandidateUnlocked(row: Record<string, unknown>): boolean {
   const flag = row.is_unlocked;
@@ -7,14 +7,8 @@ export function isCandidateUnlocked(row: Record<string, unknown>): boolean {
 }
 
 export async function employerHasUnlockedCandidate(candidateId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('unlocks')
-    .select('id')
-    .eq('candidate_id', candidateId)
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return Boolean(data);
+  const { unlocked } = await api.unlocks.status(candidateId);
+  return unlocked;
 }
 
 export function hasCandidateContact(row: Record<string, unknown>): boolean {

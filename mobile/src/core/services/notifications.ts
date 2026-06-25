@@ -14,7 +14,8 @@ import {
 
 import { ensureNotificationHandler } from '@/core/services/notificationsLazy';
 
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 
 import type { Strings } from '@/core/i18n/strings';
 
@@ -145,19 +146,13 @@ export async function registerPushToken(): Promise<boolean> {
 
 
 
-  const userId = (await supabase.auth.getUser()).data.user?.id;
+  const userId = await getCurrentUserId();
 
   if (!userId) return false;
 
 
 
-  await supabase
-
-    .from('profiles')
-
-    .update({ push_token: token })
-
-    .eq('user_id', userId);
+  await api.notifications.registerToken(token);
 
 
 
@@ -191,17 +186,11 @@ export async function registerPushTokenIfGranted(): Promise<void> {
 
 export async function clearPushToken(): Promise<void> {
 
-  const userId = (await supabase.auth.getUser()).data.user?.id;
+  const userId = await getCurrentUserId();
 
   if (!userId) return;
 
-  await supabase
-
-    .from('profiles')
-
-    .update({ push_token: null })
-
-    .eq('user_id', userId);
+  await api.notifications.removeToken();
 
 }
 

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocale, ARABIC_ENABLED } from '@/core/i18n/LocaleContext';
 import { isPushPermissionDenied } from '@/core/services/notifications';
-import type { Lang } from '@/core/i18n/strings';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getStoredUser } from '@/core/services/tokenStorage';
 import { openWhatsAppSupport } from '@/shared/utils/whatsapp';
 import { formatPhoneForDisplay } from '@/shared/utils/phone';
 import { colors } from '@/core/theme/colors';
@@ -23,16 +23,6 @@ type Props = {
   onEditProfile?: () => void | Promise<void>;
   onOpenPrivacy: () => void;
 };
-
-function formatMemberSince(iso: string, lang: Lang): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString(lang === 'ar' ? 'ar-AE' : 'en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 function AccountInfoRow({
   label,
@@ -73,7 +63,6 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const [role, setRole] = useState<'candidate' | 'employer' | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
-  const [memberSince, setMemberSince] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -87,42 +76,24 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
     let cancelled = false;
     (async () => {
       try {
-        const user = (await supabase.auth.getUser()).data.user;
-        if (!user || cancelled) return;
+        const storedUser = await getStoredUser();
+        if (!storedUser || cancelled) return;
 
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .select('role, created_at')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
+        const profileResult = await api.profiles.me();
         if (cancelled) return;
-        if (profileError) throw profileError;
 
-        if (data?.role === 'candidate' || data?.role === 'employer') {
-          setRole(data.role);
-        }
-        if (data?.created_at) {
-          setMemberSince(formatMemberSince(data.created_at as string, lang));
+        const profile = profileResult?.profile;
+        if (profile?.role === 'candidate' || profile?.role === 'employer') {
+          setRole(profile.role);
         }
 
-        if (data?.role === 'candidate') {
-          const { data: candidate, error: candidateError } = await supabase
-            .from('candidates')
-            .select('name')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (candidateError) throw candidateError;
+        if (profile?.role === 'candidate') {
+          const { candidate } = await api.candidates.me();
           if (!cancelled && candidate?.name) {
             setDisplayName(String(candidate.name).trim());
           }
-        } else if (data?.role === 'employer') {
-          const { data: employer, error: employerError } = await supabase
-            .from('employers')
-            .select('contact_name, company_name')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (employerError) throw employerError;
+        } else if (profile?.role === 'employer') {
+          const { employer } = await api.employers.me();
           if (!cancelled && employer) {
             const name =
               String(employer.contact_name ?? '').trim() ||
@@ -131,17 +102,8 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
           }
         }
 
-        const authPhone = user.phone;
-        if (authPhone) setPhone(authPhone);
-        else {
-          const { data: p, error: phoneError } = await supabase
-            .from('profiles')
-            .select('phone')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (phoneError) throw phoneError;
-          if (p?.phone) setPhone(p.phone as string);
-        }
+        if (storedUser.phone) setPhone(storedUser.phone);
+        else if (profile?.phone) setPhone(profile.phone);
       } catch (e) {
         if (!cancelled) {
           setProfileError(getErrorMessage(e, t.errorGeneric));
@@ -193,7 +155,7 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
   const editAccountLabel =
     role === 'employer' ? t.settingsEditCompany : t.settingsEditProfile;
   const showAccountCard =
-    loading || Boolean(displayName || phoneDisplay || memberSince || showEditAccount);
+    loading || Boolean(displayName || phoneDisplay || showEditAccount);
 
   return (
     <View style={styles.root}>
@@ -239,17 +201,9 @@ export function SettingsPanel({ onLogout, onEditProfile, onOpenPrivacy }: Props)
                 bordered={Boolean(displayName)}
               />
             ) : null}
-            {memberSince ? (
-              <AccountInfoRow
-                label={t.settingsMemberSince}
-                value={memberSince}
-                rtl={rtl}
-                bordered={Boolean(displayName || phoneDisplay)}
-              />
-            ) : null}
             {showEditAccount ? (
               <>
-                {(displayName || phoneDisplay || memberSince) ? (
+                {(displayName || phoneDisplay) ? (
                   <View style={styles.rowDivider} />
                 ) : null}
                 <SettingsLinkRow

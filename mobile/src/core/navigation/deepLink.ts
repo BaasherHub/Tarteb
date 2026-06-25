@@ -1,6 +1,6 @@
 import type { NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from '@/core/navigation/types';
-import { supabase } from '@/core/lib/supabase';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 import {
   fetchAccountRole,
   parseDeepLinkIntent,
@@ -86,6 +86,15 @@ function navigateIntent(
     return true;
   }
 
+  if (intent.kind === 'candidateOnboarding') {
+    if (role === 'candidate') {
+      ref.navigate('CandidateOnboarding', { startStep: intent.startStep });
+      return true;
+    }
+    ref.navigate('EmployerShell', { screen: 'BrowseTab' });
+    return true;
+  }
+
   return false;
 }
 
@@ -110,10 +119,10 @@ export async function navigateFromUrl(
   }
   if (!role) {
     stashPendingDeepLink(url);
-    const { data } = await supabase.auth.getUser();
+    const userId = await getCurrentUserId();
     ref.reset({
       index: 0,
-      routes: [{ name: data.user ? 'RoleSelection' : 'PhoneOtp' }],
+      routes: [{ name: userId ? 'RoleSelection' : 'PhoneOtp' }],
     });
     return false;
   }

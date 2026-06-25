@@ -83,7 +83,7 @@ export function CandidateOnboardingStep({
       ref={scrollRef}
       style={styles.scroll}
       contentContainerStyle={[styles.scrollContent, contentStyle]}
-      keyboardShouldPersistTaps="handled"
+      keyboardShouldPersistTaps="always"
       nestedScrollEnabled
     >
       <View style={styles.stepContent}>{children}</View>

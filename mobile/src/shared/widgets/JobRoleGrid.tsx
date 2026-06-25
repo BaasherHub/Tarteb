@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
-  FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -10,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -48,6 +48,10 @@ type Props = {
   filter?: JobRoleGridFilterState;
   /** Shown above the list (e.g. max additional roles reached). */
   listBanner?: string | null;
+  /** Compact native single-select presentation for onboarding. */
+  displayMode?: 'list' | 'native-picker';
+  /** Clears the single selection when a category change invalidates it. */
+  onClearRole?: () => void;
 };
 
 function matchesQuery(role: string, query: string): boolean {
@@ -71,6 +75,8 @@ export const JobRoleGrid = memo(function JobRoleGrid({
   showChrome = true,
   filter: externalFilter,
   listBanner,
+  displayMode = 'list',
+  onClearRole,
 }: Props) {
   const { t, lang } = useLocale();
   const rtl = useRtlStyles();
@@ -121,11 +127,23 @@ export const JobRoleGrid = memo(function JobRoleGrid({
     return t.jobRoleNoMatch;
   }, [query, activeCategoryLabel, t]);
 
+  const allRoles = useMemo(
+    () => sortRoles(ONBOARDING_ROLE_CATEGORIES.flatMap((c) => c.roles)),
+    [],
+  );
+
   const onSelectCategory = useCallback(
     (id: RoleCategoryId | null) => {
       setCategoryId(id);
+      if (!selectedRole || isMulti) return;
+      const nextRoles = id
+        ? sortRoles(getCategoryById(id)?.roles ?? [])
+        : allRoles;
+      if (!nextRoles.includes(selectedRole)) {
+        onClearRole?.();
+      }
     },
-    [setCategoryId],
+    [allRoles, isMulti, onClearRole, selectedRole, setCategoryId],
   );
 
   const hasActiveFilters = Boolean(query.trim() || categoryId);
@@ -154,6 +172,7 @@ export const JobRoleGrid = memo(function JobRoleGrid({
           accessibilityLabel={a11y.accessibilityLabel}
           accessibilityHint={a11y.accessibilityHint}
           accessibilityState={{ selected, disabled }}
+          android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
         >
           <Text
             style={[
@@ -190,6 +209,91 @@ export const JobRoleGrid = memo(function JobRoleGrid({
       t,
     ],
   );
+
+  if (displayMode === 'native-picker' && !isMulti) {
+    const pickerSelectedRole =
+      selectedRole && scopedRoles.includes(selectedRole) ? selectedRole : '';
+
+    return (
+      <View style={styles.root}>
+        <View style={styles.pickerGroup}>
+          <Text style={[styles.pickerLabel, { textAlign: rtl.textAlign }]}>
+            {t.jobRoleCategories}
+          </Text>
+          <View style={styles.pickerShell}>
+            <Picker
+              selectedValue={categoryId ?? ''}
+              onValueChange={(value) =>
+                onSelectCategory(value ? (value as RoleCategoryId) : null)
+              }
+              mode="dialog"
+              dropdownIconColor={colors.textSecondary}
+              style={[
+                styles.picker,
+                {
+                  color: colors.textPrimary,
+                  writingDirection: rtl.writingDirection,
+                },
+              ]}
+            >
+              <Picker.Item
+                label={t.jobRoleAllCategories}
+                value=""
+                color={colors.textPrimary}
+              />
+              {ONBOARDING_ROLE_CATEGORIES.map((cat) => (
+                <Picker.Item
+                  key={cat.id}
+                  label={getRoleCategoryLabel(cat, lang)}
+                  value={cat.id}
+                  color={colors.textPrimary}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        <View style={styles.pickerGroup}>
+          <Text style={[styles.pickerLabel, { textAlign: rtl.textAlign }]}>
+            {t.jobRole}
+          </Text>
+          <View style={styles.pickerShell}>
+            <Picker
+              selectedValue={pickerSelectedRole}
+              onValueChange={(value) => {
+                if (value) onSelectRole(value);
+              }}
+              mode="dialog"
+              dropdownIconColor={colors.textSecondary}
+              style={[
+                styles.picker,
+                {
+                  color: pickerSelectedRole
+                    ? colors.textPrimary
+                    : colors.textSecondary,
+                  writingDirection: rtl.writingDirection,
+                },
+              ]}
+            >
+              <Picker.Item
+                label={t.errRole}
+                value=""
+                color={colors.textSecondary}
+              />
+              {scopedRoles.map((role) => (
+                <Picker.Item
+                  key={role}
+                  label={role}
+                  value={role}
+                  color={colors.textPrimary}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -270,18 +374,19 @@ export const JobRoleGrid = memo(function JobRoleGrid({
               {activeCategoryLabel}
             </Text>
           ) : null}
-          <FlatList
+          <ScrollView
             style={styles.list}
-            data={filteredListRoles}
-            keyExtractor={(role) => role}
-            renderItem={renderRole}
-            ItemSeparatorComponent={RoleSeparator}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="always"
             nestedScrollEnabled
-            initialNumToRender={12}
-            maxToRenderPerBatch={10}
-            windowSize={7}
-          />
+            showsVerticalScrollIndicator={false}
+          >
+            {filteredListRoles.map((role, index) => (
+              <React.Fragment key={role}>
+                {renderRole({ item: role })}
+                {index < filteredListRoles.length - 1 ? <RoleSeparator /> : null}
+              </React.Fragment>
+            ))}
+          </ScrollView>
         </View>
       ) : null}
 
@@ -409,6 +514,7 @@ function CategoryChip({
       accessibilityState={{ selected }}
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
+      android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
     >
       <Text
         style={[
@@ -475,6 +581,27 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   block: { gap: spacing.xs },
+  pickerGroup: {
+    gap: spacing.xs,
+  },
+  pickerLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  pickerShell: {
+    minHeight: 52,
+    justifyContent: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  picker: {
+    minHeight: 52,
+    width: '100%',
+  },
   listBanner: {
     ...typography.caption,
     color: colors.textSecondary,
@@ -507,6 +634,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
     borderRadius: 18,
+    overflow: 'hidden',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.divider,

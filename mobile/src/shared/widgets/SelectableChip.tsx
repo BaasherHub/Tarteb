@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Animated, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
 import { spacing } from '@/core/theme/spacing';
@@ -37,7 +37,8 @@ export const SelectableChip = memo(function SelectableChip({
       onPressOut={onPressOut}
       accessibilityRole="button"
       {...a11y}
-      style={styles.pressable}
+      android_ripple={{ color: 'rgba(19,88,206,0.2)', borderless: false }}
+      style={[styles.pressable, Platform.OS === 'android' && styles.pressableAndroid]}
     >
       <Animated.View
         style={[
@@ -68,6 +69,10 @@ export const SelectableChip = memo(function SelectableChip({
 
 const styles = StyleSheet.create({
   pressable: { maxWidth: '100%' },
+  pressableAndroid: {
+    borderRadius: spacing.md,
+    overflow: 'hidden',
+  },
   chip: {
     minHeight: 44,
     paddingHorizontal: spacing.lg,

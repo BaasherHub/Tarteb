@@ -10,7 +10,6 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
-import { supabase } from '@/core/lib/supabase';
 import { colors } from '@/core/theme/colors';
 import { layout } from '@/core/theme/layout';
 import { spacing } from '@/core/theme/spacing';
@@ -31,10 +30,11 @@ import { SecondaryButton } from '@/shared/widgets/SecondaryButton';
 type Props = {
   cvPath: string | null | undefined;
   cvFileName: string | null | undefined;
+  candidateId: string;
   onUpdated: () => void | Promise<void>;
 };
 
-export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
+export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   const { showError } = useAppAlert();
@@ -61,27 +61,8 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
 
     setBusy(true);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
-
-      const { path, fileName } = await uploadCandidateCv(
-        asset.uri,
-        name,
-        asset.mimeType,
-        asset.size,
-      );
-
-      const { error } = await supabase
-        .from('candidates')
-        .update({ cv_url: path, cv_file_name: fileName })
-        .eq('user_id', userId);
-      if (error) throw error;
-
-      // Delete old file only after DB is updated to avoid orphaning the record.
-      if (cvPath && cvPath !== path) {
-        await removeCandidateCvFile(cvPath).catch(() => {});
-      }
-
+      // uploadCandidateCv calls the backend which also updates the candidate record
+      await uploadCandidateCv(asset.uri, name, asset.mimeType, asset.size);
       await onUpdated();
     } catch (e) {
       showError(t.errorTitle, getErrorMessage(e, t.cvUploadFailed));
@@ -94,7 +75,7 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
     if (!cvPath) return;
     setBusy(true);
     try {
-      const url = await getCandidateCvSignedUrl(cvPath);
+      const url = await getCandidateCvSignedUrl(cvPath, 3600, candidateId);
       const canOpen = await Linking.canOpenURL(url);
       if (!canOpen) throw new Error('Cannot open CV');
       await Linking.openURL(url);
@@ -117,15 +98,8 @@ export function CandidateCvSection({ cvPath, cvFileName, onUpdated }: Props) {
       async () => {
         setBusy(true);
         try {
-          const userId = (await supabase.auth.getUser()).data.user?.id;
-          if (!userId) return;
-
-          await removeCandidateCvFile(cvPath).catch(() => {});
-          const { error } = await supabase
-            .from('candidates')
-            .update({ cv_url: null, cv_file_name: null })
-            .eq('user_id', userId);
-          if (error) throw error;
+          // removeCandidateCvFile calls the backend which also clears the candidate record
+          await removeCandidateCvFile(cvPath);
           await onUpdated();
         } catch (e) {
           showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));

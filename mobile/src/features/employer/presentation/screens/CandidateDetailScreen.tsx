@@ -11,7 +11,7 @@ import { getCandidateCvSignedUrl } from '@/shared/services/candidateCv';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { supabase } from '@/core/lib/supabase';
+
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
 import { layout, layoutStyles } from '@/core/theme/layout';
@@ -101,11 +101,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   useEffect(() => {
     if (!candidate || isUnlocked || hasNotifiedRef.current) return;
     hasNotifiedRef.current = true;
-    supabase.functions
-      .invoke('notify-candidate', {
-        body: { candidate_id: candidateId, event: 'viewed' },
-      })
-      .catch(() => {});
+    // notification endpoint not yet wired — fire-and-forget can be restored later
   }, [candidate, candidateId, isUnlocked]);
 
   const goBack = () => {
@@ -126,11 +122,6 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
   const unlock = async () => {
     try {
       await unlockMutation.mutateAsync(candidateId);
-      supabase.functions
-        .invoke('notify-candidate', {
-          body: { candidate_id: candidateId, event: 'unlocked' },
-        })
-        .catch(() => {});
       const { data: refreshed } = await refetchCandidate();
       const contactReady =
         refreshed && hasCandidateContact(refreshed as Record<string, unknown>);
@@ -286,7 +277,7 @@ export function CandidateDetailScreen({ route, navigation }: Props) {
                   label={t.cvView}
                   onPress={async () => {
                     try {
-                      const url = await getCandidateCvSignedUrl(cvPath);
+                      const url = await getCandidateCvSignedUrl(cvPath, 3600, candidateId);
                       await Linking.openURL(url);
                     } catch (e) {
                       showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));

@@ -20,7 +20,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 
@@ -87,7 +87,13 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 
 
-export function CandidateDashboardScreen() {
+type CandidateDashboardScreenProps = {
+  embeddedInShell?: boolean;
+};
+
+export function CandidateDashboardScreen({
+  embeddedInShell = false,
+}: CandidateDashboardScreenProps) {
 
   const { t } = useLocale();
 
@@ -112,62 +118,40 @@ export function CandidateDashboardScreen() {
 
 
 
-  const inShell = Boolean(
-
-    navigation.getParent()?.getState?.()?.routeNames?.includes('SettingsTab'),
-
-  );
+  const inShell = embeddedInShell;
 
 
 
   const pushPromptDone = useRef(false);
 
   const fetchCandidate = useCallback(async () => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    const userId = userData.user?.id;
-    if (!userId) throw new Error(t.errorGeneric);
+    let result: { candidate: Record<string, unknown> | null };
+    try {
+      result = await api.candidates.me();
+    } catch {
+      throw new Error(t.errorGeneric);
+    }
 
-    const { data: row, error: candidateError } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (candidateError) throw candidateError;
-
-    if (!row) {
+    if (!result.candidate) {
       setRoutingToOnboarding(true);
       navigation.replace('CandidateOnboarding', {});
       return;
     }
 
-    let candidateRow = row as Record<string, unknown>;
-
-    const { data: unlockRows, error: unlockError } = await supabase
-      .from('unlocks')
-      .select('id')
-      .eq('candidate_id', candidateRow.id as string);
-    if (unlockError) throw unlockError;
+    let candidateRow = result.candidate;
+    const unlockCount = typeof candidateRow.unlock_count === 'number' ? candidateRow.unlock_count : 0;
 
     const sanitizedLangs = sanitizeLanguages(candidateRow.languages);
     if (
       Array.isArray(candidateRow.languages) &&
       sanitizedLangs.length !== (candidateRow.languages as string[]).length
     ) {
-      await supabase
-        .from('candidates')
-        .update({ languages: sanitizedLangs })
-        .eq('user_id', userId);
+      await api.candidates.update({ languages: sanitizedLangs }).catch(() => {});
       candidateRow = { ...candidateRow, languages: sanitizedLangs };
     }
 
     setCandidate(candidateRow);
-    setUnlocks(unlockRows?.length ?? 0);
-
-    await supabase
-      .from('candidates')
-      .update({ last_active_at: new Date().toISOString() })
-      .eq('user_id', userId);
+    setUnlocks(unlockCount);
 
     registerPushTokenIfGranted().catch(() => {});
   }, [navigation, t.errorGeneric]);
@@ -205,18 +189,10 @@ export function CandidateDashboardScreen() {
       prev ? { ...prev, is_active: value, availability_status: value ? 'looking' : 'paused' } : prev,
     );
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error(t.errorGeneric);
-
-      const { error } = await supabase
-        .from('candidates')
-        .update({
-          is_active: value,
-          availability_status: value ? 'looking' : 'paused',
-        })
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await api.candidates.update({
+        is_active: value,
+        availability_status: value ? 'looking' : 'paused',
+      });
       await load();
     } catch (error) {
       // Revert optimistic update on failure.
@@ -240,15 +216,7 @@ export function CandidateDashboardScreen() {
       async () => {
         setStatusUpdating(true);
         try {
-          const userId = (await supabase.auth.getUser()).data.user?.id;
-          if (!userId) throw new Error(t.errorGeneric);
-
-          const { error } = await supabase
-            .from('candidates')
-            .update({ is_active: false, availability_status: 'hired' })
-            .eq('user_id', userId);
-
-          if (error) throw error;
+          await api.candidates.update({ is_active: false, availability_status: 'hired' });
           await load();
         } catch (error) {
           showError(t.errorTitle, getErrorMessage(error, t.errorGeneric));
@@ -590,6 +558,7 @@ export function CandidateDashboardScreen() {
           <CandidateCvSection
             cvPath={candidate.cv_url as string | undefined}
             cvFileName={candidate.cv_file_name as string | undefined}
+            candidateId={candidate.id as string}
             onUpdated={() => void load()}
           />
 

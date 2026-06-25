@@ -63,10 +63,12 @@ export function Step2JobRole() {
       <SectionHint>{t.candidatePrimaryRoleHint}</SectionHint>
 
       <JobRoleGrid
+        displayMode="native-picker"
         filter={filter}
         selectionMode="single"
         selectedRole={data.role}
         onSelectRole={setPrimary}
+        onClearRole={() => update({ role: undefined })}
       />
 
       <FieldError message={roleError} />

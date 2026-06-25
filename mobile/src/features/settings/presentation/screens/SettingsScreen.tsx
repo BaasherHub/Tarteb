@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { clearSession } from '@/core/services/tokenStorage';
 import { clearPushToken } from '@/core/services/notifications';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
@@ -20,25 +21,16 @@ export function SettingsScreen({ navigation }: Props) {
 
   const logout = async () => {
     await clearPushToken().catch(() => {});
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await api.auth.logout().catch(() => {});
+    await clearSession();
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
   const openEditProfile = async () => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    const userId = userData.user?.id;
-    if (!userId) throw new Error(t.errorGeneric);
-    const { data: row, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!row) throw new Error(t.errorGeneric);
+    const { candidate } = await api.candidates.me();
+    if (!candidate) throw new Error(t.errorGeneric);
     navigation.navigate('CandidateOnboarding', {
-      initial: onboardingFromRow(row as Record<string, unknown>),
+      initial: onboardingFromRow(candidate),
       startStep: 3,
     });
   };

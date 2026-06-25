@@ -33,6 +33,7 @@ export function SettingsLinkRow({
       style={({ pressed }) => [styles.row, rtl.row, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
     >
       <View style={styles.copy}>
         <Text

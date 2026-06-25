@@ -4,7 +4,7 @@ import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from
 import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { linking } from '@/core/navigation/linking';
-import { flushPendingDeepLink, stashPendingDeepLink } from '@/core/navigation/deepLink';
+import { stashPendingDeepLink } from '@/core/navigation/deepLink';
 import { navigationRef } from '@/core/navigation/navigationRef';
 import { RootStackParamList } from './types';
 import { useLocale } from '@/core/i18n/LocaleContext';
@@ -126,7 +126,7 @@ export function RootNavigator() {
     <NavigationContainer
       ref={navigationRef}
       linking={gatedLinking}
-      onReady={() => flushPendingDeepLink(navigationRef)}
+      onReady={() => void guardCurrentRoute()}
       onStateChange={() => void guardCurrentRoute()}
     >
       <Stack.Navigator
