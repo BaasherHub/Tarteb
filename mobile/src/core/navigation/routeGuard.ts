@@ -1,4 +1,5 @@
 import type { NavigationState, PartialState } from '@react-navigation/native';
+import type { RootStackParamList } from '@/core/navigation/types';
 
 export const candidateRootRoutes = new Set([
   'CandidateOnboarding',
@@ -37,4 +38,10 @@ export function routeGuardTarget(routeName: string | undefined):
   if (candidateRootRoutes.has(routeName)) return 'candidate';
   if (employerRootRoutes.has(routeName)) return 'employer';
   return null;
+}
+
+export function unauthenticatedRouteGuardRedirect(
+  routeName: string | undefined,
+): keyof RootStackParamList | null {
+  return routeGuardTarget(routeName) ? 'PhoneOtp' : null;
 }
