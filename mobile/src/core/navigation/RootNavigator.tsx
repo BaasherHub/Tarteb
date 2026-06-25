@@ -12,7 +12,11 @@ import { colors } from '@/core/theme/colors';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useAuth } from '@/core/providers/AuthProvider';
 import { fetchAccountRole } from '@/core/navigation/deepLinkRole';
-import { getRootRouteName, routeGuardTarget } from '@/core/navigation/routeGuard';
+import {
+  getRootRouteName,
+  routeGuardTarget,
+  unauthenticatedRouteGuardRedirect,
+} from '@/core/navigation/routeGuard';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,10 +36,13 @@ export function RootNavigator() {
     const routeName = getRootRouteName(navigationRef.getRootState());
     const target = routeGuardTarget(routeName);
 
-    if (target && !session) {
+    const unauthenticatedRedirect = !session
+      ? unauthenticatedRouteGuardRedirect(routeName)
+      : null;
+    if (unauthenticatedRedirect) {
       navigationRef.reset({
         index: 0,
-        routes: [{ name: 'RoleSelection' }],
+        routes: [{ name: unauthenticatedRedirect }],
       });
       return;
     }
