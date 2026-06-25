@@ -16,6 +16,7 @@ import { colors } from '@/core/theme/colors';
 import { layout, layoutStyles } from '@/core/theme/layout';
 import { CandidateBrowseCard } from '@/features/employer/presentation/components/CandidateBrowseCard';
 import { useUnlocks } from '@/features/employer/data/services/unlocks';
+import { candidateIdFromUnlockRow } from '@/features/employer/domain/unlockRow';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { getErrorMessage } from '@/shared/utils/errors';
 
@@ -54,7 +55,7 @@ export function MyUnlocksScreen() {
   );
 
   const keyExtractor = useCallback(
-    (item: Record<string, unknown>) => String(item.id),
+    (item: Record<string, unknown>) => candidateIdFromUnlockRow(item),
     [],
   );
 
@@ -63,7 +64,7 @@ export function MyUnlocksScreen() {
       <CandidateBrowseCard
         item={item}
         hiringRole={item.role ? String(item.role) : null}
-        onPress={() => openCandidate(String(item.id))}
+        onPress={() => openCandidate(candidateIdFromUnlockRow(item))}
       />
     ),
     [openCandidate],

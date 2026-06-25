@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/core/lib/api';
 import { employerKeys } from '@/features/employer/data/employerQueryKeys';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { candidateIdFromUnlockRow } from '@/features/employer/domain/unlockRow';
 
 export type UnlockRow = {
   id: string;
@@ -22,7 +23,8 @@ async function fetchUnlocks(errorLabel: string): Promise<UnlocksResult> {
     const candidatesById: Record<string, Record<string, unknown>> = {};
     for (const row of rows) {
       // The list endpoint already joins candidate data — store the full row keyed by candidate_id
-      candidatesById[row.candidate_id] = row as Record<string, unknown>;
+      candidatesById[candidateIdFromUnlockRow(row as Record<string, unknown>)] =
+        row as Record<string, unknown>;
     }
 
     return { rows, candidatesById };
