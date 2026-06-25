@@ -13,6 +13,7 @@ import { Step4Finish } from './onboarding/Step4Finish';
 import { colors } from '@/core/theme/colors';
 import { StepTransition } from '@/shared/widgets/StepTransition';
 import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
+import { ErrorState } from '@/shared/widgets/ErrorState';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { api } from '@/core/lib/api';
 import {
@@ -76,23 +77,36 @@ export function CandidateOnboardingScreen(props: Props) {
     CandidateOnboardingData | undefined
   >(validInitial);
   const [initialResolved, setInitialResolved] = useState(!shouldResolveEditInitial);
+  const [resolveError, setResolveError] = useState(false);
+  const [resolveAttempt, setResolveAttempt] = useState(0);
 
   useEffect(() => {
     if (!shouldResolveEditInitial) {
       setResolvedInitial(validInitial);
       setInitialResolved(true);
+      setResolveError(false);
       return;
     }
 
     let cancelled = false;
+    setInitialResolved(false);
+    setResolveError(false);
     api.candidates
       .me()
       .then(({ candidate }) => {
         if (cancelled) return;
-        setResolvedInitial(candidate ? onboardingFromRow(candidate) : undefined);
+        if (!candidate) {
+          setResolvedInitial(undefined);
+          setResolveError(true);
+          return;
+        }
+        setResolvedInitial(onboardingFromRow(candidate));
       })
       .catch(() => {
-        if (!cancelled) setResolvedInitial(undefined);
+        if (!cancelled) {
+          setResolvedInitial(undefined);
+          setResolveError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setInitialResolved(true);
@@ -101,9 +115,34 @@ export function CandidateOnboardingScreen(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [shouldResolveEditInitial, validInitial]);
+  }, [resolveAttempt, shouldResolveEditInitial, validInitial]);
 
   if (!initialResolved) return <ScreenLoading message={t.loading} />;
+
+  if (shouldResolveEditInitial && resolveError) {
+    return (
+      <SafeAreaView style={styles.flex} edges={['top']}>
+        <ErrorState
+          title={t.errorTitle}
+          message={t.candidateProfileLoadError}
+          actionLabel={t.retry}
+          onAction={() => {
+            setInitialResolved(false);
+            setResolveError(false);
+            setResolveAttempt((attempt) => attempt + 1);
+          }}
+          secondaryLabel={t.back}
+          onSecondary={() => {
+            if (props.navigation.canGoBack()) {
+              props.navigation.goBack();
+              return;
+            }
+            props.navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.flex} edges={['top']}>
