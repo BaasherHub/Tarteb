@@ -8,11 +8,16 @@ const EMPLOYER_FIELDS = `
 
 // GET /employers/me
 async function getMyEmployer(req, res) {
+  console.log(`[employers] me user=${req.user.sub} start`);
   const { rows } = await pool.query(
     `SELECT ${EMPLOYER_FIELDS} FROM employers WHERE user_id = $1`,
     [req.user.sub]
   );
-  if (!rows[0]) return res.status(404).json({ error: "Employer profile not found" });
+  if (!rows[0]) {
+    console.log(`[employers] me user=${req.user.sub} not_found`);
+    return res.json({ employer: null });
+  }
+  console.log(`[employers] me user=${req.user.sub} found id=${rows[0].id}`);
   return res.json({ employer: rows[0] });
 }
 
@@ -58,7 +63,7 @@ async function updateMyEmployer(req, res) {
       `UPDATE employers SET ${setClauses} WHERE user_id = $1 RETURNING ${EMPLOYER_FIELDS}`,
       [req.user.sub, ...values]
     );
-    if (!rows[0]) return res.status(404).json({ error: "Employer profile not found" });
+    if (!rows[0]) return res.status(400).json({ error: "Employer profile not found" });
     return res.json({ employer: rows[0] });
   } catch (e) {
     if (e.code === "23505" && e.constraint === "employers_company_name_unique_idx") {

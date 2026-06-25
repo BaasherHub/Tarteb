@@ -92,4 +92,20 @@ async function getMyUnlocks(req, res) {
   return res.json({ unlocks: rows });
 }
 
-module.exports = { unlockCandidate, getMyUnlocks };
+// GET /unlocks/:candidateId/status
+async function getUnlockStatus(req, res) {
+  const { candidateId } = req.params;
+  const { rows: empRows } = await pool.query(
+    "SELECT id FROM employers WHERE user_id = $1",
+    [req.user.sub]
+  );
+  if (!empRows[0]) return res.json({ unlocked: false });
+
+  const { rows } = await pool.query(
+    "SELECT id FROM unlocks WHERE employer_id = $1 AND candidate_id = $2 LIMIT 1",
+    [empRows[0].id, candidateId]
+  );
+  return res.json({ unlocked: rows.length > 0 });
+}
+
+module.exports = { unlockCandidate, getMyUnlocks, getUnlockStatus };

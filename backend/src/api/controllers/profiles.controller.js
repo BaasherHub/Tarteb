@@ -6,7 +6,11 @@ async function getMyProfile(req, res) {
     "SELECT id, user_id, role, phone, push_token, created_at FROM profiles WHERE user_id = $1",
     [req.user.sub]
   );
-  if (!rows[0]) return res.status(404).json({ error: "Profile not found" });
+  if (!rows[0]) {
+    console.log(`[profiles] me user=${req.user.sub} not_found`);
+    return res.json({ profile: null });
+  }
+  console.log(`[profiles] me user=${req.user.sub} role=${rows[0].role}`);
   return res.json({ profile: rows[0] });
 }
 

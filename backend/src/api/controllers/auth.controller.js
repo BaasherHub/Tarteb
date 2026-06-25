@@ -40,6 +40,7 @@ async function sendOtp(req, res) {
     return res.status(400).json({ error: "Valid UAE phone number required (+971...)" });
   }
 
+  console.log(`[auth] send_otp phone=${phone.slice(0, 6)}***`);
   if (config.skipOtpVerification) {
     return res.json({ success: true, status: "bypass" });
   }
@@ -95,18 +96,21 @@ async function verifyOtp(req, res) {
   const { accessToken, refreshToken } = issueTokens(user.id, user.phone);
   await storeSession(user.id, accessToken, refreshToken);
 
-  return res.json({ accessToken, refreshToken, user });
+  console.log(`[auth] verify_otp_ok user_id=${user.id}`);
+  return res.json({ access_token: accessToken, refresh_token: refreshToken, user });
 }
 
 // POST /auth/refresh
 async function refresh(req, res) {
-  const { refreshToken } = req.body;
-  if (!refreshToken) return res.status(400).json({ error: "refreshToken required" });
+  const { refresh_token: refreshToken } = req.body;
+  console.log('[auth] refresh attempt');
+  if (!refreshToken) return res.status(400).json({ error: "refresh_token required" });
 
   let decoded;
   try {
     decoded = verifyToken(refreshToken);
   } catch {
+    console.log('[auth] refresh_fail reason=invalid_token');
     return res.status(401).json({ error: "Invalid or expired refresh token" });
   }
 
@@ -116,6 +120,7 @@ async function refresh(req, res) {
     [rHash]
   );
   if (!rows[0] || rows[0].is_revoked) {
+    console.log(`[auth] refresh_fail reason=${rows[0] ? 'revoked' : 'not_found'}`);
     return res.status(401).json({ error: "Refresh token revoked or not found" });
   }
 
@@ -134,7 +139,8 @@ async function refresh(req, res) {
   );
   await storeSession(userRows[0].id, newAccess, newRefresh);
 
-  return res.json({ accessToken: newAccess, refreshToken: newRefresh });
+  console.log(`[auth] refresh_ok user_id=${userRows[0].id}`);
+  return res.json({ access_token: newAccess, refresh_token: newRefresh });
 }
 
 // POST /auth/logout

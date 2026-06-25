@@ -11,20 +11,22 @@ const CANDIDATE_FIELDS = `
 // GET /candidates/me
 async function getMyCandidate(req, res) {
   const { rows } = await pool.query(
-    `SELECT ${CANDIDATE_FIELDS} FROM candidates WHERE user_id = $1`,
+    `SELECT ${CANDIDATE_FIELDS},
+       (SELECT COUNT(*) FROM unlocks WHERE candidate_id = candidates.id)::int AS unlock_count
+     FROM candidates WHERE user_id = $1`,
     [req.user.sub]
   );
-  if (!rows[0]) return res.status(404).json({ error: "Candidate profile not found" });
+  if (!rows[0]) return res.json({ candidate: null });
   return res.json({ candidate: rows[0] });
 }
 
 // POST /candidates  — create on onboarding completion
 async function createCandidate(req, res) {
   const {
-    name, role, visa_status, nationality, salary_expectation,
+    name, photo_url, role, visa_status, nationality, salary_expectation,
     current_salary, available_from, location, phone, whatsapp,
     years_experience, languages, uae_experience, previous_employer,
-    additional_roles,
+    additional_roles, is_active,
   } = req.body;
 
   if (!name || !role || !visa_status || !nationality || salary_expectation == null || !location) {
@@ -34,18 +36,18 @@ async function createCandidate(req, res) {
   try {
     const { rows } = await pool.query(
       `INSERT INTO candidates
-         (user_id, name, role, additional_roles, visa_status, nationality,
+         (user_id, name, photo_url, role, additional_roles, visa_status, nationality,
           salary_expectation, current_salary, available_from, location,
           phone, whatsapp, years_experience, languages, uae_experience,
-          previous_employer, last_active_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, now())
+          previous_employer, is_active, last_active_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, now())
        RETURNING ${CANDIDATE_FIELDS}`,
       [
-        req.user.sub, name, role, additional_roles ?? [],
+        req.user.sub, name, photo_url ?? null, role, additional_roles ?? [],
         visa_status, nationality, salary_expectation, current_salary ?? null,
         available_from ?? null, location, phone ?? null, whatsapp ?? null,
         years_experience ?? 0, languages ?? [], uae_experience ?? false,
-        previous_employer ?? null,
+        previous_employer ?? null, is_active ?? true,
       ]
     );
     return res.status(201).json({ candidate: rows[0] });
@@ -78,7 +80,7 @@ async function updateMyCandidate(req, res) {
     [req.user.sub, ...values]
   );
 
-  if (!rows[0]) return res.status(404).json({ error: "Candidate profile not found" });
+  if (!rows[0]) return res.status(400).json({ error: "Candidate profile not found" });
   return res.json({ candidate: rows[0] });
 }
 

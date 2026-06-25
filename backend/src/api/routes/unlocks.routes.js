@@ -3,7 +3,8 @@ const c = require("../controllers/unlocks.controller");
 const { requireAuth } = require("../../middleware/auth");
 const { apiLimiter } = require("../middlewares/rate-limit");
 
-router.post("/",  requireAuth, apiLimiter, c.unlockCandidate);
-router.get("/",   requireAuth, apiLimiter, c.getMyUnlocks);
+router.post("/",                        requireAuth, apiLimiter, c.unlockCandidate);
+router.get("/",                         requireAuth, apiLimiter, c.getMyUnlocks);
+router.get("/:candidateId/status",      requireAuth, apiLimiter, c.getUnlockStatus);
 
 module.exports = router;
