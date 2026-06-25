@@ -52,8 +52,8 @@ export function ConfirmDialog({
         <Pressable
           style={styles.backdrop}
           onPress={onCancel}
-          accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
         />
         <View style={styles.dialog}>
           <Text
