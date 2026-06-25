@@ -98,7 +98,14 @@ async function selectCandidateRole(page: Page): Promise<void> {
 async function signInWithPhoneBypass(page: Page): Promise<void> {
   await typeInto(page, page.getByRole('textbox', { name: AUTH_PHONE_FIELD }), E2E_CANDIDATE_PHONE_LOCAL);
   await clickContinue(page);
-  await page.waitForTimeout(1_200);
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    if (await isCandidateHomeVisible(page, 500)) return;
+    for (const step of [1, 2, 3, 4, 5]) {
+      if (await isOnboardingStep(page, step)) return;
+    }
+    await page.waitForTimeout(300);
+  }
 }
 
 async function completePhotoStep(page: Page): Promise<void> {
@@ -115,6 +122,10 @@ async function completePhotoStep(page: Page): Promise<void> {
 
 async function completeRoleStep(page: Page): Promise<void> {
   const role = process.env.E2E_CANDIDATE_ROLE ?? 'Barista';
+  const rolePicker = page.getByRole('button', { name: /^Job role$|^المهنة$/i });
+  if (await rolePicker.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await rolePicker.click();
+  }
   await page.getByRole('button', { name: new RegExp(`^${role}\\b`, 'i') }).click();
   await pressOnboardingContinue(page);
   await page.waitForTimeout(500);
