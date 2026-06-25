@@ -77,6 +77,12 @@ export function CandidateOnboardingProvider({
   const stepRef = useRef(step);
   const totalSteps = 5;
 
+  const clearPersistTimer = useCallback(() => {
+    if (!persistTimer.current) return;
+    clearTimeout(persistTimer.current);
+    persistTimer.current = null;
+  }, []);
+
   useEffect(() => {
     if (isEditMode || hydrated.current || !userId) return;
     hydrated.current = true;
@@ -94,7 +100,7 @@ export function CandidateOnboardingProvider({
   const persistDraft = useCallback(
     (nextData: CandidateOnboardingData, nextStep: number) => {
       if (isEditMode || !userId) return;
-      if (persistTimer.current) clearTimeout(persistTimer.current);
+      clearPersistTimer();
       persistTimer.current = setTimeout(async () => {
         try {
           await saveOnboardingDraft(userId, nextData, nextStep);
@@ -105,8 +111,10 @@ export function CandidateOnboardingProvider({
         }
       }, 500);
     },
-    [isEditMode, userId],
+    [clearPersistTimer, isEditMode, userId],
   );
+
+  useEffect(() => clearPersistTimer, [clearPersistTimer]);
 
   // Keep refs in sync so the AppState flush handler always has fresh data.
   useEffect(() => { dataRef.current = data; }, [data]);
@@ -117,15 +125,12 @@ export function CandidateOnboardingProvider({
     if (isEditMode || !userId) return;
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'background' || state === 'inactive') {
-        if (persistTimer.current) {
-          clearTimeout(persistTimer.current);
-          persistTimer.current = null;
-        }
+        clearPersistTimer();
         saveOnboardingDraft(userId, dataRef.current, stepRef.current).catch(() => {});
       }
     });
     return () => sub.remove();
-  }, [isEditMode, userId]);
+  }, [clearPersistTimer, isEditMode, userId]);
 
   const setStep = useCallback(
     (n: number) => {
@@ -153,6 +158,7 @@ export function CandidateOnboardingProvider({
 
   const discardDraft = useCallback(async () => {
     try {
+      clearPersistTimer();
       if (userId) await clearOnboardingDraft(userId);
       setDraftSavedAt(null);
       setDraftError(false);
@@ -160,7 +166,7 @@ export function CandidateOnboardingProvider({
     } catch {
       setDraftError(true);
     }
-  }, [reset, userId]);
+  }, [clearPersistTimer, reset, userId]);
 
   const value = useMemo(
     () => ({

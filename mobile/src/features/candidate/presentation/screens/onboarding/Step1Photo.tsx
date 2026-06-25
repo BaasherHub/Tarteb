@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { CandidateOnboardingStep } from '@/features/candidate/presentation/components/CandidateOnboardingStep';
 import { OnboardingStepIntro } from '@/features/candidate/presentation/components/OnboardingStepIntro';
@@ -16,6 +17,7 @@ import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { PhotoAvatarPicker } from '@/features/candidate/presentation/components/PhotoAvatarPicker';
 import { FieldLabel } from '@/shared/widgets/FieldLabel';
 import { SurfaceCard } from '@/shared/widgets/SurfaceCard';
+import type { RootStackParamList } from '@/core/navigation/types';
 
 /** 1×1 PNG — used when EXPO_PUBLIC_E2E_AUTO_PHOTO is set (Playwright web). */
 const E2E_TINY_PNG_DATA_URI =
@@ -28,7 +30,8 @@ const E2E_AUTO_PHOTO =
 
 export function Step1Photo() {
   const { t } = useLocale();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList, 'CandidateOnboarding'>>();
   const { data, update, setStep } = useCandidateOnboarding();
   const [uploading, setUploading] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
@@ -114,13 +117,25 @@ export function Step1Photo() {
     setStep(2);
   };
 
+  const goBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: data.candidateId ? 'CandidateShell' : 'RoleSelection' }],
+    });
+  };
+
   return (
     <CandidateOnboardingStep
       primaryLabel={t.continue}
       onPrimary={next}
       primaryLoading={uploading}
       backLabel={t.back}
-      onBack={() => navigation.goBack()}
+      onBack={goBack}
     >
       <OnboardingStepIntro>{t.onboardingStepPhotoIntro}</OnboardingStepIntro>
 
