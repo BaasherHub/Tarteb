@@ -1,5 +1,5 @@
 /**
- * Generates store icons matching in-app AppBrand (primary #1A6FFF, white "T", 12px radius on 40px mark).
+ * Generates store icons matching in-app AppBrand (primary #1358CE, white "T", 12px radius on 40px mark).
  * Run: npm run generate:assets
  */
 import sharp from 'sharp';
@@ -10,7 +10,8 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const assetsDir = join(__dirname, '..', 'assets');
 
-const PRIMARY = '#1A6FFF';
+const PRIMARY = '#1358CE';
+const SCAFFOLD = '#F5F7FB';
 const WHITE = '#FFFFFF';
 const MARK_RADIUS_RATIO = 12 / 40;
 
@@ -57,7 +58,7 @@ async function main() {
       width: splashW,
       height: splashH,
       channels: 4,
-      background: PRIMARY,
+      background: SCAFFOLD,
     },
   })
     .composite([
@@ -74,7 +75,7 @@ async function main() {
     join(assetsDir, 'README.md'),
     `# Tarteb brand assets
 
-Generated to match in-app **AppBrand** (\`#1A6FFF\` mark with white **T**, rounded corners).
+Generated to match in-app **AppBrand** (\`${PRIMARY}\` mark with white **T**, rounded corners).
 
 \`\`\`bash
 npm run generate:assets

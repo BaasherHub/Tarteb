@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -9,13 +9,14 @@ import { typography } from '@/core/theme/typography';
 type Props = {
   showTagline?: boolean;
   centered?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function AppBrand({ showTagline = true, centered = true }: Props) {
+export function AppBrand({ showTagline = true, centered = true, style }: Props) {
   const { t } = useLocale();
   const rtl = useRtlStyles();
   return (
-    <View style={[styles.wrap, centered && styles.centered]}>
+    <View style={[styles.wrap, centered && styles.centered, style]}>
       <View style={[styles.markRow, rtl.row, centered && styles.markRowCentered]}>
         <View style={styles.mark}>
           <Text style={styles.markLetter}>T</Text>
