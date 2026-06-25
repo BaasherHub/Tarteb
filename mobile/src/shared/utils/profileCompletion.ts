@@ -12,6 +12,10 @@ export type ProfileCompletionResult = {
   nextItem: CompletionItem | null;
 };
 
+export type CandidateCompletionRoute =
+  | { kind: 'onboarding'; startStep: number }
+  | { kind: 'additionalRoles' };
+
 function sum(items: CompletionItem[]): { earned: number; total: number } {
   let earned = 0;
   let total = 0;
@@ -66,6 +70,32 @@ export function candidateProfileCompletion(
   ];
 
   return computeCompletion(items);
+}
+
+export function candidateCompletionRoute(
+  itemId: string | undefined,
+): CandidateCompletionRoute {
+  switch (itemId) {
+    case 'photo':
+      return { kind: 'onboarding', startStep: 1 };
+    case 'role':
+      return { kind: 'onboarding', startStep: 2 };
+    case 'name':
+    case 'nationality':
+    case 'location':
+    case 'phone':
+      return { kind: 'onboarding', startStep: 3 };
+    case 'visa':
+    case 'salary':
+      return { kind: 'onboarding', startStep: 4 };
+    case 'available':
+    case 'experience':
+      return { kind: 'onboarding', startStep: 5 };
+    case 'alsoRoles':
+      return { kind: 'additionalRoles' };
+    default:
+      return { kind: 'onboarding', startStep: 1 };
+  }
 }
 
 /** Employer company profile completion. */
