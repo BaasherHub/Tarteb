@@ -1,6 +1,6 @@
 import type { NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from '@/core/navigation/types';
-import { getCurrentUserId } from '@/core/services/tokenStorage';
+import { hasSession } from '@/core/services/tokenStorage';
 import {
   fetchAccountRole,
   parseDeepLinkIntent,
@@ -119,10 +119,10 @@ export async function navigateFromUrl(
   }
   if (!role) {
     stashPendingDeepLink(url);
-    const userId = await getCurrentUserId();
+    const signedIn = await hasSession();
     ref.reset({
       index: 0,
-      routes: [{ name: userId ? 'RoleSelection' : 'PhoneOtp' }],
+      routes: [{ name: signedIn ? 'RoleSelection' : 'PhoneOtp' }],
     });
     return false;
   }
