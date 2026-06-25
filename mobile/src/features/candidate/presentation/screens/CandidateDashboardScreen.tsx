@@ -48,7 +48,6 @@ import { ErrorState } from '@/shared/widgets/ErrorState';
 
 import { ProfileFactRow } from '@/shared/widgets/ProfileFactRow';
 
-import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
 
 import {
 
@@ -290,7 +289,6 @@ export function CandidateDashboardScreen({
 
   const openProfileEditorAt = (startStep: number) => {
     navigation.navigate('CandidateOnboarding', {
-      initial: onboardingFromRow(candidate),
       startStep,
     });
   };

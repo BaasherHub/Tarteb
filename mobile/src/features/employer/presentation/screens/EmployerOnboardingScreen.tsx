@@ -18,6 +18,13 @@ import { EmployerStep1Company } from './onboarding/EmployerStep1Company';
 
 import { EmployerStep2Contact } from './onboarding/EmployerStep2Contact';
 import { StepTransition } from '@/shared/widgets/StepTransition';
+import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
+import { useLocale } from '@/core/i18n/LocaleContext';
+import { api } from '@/core/lib/api';
+import {
+  EmployerOnboardingData,
+  employerFromRow,
+} from '@/features/employer/domain/types/employerOnboarding';
 
 
 
@@ -61,14 +68,48 @@ function Steps(props: Props) {
 
 
 export function EmployerOnboardingScreen(props: Props) {
+  const { t } = useLocale();
 
-  const initial = props.route.params?.initial;
+  const routeInitial = props.route.params?.initial;
+  const shouldResolveEditInitial = Boolean(props.route.params?.edit && !routeInitial);
+  const [resolvedInitial, setResolvedInitial] = React.useState<
+    EmployerOnboardingData | undefined
+  >(routeInitial);
+  const [initialResolved, setInitialResolved] = React.useState(!shouldResolveEditInitial);
+
+  useEffect(() => {
+    if (!shouldResolveEditInitial) {
+      setResolvedInitial(routeInitial);
+      setInitialResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    api.employers
+      .me()
+      .then(({ employer }) => {
+        if (cancelled) return;
+        setResolvedInitial(employer ? employerFromRow(employer) : undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvedInitial(undefined);
+      })
+      .finally(() => {
+        if (!cancelled) setInitialResolved(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routeInitial, shouldResolveEditInitial]);
+
+  if (!initialResolved) return <ScreenLoading message={t.loading} />;
 
   return (
 
     <Screen style={styles.screen}>
 
-      <EmployerOnboardingProvider initial={initial}>
+      <EmployerOnboardingProvider initial={resolvedInitial}>
 
         <Steps {...props} />
 

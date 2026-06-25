@@ -19,7 +19,7 @@ export type RootStackParamList = {
   PhoneOtp: undefined;
   EmailOtp: undefined;
   RoleSelection: undefined;
-  EmployerOnboarding: { initial?: EmployerOnboardingData } | undefined;
+  EmployerOnboarding: { initial?: EmployerOnboardingData; edit?: boolean } | undefined;
   EmployerShell: NavigatorScreenParams<EmployerTabParamList> | undefined;
   CandidateOnboarding: { initial?: CandidateOnboardingData; startStep?: number };
   CandidateAdditionalRoles: undefined;

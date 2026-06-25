@@ -12,7 +12,6 @@ import { SettingsPanel } from '@/shared/widgets/SettingsPanel';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
 import { TabScreenScroll } from '@/shared/widgets/TabScreenScroll';
-import { onboardingFromRow } from '@/shared/domain/candidateOnboarding';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -30,7 +29,6 @@ export function SettingsScreen({ navigation }: Props) {
     const { candidate } = await api.candidates.me();
     if (!candidate) throw new Error(t.errorGeneric);
     navigation.navigate('CandidateOnboarding', {
-      initial: onboardingFromRow(candidate),
       startStep: 3,
     });
   };

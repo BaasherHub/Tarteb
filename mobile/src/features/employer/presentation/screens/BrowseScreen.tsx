@@ -41,7 +41,6 @@ import { RefineFiltersModal } from './RefineFiltersModal';
 import { RolePickerView } from './RolePickerView';
 import { ProfileCompletionCard } from '@/shared/widgets/ProfileCompletionCard';
 import { employerProfileCompletion } from '@/shared/utils/profileCompletion';
-import { employerFromRow } from '@/features/employer/domain/types/employerOnboarding';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -211,7 +210,7 @@ export function BrowseScreen() {
   const openEmployerProfileEdit = useCallback(() => {
     if (!employerProfile) return;
     navigation.navigate('EmployerOnboarding', {
-      initial: employerFromRow(employerProfile),
+      edit: true,
     });
   }, [employerProfile, navigation]);
 

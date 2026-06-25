@@ -38,8 +38,6 @@ import { AppIcon } from '@/shared/widgets/AppIcon';
 
 import type { AppIconName } from '@/shared/widgets/AppIcon.types';
 
-import { employerFromRow } from '@/features/employer/domain/types/employerOnboarding';
-
 import { BrowseScreen } from './BrowseScreen';
 
 import { MyUnlocksScreen } from './MyUnlocksScreen';
@@ -91,8 +89,7 @@ function EmployerSettingsTab() {
     if (!employer) throw new Error(t.errorGeneric);
 
     stackNav.navigate('EmployerOnboarding', {
-
-      initial: employerFromRow(employer),
+      edit: true,
 
     });
 

@@ -23,7 +23,6 @@ import { TabScreenLayout } from '@/shared/widgets/TabScreenLayout';
 import { SettingsPanel } from '@/shared/widgets/SettingsPanel';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import type { AppIconName } from '@/shared/widgets/AppIcon.types';
-import { onboardingFromRow } from '@/features/candidate/domain/types/candidateOnboarding';
 
 const Tab = createBottomTabNavigator<CandidateTabParamList>();
 
@@ -61,7 +60,6 @@ function CandidateSettingsTab() {
     const { candidate } = await api.candidates.me();
     if (!candidate) throw new Error(t.errorGeneric);
     stackNav.navigate('CandidateOnboarding', {
-      initial: onboardingFromRow(candidate),
       startStep: 1,
     });
   };
