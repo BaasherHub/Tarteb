@@ -105,8 +105,7 @@ export function PhotoAvatarPicker({
             </View>
           </>
         ) : (
-          <Pressable
-            onPress={onPressGallery}
+          <View
             style={[
               styles.placeholder,
               {
@@ -115,14 +114,13 @@ export function PhotoAvatarPicker({
                 borderRadius: (ring - 12) / 2,
               },
             ]}
-            accessibilityRole="button"
             accessibilityLabel={t.tapToAddPhoto}
           >
             <AppIcon name="person" size={large ? 40 : 32} color={colors.primary} />
             <Text style={[styles.tapLabel, large && styles.tapLabelLarge]} numberOfLines={2}>
               {t.tapToAddPhoto}
             </Text>
-          </Pressable>
+          </View>
         )}
       </View>
 
