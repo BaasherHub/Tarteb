@@ -93,6 +93,7 @@ export interface Strings {
   loading: string;
   errorTitle: string;
   errorGeneric: string;
+  candidateProfileLoadError: string;
   noCandidates: string;
   noCandidatesHint: string;
   resetFilters: string;
@@ -531,6 +532,8 @@ const en: Strings = {
   loading: 'Loading...',
   errorTitle: 'Something went wrong',
   errorGeneric: 'Something went wrong. Try again.',
+  candidateProfileLoadError:
+    'Could not load your candidate profile. Try again before editing this step.',
   noCandidates: 'No candidates match your filters',
   noCandidatesHint: 'Try resetting filters or check back later for new profiles.',
   resetFilters: 'Reset filters',
@@ -1052,6 +1055,8 @@ const ar: Strings = {
   loading: 'جاري التحميل...',
   errorTitle: 'حدث خطأ',
   errorGeneric: 'حدث خطأ. حاول مرة أخرى.',
+  candidateProfileLoadError:
+    'تعذر تحميل ملفك كمرشح. حاول مرة أخرى قبل تعديل هذه الخطوة.',
   noCandidates: 'لا يوجد مرشحون يطابقون الفلاتر',
   noCandidatesHint: 'جرّب إعادة تعيين الفلاتر أو عد لاحقاً لملفات جديدة.',
   resetFilters: 'إعادة تعيين الفلاتر',
