@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { api } from '@/core/lib/api';
-import { clearSession } from '@/core/services/tokenStorage';
-import { clearPushToken } from '@/core/services/notifications';
+import { logoutAndClearLocalState } from '@/core/services/logout';
 import { Screen } from '@/shared/widgets/Screen';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
@@ -17,11 +17,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
   const { t } = useLocale();
+  const queryClient = useQueryClient();
 
   const logout = async () => {
-    await clearPushToken().catch(() => {});
-    await api.auth.logout().catch(() => {});
-    await clearSession();
+    await logoutAndClearLocalState({ queryClient });
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
