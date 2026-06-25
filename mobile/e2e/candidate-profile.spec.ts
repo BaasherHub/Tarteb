@@ -29,10 +29,10 @@ test.describe('candidate onboarding → profile home', () => {
     await page.goto('/dashboard');
     await ensureCandidateHomeSession(page);
 
-    await expect(
-      page
-        .getByRole('tab', { name: /^Profile$|^الملف$/i })
-        .or(page.getByRole('button', { name: /profile \d+% complete|اكتمال الملف/i })),
-    ).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('tab', { name: /^Profile$|^الملف$/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+      { timeout: 30_000 },
+    );
   });
 });

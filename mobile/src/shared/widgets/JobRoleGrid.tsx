@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
+  Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -9,7 +10,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
 import { colors } from '@/core/theme/colors';
@@ -18,6 +18,7 @@ import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
 import { AppIcon } from '@/shared/widgets/AppIcon';
 import { chipA11yProps } from '@/shared/utils/a11y';
+import { playSelectionHaptic } from '@/shared/utils/selectionHaptic';
 import {
   getCategoryById,
   getRoleCategoryChipLabel,
@@ -82,6 +83,7 @@ export const JobRoleGrid = memo(function JobRoleGrid({
   const rtl = useRtlStyles();
   const [internalQuery, setInternalQuery] = useState('');
   const [internalCategoryId, setInternalCategoryId] = useState<RoleCategoryId | null>(null);
+  const [pickerOpen, setPickerOpen] = useState<'category' | 'role' | null>(null);
   const query = externalFilter?.query ?? internalQuery;
   const setQuery = externalFilter?.onQueryChange ?? setInternalQuery;
   const categoryId = externalFilter?.categoryId ?? internalCategoryId;
@@ -134,6 +136,7 @@ export const JobRoleGrid = memo(function JobRoleGrid({
 
   const onSelectCategory = useCallback(
     (id: RoleCategoryId | null) => {
+      void playSelectionHaptic();
       setCategoryId(id);
       if (!selectedRole || isMulti) return;
       const nextRoles = id
@@ -144,6 +147,15 @@ export const JobRoleGrid = memo(function JobRoleGrid({
       }
     },
     [allRoles, isMulti, onClearRole, selectedRole, setCategoryId],
+  );
+
+  const selectSingleRole = useCallback(
+    (role: string) => {
+      void playSelectionHaptic();
+      onSelectRole(role);
+      setPickerOpen(null);
+    },
+    [onSelectRole],
   );
 
   const hasActiveFilters = Boolean(query.trim() || categoryId);
@@ -213,84 +225,97 @@ export const JobRoleGrid = memo(function JobRoleGrid({
   if (displayMode === 'native-picker' && !isMulti) {
     const pickerSelectedRole =
       selectedRole && scopedRoles.includes(selectedRole) ? selectedRole : '';
+    const categoryValueLabel = activeCategoryLabel ?? t.jobRoleAllCategories;
+    const roleValueLabel = pickerSelectedRole || t.errRole;
 
     return (
       <View style={styles.root}>
-        <View style={styles.pickerGroup}>
-          <Text style={[styles.pickerLabel, { textAlign: rtl.textAlign }]}>
-            {t.jobRoleCategories}
-          </Text>
-          <View style={styles.pickerShell}>
-            <Picker
-              selectedValue={categoryId ?? ''}
-              onValueChange={(value) =>
-                onSelectCategory(value ? (value as RoleCategoryId) : null)
-              }
-              mode="dialog"
-              dropdownIconColor={colors.textSecondary}
-              style={[
-                styles.picker,
-                {
-                  color: colors.textPrimary,
-                  writingDirection: rtl.writingDirection,
-                },
-              ]}
-            >
-              <Picker.Item
-                label={t.jobRoleAllCategories}
-                value=""
-                color={colors.textPrimary}
-              />
-              {ONBOARDING_ROLE_CATEGORIES.map((cat) => (
-                <Picker.Item
-                  key={cat.id}
-                  label={getRoleCategoryLabel(cat, lang)}
-                  value={cat.id}
-                  color={colors.textPrimary}
-                />
-              ))}
-            </Picker>
-          </View>
-        </View>
+        <NativeChoiceField
+          label={t.jobRoleCategories}
+          valueLabel={categoryValueLabel}
+          placeholder={t.jobRoleAllCategories}
+          onPress={() => setPickerOpen('category')}
+          rtl={rtl}
+        />
 
-        <View style={styles.pickerGroup}>
-          <Text style={[styles.pickerLabel, { textAlign: rtl.textAlign }]}>
-            {t.jobRole}
-          </Text>
-          <View style={styles.pickerShell}>
-            <Picker
-              selectedValue={pickerSelectedRole}
-              onValueChange={(value) => {
-                if (value) onSelectRole(value);
-              }}
-              mode="dialog"
-              dropdownIconColor={colors.textSecondary}
-              style={[
-                styles.picker,
-                {
-                  color: pickerSelectedRole
-                    ? colors.textPrimary
-                    : colors.textSecondary,
-                  writingDirection: rtl.writingDirection,
-                },
-              ]}
-            >
-              <Picker.Item
-                label={t.errRole}
-                value=""
-                color={colors.textSecondary}
-              />
-              {scopedRoles.map((role) => (
-                <Picker.Item
-                  key={role}
-                  label={role}
-                  value={role}
-                  color={colors.textPrimary}
-                />
-              ))}
-            </Picker>
+        <NativeChoiceField
+          label={t.jobRole}
+          valueLabel={roleValueLabel}
+          placeholder={t.errRole}
+          empty={!pickerSelectedRole}
+          onPress={() => setPickerOpen('role')}
+          rtl={rtl}
+        />
+
+        <Modal
+          visible={pickerOpen !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setPickerOpen(null)}
+          accessibilityViewIsModal
+          statusBarTranslucent
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable
+              style={styles.modalBackdrop}
+              onPress={() => setPickerOpen(null)}
+              accessibilityRole="button"
+              accessibilityLabel={t.cancel}
+            />
+            <View style={styles.modalSheet}>
+              <Text
+                style={[
+                  styles.modalTitle,
+                  { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
+                ]}
+                accessibilityRole="header"
+              >
+                {pickerOpen === 'category' ? t.jobRoleCategories : t.jobRole}
+              </Text>
+              <ScrollView
+                style={styles.modalList}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {pickerOpen === 'category' ? (
+                  <>
+                    <ChoiceRow
+                      label={t.jobRoleAllCategories}
+                      selected={categoryId === null}
+                      onPress={() => {
+                        onSelectCategory(null);
+                        setPickerOpen(null);
+                      }}
+                      rtl={rtl}
+                    />
+                    {ONBOARDING_ROLE_CATEGORIES.map((cat) => (
+                      <ChoiceRow
+                        key={cat.id}
+                        label={getRoleCategoryLabel(cat, lang)}
+                        selected={categoryId === cat.id}
+                        onPress={() => {
+                          onSelectCategory(cat.id);
+                          setPickerOpen(null);
+                        }}
+                        rtl={rtl}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  scopedRoles.map((role) => (
+                    <ChoiceRow
+                      key={role}
+                      label={role}
+                      selected={pickerSelectedRole === role}
+                      onPress={() => selectSingleRole(role)}
+                      rtl={rtl}
+                    />
+                  ))
+                )}
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </Modal>
       </View>
     );
   }
@@ -400,6 +425,102 @@ export const JobRoleGrid = memo(function JobRoleGrid({
 });
 
 const RoleSeparator = () => <View style={styles.listRowBorder} />;
+
+function NativeChoiceField({
+  label,
+  valueLabel,
+  placeholder,
+  empty,
+  onPress,
+  rtl,
+}: {
+  label: string;
+  valueLabel: string;
+  placeholder: string;
+  empty?: boolean;
+  onPress: () => void;
+  rtl: ReturnType<typeof useRtlStyles>;
+}) {
+  return (
+    <View style={styles.pickerGroup}>
+      <Text style={[styles.pickerLabel, { textAlign: rtl.textAlign }]}>
+        {label}
+      </Text>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.choiceField,
+          rtl.row,
+          pressed && styles.pressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={valueLabel || placeholder}
+      >
+        <Text
+          style={[
+            styles.choiceValue,
+            empty && styles.choiceValueEmpty,
+            { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
+          ]}
+          numberOfLines={1}
+        >
+          {valueLabel || placeholder}
+        </Text>
+        <AppIcon
+          name="chevron-forward"
+          size={20}
+          color={colors.textSecondary}
+          style={rtl.isRtl ? styles.chevronRtl : styles.chevronLtr}
+        />
+      </Pressable>
+    </View>
+  );
+}
+
+function ChoiceRow({
+  label,
+  selected,
+  onPress,
+  rtl,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  rtl: ReturnType<typeof useRtlStyles>;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.choiceRow,
+        rtl.row,
+        selected && styles.choiceRowSelected,
+        pressed && styles.pressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
+    >
+      <Text
+        style={[
+          styles.choiceRowText,
+          selected && styles.choiceRowTextSelected,
+          { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
+        ]}
+        numberOfLines={2}
+      >
+        {label}
+      </Text>
+      {selected ? (
+        <AppIcon name="checkmark-circle" size={22} color={colors.primary} />
+      ) : (
+        <View style={styles.checkSpacer} />
+      )}
+    </Pressable>
+  );
+}
 
 function HorizontalChipScroller({
   children,
@@ -589,19 +710,87 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '700',
   },
-  pickerShell: {
-    minHeight: 52,
-    justifyContent: 'center',
+  choiceField: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 54,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.inputBorder,
     backgroundColor: colors.surface,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  choiceValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    flex: 1,
+  },
+  choiceValueEmpty: {
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  chevronLtr: { transform: [{ rotate: '90deg' }] },
+  chevronRtl: { transform: [{ rotate: '-90deg' }] },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  modalSheet: {
+    maxHeight: '74%',
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  modalTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  modalList: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
-  picker: {
-    minHeight: 52,
-    width: '100%',
+  choiceRow: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    minHeight: 54,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
+  choiceRowSelected: {
+    backgroundColor: colors.primaryTint,
+  },
+  choiceRowText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  choiceRowTextSelected: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  checkSpacer: { width: 22 },
   listBanner: {
     ...typography.caption,
     color: colors.textSecondary,
