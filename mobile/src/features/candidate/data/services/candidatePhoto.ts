@@ -1,4 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
+import { api } from '@/core/lib/api';
 import { env } from '@/core/config/env';
 import { getAccessToken } from '@/core/services/tokenStorage';
 
@@ -15,6 +17,24 @@ export async function uploadCandidatePhoto(
   const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
   const contentType =
     mimeType || (safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg');
+  const safeFileName = fileName.includes('.') ? fileName : `photo.${safeExt}`;
+
+  if (Platform.OS === 'web') {
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new Error('Could not read selected photo');
+    }
+
+    const blob = await response.blob();
+    const formData = new FormData();
+    const webFile =
+      typeof File !== 'undefined'
+        ? new File([blob], safeFileName, { type: contentType })
+        : blob;
+    formData.append('file', webFile, safeFileName);
+    const { photo_url } = await api.storage.uploadPhoto(formData);
+    return photo_url;
+  }
 
   const token = await getAccessToken();
   const result = await FileSystem.uploadAsync(
