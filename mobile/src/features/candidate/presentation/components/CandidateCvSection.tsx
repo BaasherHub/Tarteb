@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { createElement, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -22,6 +24,9 @@ import {
   uploadCandidateCv,
 } from '@/shared/services/candidateCv';
 import { getErrorMessage } from '@/shared/utils/errors';
+import {
+  openExternalUrl,
+} from '@/shared/utils/openExternalUrl';
 import { useAppAlert } from '@/shared/hooks/useAppAlert';
 import { useConfirmDialog } from '@/shared/hooks/useConfirmDialog';
 import { AppIcon } from '@/shared/widgets/AppIcon';
@@ -40,6 +45,29 @@ export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated 
   const { showError } = useAppAlert();
   const { runConfirmAction, dialog } = useConfirmDialog();
   const [busy, setBusy] = useState(false);
+  const [webCvUrl, setWebCvUrl] = useState<string | null>(null);
+  const [webViewerOpen, setWebViewerOpen] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !cvPath) {
+      setWebCvUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    setWebCvUrl(null);
+    void getCandidateCvSignedUrl(cvPath, 3600, candidateId)
+      .then((url) => {
+        if (!cancelled) setWebCvUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setWebCvUrl(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [candidateId, cvPath]);
 
   const pickAndUpload = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -76,9 +104,11 @@ export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated 
     setBusy(true);
     try {
       const url = await getCandidateCvSignedUrl(cvPath, 3600, candidateId);
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) throw new Error('Cannot open CV');
-      await Linking.openURL(url);
+      await openExternalUrl(url, {
+        platform: Platform.OS,
+        canOpenURL: Linking.canOpenURL,
+        openURL: Linking.openURL,
+      });
     } catch (e) {
       showError(t.errorTitle, getErrorMessage(e, t.cvOpenFailed));
     } finally {
@@ -111,6 +141,27 @@ export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated 
   };
 
   const displayName = cvFileName?.trim() || t.cvAttached;
+  const fileRowContent = (
+    <>
+      <AppIcon name="document" size={22} color={colors.primary} />
+      <Text
+        style={[styles.fileName, { textAlign: rtl.textAlign }]}
+        numberOfLines={2}
+        ellipsizeMode="middle"
+      >
+        {displayName}
+      </Text>
+      {busy ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : (
+        <AppIcon
+          name={rtl.isRtl ? 'chevron-back' : 'chevron-forward'}
+          size={18}
+          color={colors.textSecondary}
+        />
+      )}
+    </>
+  );
 
   return (
     <View style={styles.wrap}>
@@ -127,29 +178,17 @@ export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated 
       {cvPath ? (
         <View style={styles.attached}>
           <Pressable
-            onPress={() => void openCv()}
+            onPress={
+              Platform.OS === 'web' && webCvUrl
+                ? () => setWebViewerOpen(true)
+                : () => void openCv()
+            }
             disabled={busy}
             style={({ pressed }) => [styles.fileRow, rtl.row, pressed && styles.pressed]}
             accessibilityRole="button"
             accessibilityLabel={t.cvViewA11y}
           >
-            <AppIcon name="document" size={22} color={colors.primary} />
-            <Text
-              style={[styles.fileName, { textAlign: rtl.textAlign }]}
-              numberOfLines={2}
-              ellipsizeMode="middle"
-            >
-              {displayName}
-            </Text>
-            {busy ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              <AppIcon
-                name={rtl.isRtl ? 'chevron-back' : 'chevron-forward'}
-                size={18}
-                color={colors.textSecondary}
-              />
-            )}
+            {fileRowContent}
           </Pressable>
           <View style={[styles.actions, rtl.row]}>
             <Pressable
@@ -181,6 +220,34 @@ export function CandidateCvSection({ cvPath, cvFileName, candidateId, onUpdated 
         />
       )}
       {dialog}
+      {Platform.OS === 'web' && webCvUrl ? (
+        <Modal
+          visible={webViewerOpen}
+          animationType="slide"
+          onRequestClose={() => setWebViewerOpen(false)}
+        >
+          <View style={styles.webViewer}>
+            <View style={[styles.webViewerHeader, rtl.row]}>
+              <Text style={[styles.webViewerTitle, { textAlign: rtl.textAlign }]} numberOfLines={1}>
+                {displayName}
+              </Text>
+              <Pressable
+                onPress={() => setWebViewerOpen(false)}
+                style={({ pressed }) => [styles.webViewerClose, pressed && styles.pressed]}
+                accessibilityRole="button"
+                accessibilityLabel={t.cancel}
+              >
+                <Text style={styles.webViewerCloseText}>{t.cancel}</Text>
+              </Pressable>
+            </View>
+            {createElement('iframe', {
+              src: webCvUrl,
+              title: displayName,
+              style: { border: 0, flex: 1, height: '100%', width: '100%' },
+            })}
+          </View>
+        </Modal>
+      ) : null}
     </View>
   );
 }
@@ -222,5 +289,33 @@ const styles = StyleSheet.create({
   textBtn: { minHeight: 44, justifyContent: 'center' },
   textBtnLabel: { ...typography.caption, fontWeight: '700', color: colors.primary },
   danger: { color: colors.error },
+  webViewer: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  webViewerHeader: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    gap: spacing.md,
+  },
+  webViewerTitle: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  webViewerClose: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  webViewerCloseText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.primary,
+  },
   pressed: { opacity: interaction.pressed },
 });
