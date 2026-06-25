@@ -226,6 +226,10 @@ export function Step4Finish({ navigation }: Props) {
             setAvailableFrom(date);
             update({ availableFrom: formatIsoDateLocal(date) });
           }}
+          onClear={() => {
+            setAvailableFrom(null);
+            update({ availableFrom: undefined });
+          }}
         />
       </SurfaceCard>
     </CandidateOnboardingStep>

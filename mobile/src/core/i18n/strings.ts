@@ -313,6 +313,7 @@ export interface Strings {
   signInWithPhone: string;
   changeEmail: string;
   pickDate: string;
+  clearDate: string;
   photoHint: string;
   tapToAddPhoto: string;
   popularRoles: string;
@@ -822,6 +823,7 @@ const en: Strings = {
   signInWithPhone: 'Sign in with phone instead',
   changeEmail: 'Change email',
   pickDate: 'Pick availability date',
+  clearDate: 'Clear date',
   photoHint: 'Face the camera, good lighting, no sunglasses or filters.',
   tapToAddPhoto: 'Add photo',
   popularRoles: 'Popular roles',
@@ -1341,6 +1343,7 @@ const ar: Strings = {
   signInWithPhone: 'تسجيل الدخول بالهاتف بدلاً من ذلك',
   changeEmail: 'تغيير البريد',
   pickDate: 'اختر تاريخ التوفر',
+  clearDate: 'مسح التاريخ',
   photoHint: 'صورة واضحة للوجه تساعد أصحاب العمل على الوثوق بملفك',
   tapToAddPhoto: 'أضف صورة',
   popularRoles: 'مهن شائعة',

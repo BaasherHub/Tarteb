@@ -25,6 +25,7 @@ type Props = FieldLabelFlags & {
   label: string;
   value: Date | null;
   onChange: (date: Date) => void;
+  onClear?: () => void;
   error?: string;
   hint?: string;
 };
@@ -33,6 +34,7 @@ export function DateField({
   label,
   value,
   onChange,
+  onClear,
   error,
   hint,
   required,
@@ -45,7 +47,10 @@ export function DateField({
 
   const handleChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
     const text = e.nativeEvent.text?.trim() ?? '';
-    if (!text) return;
+    if (!text) {
+      onClear?.();
+      return;
+    }
     const parsed = parseIsoDateLocal(text);
     if (parsed) onChange(parsed);
   };
@@ -64,6 +69,16 @@ export function DateField({
         style={[styles.input, error ? styles.inputError : null]}
         accessibilityLabel={fieldA11yLabel(label, error, hint, flags, t)}
       />
+      {optional && value && onClear ? (
+        <Text
+          accessibilityRole="button"
+          accessibilityLabel={t.clearDate}
+          onPress={onClear}
+          style={[styles.clearText, { textAlign: rtl.textAlign }]}
+        >
+          {t.clearDate}
+        </Text>
+      ) : null}
       <FieldError message={error} />
     </View>
   );
@@ -83,4 +98,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   inputError: { borderColor: colors.error },
+  clearText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+    minHeight: 44,
+    lineHeight: 44,
+  },
 });
