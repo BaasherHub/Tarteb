@@ -15,7 +15,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { useLocale } from '@/core/i18n/LocaleContext';
 
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { clearSession } from '@/core/services/tokenStorage';
 
 import { clearPushToken } from '@/core/services/notifications';
 import { clearAllBrowseCache } from '@/features/employer/data/services/browseCache';
@@ -77,8 +78,8 @@ function EmployerSettingsTab() {
     await clearPushToken().catch(() => {});
     await clearAllBrowseCache().catch(() => {});
     await AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY).catch(() => {});
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await api.auth.logout().catch(() => {});
+    await clearSession();
     queryClient.clear();
     stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
@@ -86,26 +87,12 @@ function EmployerSettingsTab() {
 
 
   const openEditCompany = async () => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    const userId = userData.user?.id;
-    if (!userId) throw new Error(t.errorGeneric);
-
-    const { data: row, error } = await supabase
-
-      .from('employers')
-
-      .select('*')
-
-      .eq('user_id', userId)
-
-      .maybeSingle();
-    if (error) throw error;
-    if (!row) throw new Error(t.errorGeneric);
+    const { employer } = await api.employers.me();
+    if (!employer) throw new Error(t.errorGeneric);
 
     stackNav.navigate('EmployerOnboarding', {
 
-      initial: employerFromRow(row as Record<string, unknown>),
+      initial: employerFromRow(employer),
 
     });
 

@@ -4,11 +4,10 @@ const extra = Constants.expoConfig?.extra as
   | {
       supabaseUrl?: string;
       supabaseAnonKey?: string;
+      apiUrl?: string;
       privacyPolicyUrl?: string;
     }
   | undefined;
-
-const PLACEHOLDER_SUPABASE = 'placeholder.supabase.co';
 
 /**
  * Dev-only flags — never true in release builds regardless of env vars.
@@ -19,6 +18,8 @@ export const env = {
     process.env.EXPO_PUBLIC_SUPABASE_URL ?? extra?.supabaseUrl ?? '',
   supabaseAnonKey:
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? extra?.supabaseAnonKey ?? '',
+  apiUrl:
+    process.env.EXPO_PUBLIC_API_URL ?? extra?.apiUrl ?? 'https://tarteb-production.up.railway.app',
   /**
    * OTP bypass for internal/preview testing. Controlled purely by env var —
    * production EAS profile must not set EXPO_PUBLIC_SKIP_OTP_VERIFICATION.
@@ -42,10 +43,8 @@ export const env = {
 };
 
 export function assertEnv(): void {
-  if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    throw new Error(
-      'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in mobile/.env',
-    );
+  if (!env.apiUrl) {
+    throw new Error('Set EXPO_PUBLIC_API_URL in mobile/.env');
   }
 }
 
@@ -59,12 +58,12 @@ export function validateProductionConfig(): string[] {
     issues.push('EXPO_PUBLIC_SKIP_OTP_VERIFICATION must not be set in production');
   }
 
-  if (!env.supabaseUrl || env.supabaseUrl.includes(PLACEHOLDER_SUPABASE)) {
-    issues.push('EXPO_PUBLIC_SUPABASE_URL must point to a real Supabase project');
+  if (!env.apiUrl) {
+    issues.push('EXPO_PUBLIC_API_URL must be set');
   }
 
-  if (!env.supabaseAnonKey || env.supabaseAnonKey.length < 20) {
-    issues.push('EXPO_PUBLIC_SUPABASE_ANON_KEY is missing or invalid');
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    issues.push('EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY must be set');
   }
 
   if (!env.crashReportingDsn) {

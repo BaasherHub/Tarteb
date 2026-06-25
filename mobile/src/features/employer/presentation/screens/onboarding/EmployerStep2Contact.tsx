@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/core/navigation/types';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 import { EmployerOnboardingStep } from '@/features/employer/presentation/components/EmployerOnboardingStep';
 import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnboardingContext';
 import {
@@ -74,16 +75,7 @@ export function EmployerStep2Contact({ navigation }: Props) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    let userId: string | undefined;
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      userId = data.user?.id;
-    } catch {
-      // Session expired or missing — send user back to auth
-      navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
-      return;
-    }
+    const userId = await getCurrentUserId();
     if (!userId) {
       navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
       return;
@@ -109,20 +101,12 @@ export function EmployerStep2Contact({ navigation }: Props) {
       });
 
       if (isEditMode) {
-        const { error } = await supabase
-          .from('employers')
-          .update(payload)
-          .eq('user_id', userId);
-        if (error) throw error;
+        await api.employers.update(payload);
         navigation.goBack();
         return;
       }
 
-      const { error } = await supabase.from('employers').insert({
-        user_id: userId,
-        ...payload,
-      });
-      if (error) throw error;
+      await api.employers.create(payload);
       await promptForPushNotifications(t, 'employer');
       navigation.reset({ index: 0, routes: [{ name: 'EmployerShell' }] });
     } catch (e) {

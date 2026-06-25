@@ -1,8 +1,11 @@
-import { supabase } from '@/core/lib/supabase';
+import * as FileSystem from 'expo-file-system/legacy';
+import { env } from '@/core/config/env';
+import { getAccessToken } from '@/core/services/tokenStorage';
+import { api } from '@/core/lib/api';
 
-const BUCKET = 'candidate-cvs';
+const BASE = env.apiUrl.replace(/\/$/, '');
+
 const MAX_BYTES = 5 * 1024 * 1024;
-
 const ALLOWED_EXT = new Set(['pdf', 'doc', 'docx']);
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -29,45 +32,48 @@ export async function uploadCandidateCv(
   mimeType?: string | null,
   size?: number | null,
 ): Promise<{ path: string; fileName: string }> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) throw new Error('Not signed in');
-
   const safeName = fileName.trim() || 'cv.pdf';
-  if (!isAllowedCvFile(safeName, size)) {
-    throw new Error('Invalid CV file');
-  }
+  if (!isAllowedCvFile(safeName, size)) throw new Error('Invalid CV file');
 
   const ext = extFromName(safeName);
-  const path = `${userId}/${userId}_${Date.now()}.${ext}`;
-
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  if (blob.size > MAX_BYTES) throw new Error('CV too large');
-  const arrayBuffer = await blob.arrayBuffer();
-
   const contentType = mimeType?.trim() || MIME_BY_EXT[ext] || 'application/octet-stream';
 
-  const { error } = await supabase.storage.from(BUCKET).upload(path, arrayBuffer, {
-    contentType,
-    upsert: true,
-  });
-  if (error) throw error;
+  const token = await getAccessToken();
+  const result = await FileSystem.uploadAsync(
+    `${BASE}/api/v1/storage/cv`,
+    uri,
+    {
+      httpMethod: 'POST',
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: contentType,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    },
+  );
 
-  return { path, fileName: safeName };
+  if (result.status < 200 || result.status >= 300) {
+    let message = result.body;
+    try {
+      const j = JSON.parse(result.body) as { error?: string };
+      message = j.error ?? result.body;
+    } catch { /* keep raw body */ }
+    throw new Error(message);
+  }
+
+  const { cv_url, cv_file_name } = JSON.parse(result.body) as { cv_url: string; cv_file_name: string };
+  return { path: cv_url, fileName: cv_file_name ?? safeName };
 }
 
 export async function getCandidateCvSignedUrl(
-  storagePath: string,
-  expiresIn = 3600,
+  _storagePath: string,
+  _expiresIn = 3600,
+  candidateId?: string,
 ): Promise<string> {
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(storagePath, expiresIn);
-  if (error || !data?.signedUrl) throw error ?? new Error('Could not open CV');
-  return data.signedUrl;
+  if (!candidateId) throw new Error('candidateId required for CV download');
+  const { url } = await api.storage.downloadCv(candidateId);
+  return url;
 }
 
-export async function removeCandidateCvFile(storagePath: string): Promise<void> {
-  const { error } = await supabase.storage.from(BUCKET).remove([storagePath]);
-  if (error) throw error;
+export async function removeCandidateCvFile(_storagePath: string): Promise<void> {
+  await api.storage.deleteCv();
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLocale } from '@/core/i18n/LocaleContext';
-import { supabase } from '@/core/lib/supabase';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 import { EmployerOnboardingStep } from '@/features/employer/presentation/components/EmployerOnboardingStep';
 import { useEmployerOnboarding } from '@/features/employer/providers/EmployerOnboardingContext';
 import {
@@ -34,7 +34,7 @@ export function EmployerStep1Company() {
     setChecking(true);
     setCompanyError(undefined);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const userId = await getCurrentUserId();
       if (!userId) {
         setCompanyError(t.errorGeneric);
         return;

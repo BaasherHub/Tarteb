@@ -1,10 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 import {
   employerHasUnlockedCandidate,
   hasCandidateContact,
   isCandidateUnlocked,
 } from './candidateUnlock';
+
+vi.mock('@/core/lib/api', () => ({
+  api: {
+    unlocks: {
+      status: vi.fn(),
+    },
+  },
+}));
 
 describe('hasCandidateContact', () => {
   it('returns true when phone is set', () => {
@@ -41,38 +49,22 @@ describe('isCandidateUnlocked', () => {
 
 describe('employerHasUnlockedCandidate', () => {
   beforeEach(() => {
-    vi.mocked(supabase.from).mockReset();
+    vi.mocked(api.unlocks.status).mockReset();
   });
 
-  it('returns true when an unlock row exists', async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 'unlock-1' }, error: null });
-    const limit = vi.fn().mockReturnValue({ maybeSingle });
-    const eq = vi.fn().mockReturnValue({ limit });
-    const select = vi.fn().mockReturnValue({ eq });
-    vi.mocked(supabase.from).mockReturnValue({ select } as never);
-
+  it('returns true when unlock status is true', async () => {
+    vi.mocked(api.unlocks.status).mockResolvedValue({ unlocked: true });
     await expect(employerHasUnlockedCandidate('candidate-1')).resolves.toBe(true);
-    expect(supabase.from).toHaveBeenCalledWith('unlocks');
-    expect(eq).toHaveBeenCalledWith('candidate_id', 'candidate-1');
+    expect(api.unlocks.status).toHaveBeenCalledWith('candidate-1');
   });
 
-  it('returns false on query error', async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: { message: 'fail' } });
-    const limit = vi.fn().mockReturnValue({ maybeSingle });
-    const eq = vi.fn().mockReturnValue({ limit });
-    const select = vi.fn().mockReturnValue({ eq });
-    vi.mocked(supabase.from).mockReturnValue({ select } as never);
-
+  it('returns false when unlock status is false', async () => {
+    vi.mocked(api.unlocks.status).mockResolvedValue({ unlocked: false });
     await expect(employerHasUnlockedCandidate('candidate-1')).resolves.toBe(false);
   });
 
-  it('returns false when no unlock row exists', async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-    const limit = vi.fn().mockReturnValue({ maybeSingle });
-    const eq = vi.fn().mockReturnValue({ limit });
-    const select = vi.fn().mockReturnValue({ eq });
-    vi.mocked(supabase.from).mockReturnValue({ select } as never);
-
-    await expect(employerHasUnlockedCandidate('candidate-1')).resolves.toBe(false);
+  it('propagates errors from the API', async () => {
+    vi.mocked(api.unlocks.status).mockRejectedValue(new Error('network error'));
+    await expect(employerHasUnlockedCandidate('candidate-1')).rejects.toThrow('network error');
   });
 });

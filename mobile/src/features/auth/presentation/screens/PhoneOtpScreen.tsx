@@ -103,7 +103,7 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
   const rtl = useRtlStyles();
 
-  const { session, isReady } = useAuth();
+  const { session, isReady, refreshSession } = useAuth();
 
   const routedRef = useRef(false);
   const submittingRef = useRef(false);
@@ -199,6 +199,9 @@ export function PhoneOtpScreen({ navigation }: Props) {
     setLoading(false);
 
     await new Promise((r) => setTimeout(r, AUTH_SUCCESS_ROUTE_DELAY_MS));
+
+    // Hydrate AuthProvider so RootNavigator sees the session before we navigate.
+    await refreshSession();
 
     // BUG1+BUG3: guard routedRef before navigation so the session useEffect
     // cannot fire a second navigation while we are mid-route.
@@ -558,6 +561,8 @@ export function PhoneOtpScreen({ navigation }: Props) {
 
                   accessibilityHint={t.a11ySignInEmail}
 
+                  android_ripple={{ color: 'rgba(19,88,206,0.1)', borderless: true }}
+
                   style={({ pressed }) => pressed && styles.linkPressed}
 
                 >
@@ -575,6 +580,8 @@ export function PhoneOtpScreen({ navigation }: Props) {
                   accessibilityRole="link"
 
                   accessibilityLabel={t.changeRole}
+
+                  android_ripple={{ color: 'rgba(19,88,206,0.1)', borderless: true }}
 
                   style={({ pressed }) => pressed && styles.linkPressed}
 
@@ -662,6 +669,8 @@ export function PhoneOtpScreen({ navigation }: Props) {
                   accessibilityRole="button"
 
                   accessibilityLabel={t.resendOtp}
+
+                  android_ripple={{ color: 'rgba(19,88,206,0.1)', borderless: true }}
 
                   style={({ pressed }) => [
 

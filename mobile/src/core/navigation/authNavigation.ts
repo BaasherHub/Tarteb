@@ -1,5 +1,6 @@
 import { RootStackParamList } from '@/core/navigation/types';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { getCurrentUserId } from '@/core/services/tokenStorage';
 import {
   clearPendingAccountRole,
   getPendingAccountRole,
@@ -26,31 +27,25 @@ type Nav = {
 };
 
 export async function routeAuthenticatedUser(navigation: Nav, _depth = 0): Promise<void> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) {
     navigation.reset({ index: 0, routes: [{ name: 'PhoneOtp' }] });
     return;
   }
 
-  let profile: { role: string } | null = null;
+  let role: string | null = null;
 
   try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    profile = data;
+    const result = await api.profiles.me();
+    role = result?.profile?.role ?? null;
   } catch (cause) {
     throw new AuthRoutingError('Could not load your profile. Please try again.', cause);
   }
 
-  if (!profile) {
+  if (!role) {
     const pendingRole = await getPendingAccountRole();
     if (pendingRole) {
-      await applyPendingRole(userId, pendingRole);
+      await applyPendingRole(pendingRole);
       if (_depth < 1) return routeAuthenticatedUser(navigation, _depth + 1);
       navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
       return;
@@ -59,44 +54,32 @@ export async function routeAuthenticatedUser(navigation: Nav, _depth = 0): Promi
     return;
   }
 
-  const role = profile.role as string;
   if (role === 'candidate') {
-    await routeCandidate(navigation, userId);
+    await routeCandidate(navigation);
   } else if (role === 'employer') {
-    await routeEmployer(navigation, userId);
+    await routeEmployer(navigation);
   } else {
     navigation.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   }
 }
 
-export async function routeAuthenticatedUserAndFlush(
-  navigation: Nav,
-): Promise<void> {
+export async function routeAuthenticatedUserAndFlush(navigation: Nav): Promise<void> {
   await routeAuthenticatedUser(navigation);
   setTimeout(() => flushPendingDeepLink(navigationRef), 0);
 }
 
-async function applyPendingRole(
-  userId: string,
-  role: PendingAccountRole,
-): Promise<void> {
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({ user_id: userId, role }, { onConflict: 'user_id' });
-  if (error) throw error;
+async function applyPendingRole(role: PendingAccountRole): Promise<void> {
+  try {
+    await api.profiles.upsert({ role });
+  } catch (cause) {
+    throw new AuthRoutingError('Could not save your role. Please try again.', cause);
+  }
   await clearPendingAccountRole();
 }
 
-async function routeCandidate(navigation: Nav, userId: string): Promise<void> {
+async function routeCandidate(navigation: Nav): Promise<void> {
   try {
-    const { data: candidate, error } = await supabase
-      .from('candidates')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) throw error;
-
+    const { candidate } = await api.candidates.me();
     if (candidate) {
       navigation.reset({ index: 0, routes: [{ name: 'CandidateShell' }] });
     } else {
@@ -112,16 +95,9 @@ async function routeCandidate(navigation: Nav, userId: string): Promise<void> {
   }
 }
 
-async function routeEmployer(navigation: Nav, userId: string): Promise<void> {
+async function routeEmployer(navigation: Nav): Promise<void> {
   try {
-    const { data: employer, error } = await supabase
-      .from('employers')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) throw error;
-
+    const { employer } = await api.employers.me();
     if (employer) {
       navigation.reset({ index: 0, routes: [{ name: 'EmployerShell' }] });
     } else {

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 import { employerKeys } from '@/features/employer/data/employerQueryKeys';
-import { parseUnlockCandidateRpcArgs } from '@/features/employer/domain/schemas/unlockCandidate';
 import { getErrorMessage } from '@/shared/utils/errors';
 
 export type UnlockRow = {
@@ -17,28 +16,13 @@ export type UnlocksResult = {
 
 async function fetchUnlocks(errorLabel: string): Promise<UnlocksResult> {
   try {
-    const { data: unlockData, error: unlockError } = await supabase
-      .from('unlocks')
-      .select('id, candidate_id, unlocked_at')
-      .order('unlocked_at', { ascending: false });
-    if (unlockError) throw unlockError;
-
-    const rows = (unlockData ?? []) as UnlockRow[];
-    const ids = rows.map((r) => r.candidate_id);
-    if (!ids.length) {
-      return { rows: [], candidatesById: {} };
-    }
-
-    const { data: browseData, error: browseError } = await supabase
-      .from('candidate_browse')
-      .select('*')
-      .in('id', ids);
-    if (browseError) throw browseError;
+    const { unlocks } = await api.unlocks.list();
+    const rows = unlocks as UnlockRow[];
 
     const candidatesById: Record<string, Record<string, unknown>> = {};
-    for (const row of browseData ?? []) {
-      const id = String((row as { id: string }).id);
-      candidatesById[id] = row as Record<string, unknown>;
+    for (const row of rows) {
+      // The list endpoint already joins candidate data — store the full row keyed by candidate_id
+      candidatesById[row.candidate_id] = row as Record<string, unknown>;
     }
 
     return { rows, candidatesById };
@@ -59,11 +43,7 @@ export function useUnlockCandidate() {
 
   return useMutation({
     mutationFn: async (candidateId: string) => {
-      const { error } = await supabase.rpc(
-        'unlock_candidate',
-        parseUnlockCandidateRpcArgs(candidateId),
-      );
-      if (error) throw error;
+      await api.unlocks.unlock(candidateId);
       return candidateId;
     },
     onSuccess: (candidateId) => {
@@ -74,4 +54,3 @@ export function useUnlockCandidate() {
     },
   });
 }
-

@@ -1,50 +1,43 @@
-import { supabase } from '@/core/lib/supabase';
+import * as FileSystem from 'expo-file-system/legacy';
 import { env } from '@/core/config/env';
+import { getAccessToken } from '@/core/services/tokenStorage';
 
-const BUCKET = 'candidate-photos';
+const BASE = env.apiUrl.replace(/\/$/, '');
 
 export async function uploadCandidatePhoto(
   uri: string,
   fileName: string,
   mimeType: string,
 ): Promise<string> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) throw new Error('Not signed in');
-
   const ext = fileName.includes('.')
     ? fileName.split('.').pop()?.toLowerCase() ?? 'jpg'
     : 'jpg';
   const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
-  const path = `${userId}/${userId}_${Date.now()}.${safeExt}`;
-
   const contentType =
     mimeType || (safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg');
 
-  // Hermes blocks Blob-from-ArrayBuffer (used internally by the Supabase SDK).
-  // Use XMLHttpRequest + FormData instead — RN's native XHR implementation
-  // handles { uri, name, type } file objects without any Blob conversion.
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
-  if (!token) throw new Error('No active session');
+  const token = await getAccessToken();
+  const result = await FileSystem.uploadAsync(
+    `${BASE}/api/v1/storage/photo`,
+    uri,
+    {
+      httpMethod: 'POST',
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: contentType,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    },
+  );
 
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${env.supabaseUrl}/storage/v1/object/${BUCKET}/${path}`);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.setRequestHeader('apikey', env.supabaseAnonKey);
-    xhr.setRequestHeader('x-upsert', 'true');
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`Photo upload failed (${xhr.status}): ${xhr.responseText}`));
-    };
-    xhr.onerror = () => reject(new Error('Network error during photo upload'));
-    const fd = new FormData();
-    fd.append('file', { uri, name: fileName || `photo.${safeExt}`, type: contentType } as any);
-    xhr.send(fd);
-  });
+  if (result.status < 200 || result.status >= 300) {
+    let message = result.body;
+    try {
+      const j = JSON.parse(result.body) as { error?: string };
+      message = j.error ?? result.body;
+    } catch { /* keep raw body */ }
+    throw new Error(message);
+  }
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const { photo_url } = JSON.parse(result.body) as { photo_url: string };
+  return photo_url;
 }
-
-
