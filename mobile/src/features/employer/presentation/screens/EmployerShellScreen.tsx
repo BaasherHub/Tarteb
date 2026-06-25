@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -16,11 +15,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useLocale } from '@/core/i18n/LocaleContext';
 
 import { api } from '@/core/lib/api';
-import { clearSession } from '@/core/services/tokenStorage';
-
-import { clearPushToken } from '@/core/services/notifications';
-import { clearAllBrowseCache } from '@/features/employer/data/services/browseCache';
-import { LANGUAGE_SELECTION_DONE_KEY } from '@/core/i18n/LocaleContext';
+import { logoutAndClearLocalState } from '@/core/services/logout';
 
 import { EmployerTabParamList, RootStackParamList } from '@/core/navigation/types';
 
@@ -73,12 +68,7 @@ function EmployerSettingsTab() {
 
 
   const logout = async () => {
-    await clearPushToken().catch(() => {});
-    await clearAllBrowseCache().catch(() => {});
-    await AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY).catch(() => {});
-    await api.auth.logout().catch(() => {});
-    await clearSession();
-    queryClient.clear();
+    await logoutAndClearLocalState({ queryClient });
     stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
