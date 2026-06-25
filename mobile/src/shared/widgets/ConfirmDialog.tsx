@@ -48,17 +48,14 @@ export function ConfirmDialog({
       accessibilityViewIsModal
       statusBarTranslucent
     >
-      <Pressable
-        style={styles.overlay}
-        onPress={onCancel}
-        accessibilityRole="button"
-        accessibilityLabel={cancelLabel}
-      >
+      <View style={styles.overlay}>
         <Pressable
-          style={styles.dialog}
-          onPress={(e) => e.stopPropagation()}
-          accessibilityRole="none"
-        >
+          style={styles.backdrop}
+          onPress={onCancel}
+          accessibilityRole="button"
+          accessibilityLabel={cancelLabel}
+        />
+        <View style={styles.dialog}>
           <Text
             style={[
               styles.title,
@@ -99,8 +96,8 @@ export function ConfirmDialog({
               <SecondaryButton label={cancelLabel} onPress={onCancel} />
             </View>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -112,6 +109,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xxl,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   dialog: {
     width: '100%',
