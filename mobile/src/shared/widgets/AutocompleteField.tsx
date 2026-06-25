@@ -165,6 +165,7 @@ export function AutocompleteField({
                 accessibilityRole="button"
                 accessibilityLabel={item}
                 accessibilityHint={t.a11yChipToggle}
+                android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
                 style={({ pressed }) => [
                   styles.option,
                   pressed && styles.optionPressed,

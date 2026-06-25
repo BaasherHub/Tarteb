@@ -46,6 +46,7 @@ export function ConfirmDialog({
       animationType="fade"
       onRequestClose={onCancel}
       accessibilityViewIsModal
+      statusBarTranslucent
     >
       <Pressable
         style={styles.overlay}

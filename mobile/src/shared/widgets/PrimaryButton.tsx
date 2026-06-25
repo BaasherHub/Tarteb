@@ -42,6 +42,8 @@ export const PrimaryButton = memo(function PrimaryButton({
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading, busy: !!loading }}
+      android_ripple={{ color: 'rgba(255,255,255,0.3)', borderless: false }}
+      style={Platform.OS === 'android' ? styles.pressableAndroid : undefined}
     >
       <Animated.View
         style={[
@@ -79,6 +81,10 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   disabled: { opacity: interaction.disabled },
+  pressableAndroid: {
+    borderRadius: spacing.sm,
+    overflow: 'hidden',
+  },
   label: {
     color: '#fff',
     fontSize: typography.body.fontSize,

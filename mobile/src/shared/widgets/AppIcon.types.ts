@@ -15,6 +15,7 @@ export type AppIconName =
   | 'document-text-outline'
   | 'language-outline'
   | 'settings-outline'
+  | 'checkmark'
   | 'checkmark-circle'
   | 'time'
   | 'logo-whatsapp'

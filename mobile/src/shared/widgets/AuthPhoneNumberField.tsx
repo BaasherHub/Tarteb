@@ -1,7 +1,6 @@
 import React, { useId, useState } from 'react';
 import {
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -108,6 +107,7 @@ export function AuthPhoneNumberField({
         animationType="slide"
         onRequestClose={() => setPickerOpen(false)}
         accessibilityViewIsModal
+        statusBarTranslucent
       >
         <Pressable style={styles.overlay} onPress={() => setPickerOpen(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   wrap: { width: '100%', marginBottom: spacing.fieldGap },
   row: {
     flexDirection: 'row',
-    ...(Platform.OS === 'web' ? { direction: 'ltr' as const } : { writingDirection: 'ltr' as const }),
+    writingDirection: 'ltr',
     alignItems: 'stretch',
     borderWidth: 1,
     borderColor: colors.inputBorder,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   countryBtn: {
     flexDirection: 'row',
-    ...(Platform.OS === 'web' ? { direction: 'ltr' as const } : { writingDirection: 'ltr' as const }),
+    writingDirection: 'ltr',
     alignItems: 'center',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,

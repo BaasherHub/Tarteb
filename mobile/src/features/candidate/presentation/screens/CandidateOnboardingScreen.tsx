@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,6 +14,11 @@ import { colors } from '@/core/theme/colors';
 import { StepTransition } from '@/shared/widgets/StepTransition';
 import { ScreenLoading } from '@/shared/widgets/ScreenLoading';
 import { useLocale } from '@/core/i18n/LocaleContext';
+import { api } from '@/core/lib/api';
+import {
+  CandidateOnboardingData,
+  onboardingFromRow,
+} from '@/features/candidate/domain/types/candidateOnboarding';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CandidateOnboarding'>;
@@ -56,11 +61,53 @@ function OnboardingSteps(props: Props) {
 }
 
 export function CandidateOnboardingScreen(props: Props) {
-  const initial = props.route.params?.initial;
+  const { t } = useLocale();
+  const routeInitial = props.route.params?.initial;
   const startStep = props.route.params?.startStep;
+  const validInitial = useMemo(
+    () =>
+      routeInitial && typeof routeInitial === 'object'
+        ? (routeInitial as CandidateOnboardingData)
+        : undefined,
+    [routeInitial],
+  );
+  const shouldResolveEditInitial = Boolean(startStep && !validInitial);
+  const [resolvedInitial, setResolvedInitial] = useState<
+    CandidateOnboardingData | undefined
+  >(validInitial);
+  const [initialResolved, setInitialResolved] = useState(!shouldResolveEditInitial);
+
+  useEffect(() => {
+    if (!shouldResolveEditInitial) {
+      setResolvedInitial(validInitial);
+      setInitialResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    api.candidates
+      .me()
+      .then(({ candidate }) => {
+        if (cancelled) return;
+        setResolvedInitial(candidate ? onboardingFromRow(candidate) : undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvedInitial(undefined);
+      })
+      .finally(() => {
+        if (!cancelled) setInitialResolved(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldResolveEditInitial, validInitial]);
+
+  if (!initialResolved) return <ScreenLoading message={t.loading} />;
+
   return (
     <SafeAreaView style={styles.flex} edges={['top']}>
-      <CandidateOnboardingProvider initial={initial} startStep={startStep}>
+      <CandidateOnboardingProvider initial={resolvedInitial} startStep={startStep}>
         <OnboardingSteps {...props} />
       </CandidateOnboardingProvider>
     </SafeAreaView>

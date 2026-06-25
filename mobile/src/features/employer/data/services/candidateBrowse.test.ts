@@ -4,7 +4,7 @@ import {
   emptyFilters,
   filtersForRole,
   hasRefineFilters,
-} from './candidateBrowse';
+} from './candidateBrowseFilters';
 
 describe('filtersForRole', () => {
   it('sets the role and keeps other filters at defaults', () => {

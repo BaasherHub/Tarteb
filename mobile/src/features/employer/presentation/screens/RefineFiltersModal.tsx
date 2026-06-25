@@ -116,6 +116,7 @@ function RefineFiltersModalInner({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
       accessibilityViewIsModal
+      statusBarTranslucent
     >
       <KeyboardAvoidingView
         style={styles.sheet}

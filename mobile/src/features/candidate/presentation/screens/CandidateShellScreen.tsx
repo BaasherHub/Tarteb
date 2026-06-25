@@ -12,7 +12,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CandidateDashboardScreen } from './CandidateDashboardScreen';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { RootStackParamList, CandidateTabParamList } from '@/core/navigation/types';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
+import { clearSession } from '@/core/services/tokenStorage';
 import { clearPushToken } from '@/core/services/notifications';
 import { LANGUAGE_SELECTION_DONE_KEY } from '@/core/i18n/LocaleContext';
 import { colors } from '@/core/theme/colors';
@@ -50,26 +51,17 @@ function CandidateSettingsTab() {
   const logout = async () => {
     await clearPushToken().catch(() => {});
     await AsyncStorage.removeItem(LANGUAGE_SELECTION_DONE_KEY).catch(() => {});
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await api.auth.logout().catch(() => {});
+    await clearSession();
     queryClient.clear();
     stackNav.reset({ index: 0, routes: [{ name: 'RoleSelection' }] });
   };
 
   const openEditProfile = async () => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    const userId = userData.user?.id;
-    if (!userId) throw new Error(t.errorGeneric);
-    const { data: row, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!row) throw new Error(t.errorGeneric);
+    const { candidate } = await api.candidates.me();
+    if (!candidate) throw new Error(t.errorGeneric);
     stackNav.navigate('CandidateOnboarding', {
-      initial: onboardingFromRow(row as Record<string, unknown>),
+      initial: onboardingFromRow(candidate),
       startStep: 1,
     });
   };
@@ -117,7 +109,6 @@ export function CandidateShellScreen() {
     >
       <Tab.Screen
         name="HomeTab"
-        component={CandidateDashboardScreen}
         options={{
           tabBarLabel: t.home,
           tabBarAccessibilityLabel: t.home,
@@ -129,7 +120,9 @@ export function CandidateShellScreen() {
             />
           ),
         }}
-      />
+      >
+        {() => <CandidateDashboardScreen embeddedInShell />}
+      </Tab.Screen>
       <Tab.Screen
         name="SettingsTab"
         component={CandidateSettingsTab}

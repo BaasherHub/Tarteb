@@ -42,6 +42,8 @@ export const SecondaryButton = memo(function SecondaryButton({
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading, busy: !!loading }}
+      android_ripple={{ color: 'rgba(19,88,206,0.2)', borderless: false }}
+      style={Platform.OS === 'android' ? styles.pressableAndroid : undefined}
     >
       <Animated.View
         style={[
@@ -81,6 +83,10 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   disabled: { opacity: interaction.disabled },
+  pressableAndroid: {
+    borderRadius: spacing.sm,
+    overflow: 'hidden',
+  },
   label: {
     color: colors.primary,
     fontSize: typography.body.fontSize,

@@ -27,7 +27,7 @@ import { EmptyState } from '@/shared/widgets/EmptyState';
 import { ErrorState } from '@/shared/widgets/ErrorState';
 import { InfoBanner } from '@/shared/widgets/InfoBanner';
 import { ScreenHeader } from '@/shared/widgets/ScreenHeader';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 import { getErrorMessage, isLikelyNetworkError } from '@/shared/utils/errors';
 import {
   BrowseFilters,
@@ -103,17 +103,8 @@ export function BrowseScreen() {
   const loadEmployerProfile = useCallback(async () => {
     setEmployerProfileError(null);
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const userId = userData.user?.id;
-      if (!userId) throw new Error(t.errorGeneric);
-      const { data: employer, error: employerError } = await supabase
-        .from('employers')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (employerError) throw employerError;
-      setEmployerProfile(employer as Record<string, unknown> | null);
+      const { employer } = await api.employers.me();
+      setEmployerProfile(employer ?? null);
     } catch (e) {
       setEmployerProfileError(
         getErrorMessage(e, t.errorGeneric),

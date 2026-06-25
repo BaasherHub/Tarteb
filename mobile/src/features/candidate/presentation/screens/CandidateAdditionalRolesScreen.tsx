@@ -13,7 +13,7 @@ import { colors } from '@/core/theme/colors';
 import { interaction } from '@/core/theme/interaction';
 import { spacing } from '@/core/theme/spacing';
 import { typography } from '@/core/theme/typography';
-import { supabase } from '@/core/lib/supabase';
+import { api } from '@/core/lib/api';
 import { RootStackParamList } from '@/core/navigation/types';
 import { layout } from '@/core/theme/layout';
 import { ContentWidth } from '@/shared/widgets/ContentWidth';
@@ -58,27 +58,16 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
     setLoading(true);
     setLoadError(null);
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const userId = userData.user?.id;
-      if (!userId) throw new Error(t.errorGeneric);
-
-      const { data: row, error } = await supabase
-        .from('candidates')
-        .select('role, additional_roles')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!row?.role) {
+      const { candidate } = await api.candidates.me();
+      if (!candidate?.role) {
         navigation.replace('CandidateOnboarding', {});
         return;
       }
 
-      const primary = String(row.role);
+      const primary = String(candidate.role);
       setPrimaryRole(primary);
       setAdditionalRoles(
-        normalizeAdditionalRoles(primary, parseAdditionalRoles(row.additional_roles)),
+        normalizeAdditionalRoles(primary, parseAdditionalRoles(candidate.additional_roles)),
       );
     } catch (e) {
       setLoadError(getErrorMessage(e, t.errorGeneric));
@@ -122,16 +111,8 @@ export function CandidateAdditionalRolesScreen({ navigation }: Props) {
     if (!primaryRole) return;
     setSaving(true);
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error('Not signed in');
-
       const normalized = normalizeAdditionalRoles(primaryRole, additionalRoles);
-      const { error } = await supabase
-        .from('candidates')
-        .update({ additional_roles: normalized })
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await api.candidates.update({ additional_roles: normalized });
       navigation.goBack();
     } catch (e) {
       showError(t.errorTitle, getErrorMessage(e, t.errorGeneric));
