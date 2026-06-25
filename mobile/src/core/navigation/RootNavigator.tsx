@@ -12,6 +12,7 @@ import { colors } from '@/core/theme/colors';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useAuth } from '@/core/providers/AuthProvider';
 import { fetchAccountRole } from '@/core/navigation/deepLinkRole';
+import { getRootRouteName, routeGuardTarget } from '@/core/navigation/routeGuard';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,32 +29,17 @@ export function RootNavigator() {
 
   const guardCurrentRoute = useCallback(async () => {
     if (!authReady || !navigationRef.isReady()) return;
-    const routeName = navigationRef.getCurrentRoute()?.name;
-    if (!routeName) return;
+    const routeName = getRootRouteName(navigationRef.getRootState());
+    const target = routeGuardTarget(routeName);
 
-    const candidateRoutes = new Set([
-      'CandidateOnboarding',
-      'CandidateAdditionalRoles',
-      'CandidateShell',
-      'CandidateDashboard',
-      'Settings',
-    ]);
-    const employerRoutes = new Set([
-      'EmployerOnboarding',
-      'EmployerShell',
-      'CandidateDetail',
-    ]);
-    const protectedRoute =
-      candidateRoutes.has(routeName) || employerRoutes.has(routeName);
-
-    if (protectedRoute && !session) {
+    if (target && !session) {
       navigationRef.reset({
         index: 0,
         routes: [{ name: 'RoleSelection' }],
       });
       return;
     }
-    if (!session || !protectedRoute) return;
+    if (!session || !target) return;
 
     try {
       const role = await fetchAccountRole();
@@ -62,12 +48,12 @@ export function RootNavigator() {
           index: 0,
           routes: [{ name: 'RoleSelection' }],
         });
-      } else if (candidateRoutes.has(routeName) && role !== 'candidate') {
+      } else if (target === 'candidate' && role !== 'candidate') {
         navigationRef.reset({
           index: 0,
           routes: [{ name: 'EmployerShell' }],
         });
-      } else if (employerRoutes.has(routeName) && role !== 'employer') {
+      } else if (target === 'employer' && role !== 'employer') {
         navigationRef.reset({
           index: 0,
           routes: [{ name: 'CandidateShell' }],
