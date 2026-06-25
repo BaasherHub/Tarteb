@@ -1,39 +1,79 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
-import { api } from '@/core/lib/api';
 import { env } from '@/core/config/env';
 import { getAccessToken } from '@/core/services/tokenStorage';
+import { normalizeCandidatePhotoUpload } from '@/features/candidate/data/services/candidatePhotoMetadata';
 
 const BASE = env.apiUrl.replace(/\/$/, '');
+
+function parseUploadError(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: string; message?: string };
+    return parsed.error ?? parsed.message ?? body;
+  } catch {
+    return body;
+  }
+}
+
+async function uploadPhotoOnWeb(
+  uri: string,
+  fileName: string,
+  contentType: string,
+): Promise<string> {
+  const response = await fetch(uri);
+  if (!response.ok) {
+    throw new Error('Could not read selected photo');
+  }
+
+  const blob = await response.blob();
+  const file =
+    typeof File !== 'undefined'
+      ? new File([blob], fileName, { type: contentType })
+      : blob;
+  const formData = new FormData();
+  formData.append('file', file, fileName);
+
+  const token = await getAccessToken();
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${BASE}/api/v1/storage/photo`);
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.onload = () => {
+      const body = xhr.responseText || '';
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(parseUploadError(body)));
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(body) as { photo_url?: string };
+        if (!parsed.photo_url) {
+          reject(new Error('Could not upload selected photo'));
+          return;
+        }
+        resolve(parsed.photo_url);
+      } catch {
+        reject(new Error('Could not upload selected photo'));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Could not upload selected photo'));
+    xhr.ontimeout = () => reject(new Error('Request timed out — please check your connection and try again.'));
+    xhr.timeout = 15_000;
+    xhr.send(formData);
+  });
+}
 
 export async function uploadCandidatePhoto(
   uri: string,
   fileName: string,
   mimeType: string,
 ): Promise<string> {
-  const ext = fileName.includes('.')
-    ? fileName.split('.').pop()?.toLowerCase() ?? 'jpg'
-    : 'jpg';
-  const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
-  const contentType =
-    mimeType || (safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg');
-  const safeFileName = fileName.includes('.') ? fileName : `photo.${safeExt}`;
+  const { fileName: safeFileName, contentType } =
+    normalizeCandidatePhotoUpload(fileName, mimeType);
 
   if (Platform.OS === 'web') {
-    const response = await fetch(uri);
-    if (!response.ok) {
-      throw new Error('Could not read selected photo');
-    }
-
-    const blob = await response.blob();
-    const formData = new FormData();
-    const webFile =
-      typeof File !== 'undefined'
-        ? new File([blob], safeFileName, { type: contentType })
-        : blob;
-    formData.append('file', webFile, safeFileName);
-    const { photo_url } = await api.storage.uploadPhoto(formData);
-    return photo_url;
+    return uploadPhotoOnWeb(uri, safeFileName, contentType);
   }
 
   const token = await getAccessToken();
@@ -50,12 +90,7 @@ export async function uploadCandidatePhoto(
   );
 
   if (result.status < 200 || result.status >= 300) {
-    let message = result.body;
-    try {
-      const j = JSON.parse(result.body) as { error?: string };
-      message = j.error ?? result.body;
-    } catch { /* keep raw body */ }
-    throw new Error(message);
+    throw new Error(parseUploadError(result.body));
   }
 
   const { photo_url } = JSON.parse(result.body) as { photo_url: string };
