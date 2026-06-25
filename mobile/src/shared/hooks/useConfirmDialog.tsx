@@ -13,6 +13,7 @@ type ConfirmState = ConfirmOptions & {
   visible: boolean;
   loading: boolean;
   onConfirm: () => void;
+  onCancel: () => void;
 };
 
 const idle: ConfirmState = {
@@ -23,6 +24,7 @@ const idle: ConfirmState = {
   cancelLabel: '',
   loading: false,
   onConfirm: () => {},
+  onCancel: () => {},
 };
 
 /** Cross-platform confirm dialog (replaces Alert.alert with buttons on web). */
@@ -30,7 +32,11 @@ export function useConfirmDialog() {
   const [state, setState] = useState<ConfirmState>(idle);
 
   const close = useCallback(() => {
-    setState((s) => (s.loading ? s : idle));
+    setState((s) => {
+      if (s.loading) return s;
+      s.onCancel();
+      return idle;
+    });
   }, []);
 
   const confirm = useCallback(
@@ -44,6 +50,7 @@ export function useConfirmDialog() {
             resolve(true);
             setState(idle);
           },
+          onCancel: () => resolve(false),
         });
       }),
     [],
@@ -55,6 +62,7 @@ export function useConfirmDialog() {
         ...options,
         visible: true,
         loading: false,
+        onCancel: () => {},
         onConfirm: () => {
           void (async () => {
             setState((s) => ({ ...s, loading: true }));
