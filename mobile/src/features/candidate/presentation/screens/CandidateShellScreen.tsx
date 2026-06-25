@@ -100,6 +100,7 @@ export function CandidateShellScreen() {
     >
       <Tab.Screen
         name="HomeTab"
+        component={CandidateDashboardScreen}
         options={{
           tabBarLabel: t.home,
           tabBarAccessibilityLabel: t.home,
@@ -111,9 +112,7 @@ export function CandidateShellScreen() {
             />
           ),
         }}
-      >
-        {() => <CandidateDashboardScreen embeddedInShell />}
-      </Tab.Screen>
+      />
       <Tab.Screen
         name="SettingsTab"
         component={CandidateSettingsTab}

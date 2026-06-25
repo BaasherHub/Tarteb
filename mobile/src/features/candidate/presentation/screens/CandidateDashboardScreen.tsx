@@ -86,13 +86,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 
 
-type CandidateDashboardScreenProps = {
-  embeddedInShell?: boolean;
-};
-
-export function CandidateDashboardScreen({
-  embeddedInShell = false,
-}: CandidateDashboardScreenProps) {
+export function CandidateDashboardScreen() {
 
   const { t } = useLocale();
 
@@ -114,10 +108,6 @@ export function CandidateDashboardScreen({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [routingToOnboarding, setRoutingToOnboarding] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
-
-
-
-  const inShell = embeddedInShell;
 
 
 
@@ -383,9 +373,6 @@ export function CandidateDashboardScreen({
     >
       <ScreenHeader
         title={t.home}
-        onSettings={
-          inShell ? undefined : () => navigation.navigate('Settings', undefined)
-        }
       />
 
       <View style={styles.sections}>

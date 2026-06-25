@@ -4,8 +4,6 @@ export const candidateRootRoutes = new Set([
   'CandidateOnboarding',
   'CandidateAdditionalRoles',
   'CandidateShell',
-  'CandidateDashboard',
-  'Settings',
 ]);
 
 export const employerRootRoutes = new Set([
