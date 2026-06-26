@@ -97,7 +97,7 @@ export function CandidateOnboardingStep({
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.select({ ios: 'padding', android: 'height' })}
     >
       <ContentWidth style={styles.flex} variant="plain">
         <OnboardingProgress
