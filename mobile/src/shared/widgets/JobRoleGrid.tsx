@@ -259,8 +259,8 @@ export const JobRoleGrid = memo(function JobRoleGrid({
             <Pressable
               style={styles.modalBackdrop}
               onPress={() => setPickerOpen(null)}
-              accessibilityRole="button"
-              accessibilityLabel={t.cancel}
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
             />
             <View style={styles.modalSheet}>
               <Text
