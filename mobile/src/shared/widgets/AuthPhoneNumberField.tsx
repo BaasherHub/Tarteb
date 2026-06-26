@@ -113,8 +113,8 @@ export function AuthPhoneNumberField({
           <Pressable
             style={styles.backdrop}
             onPress={() => setPickerOpen(false)}
-            accessibilityRole="button"
-            accessibilityLabel={t.cancel}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
           />
           <View style={styles.sheet}>
             <Text style={[styles.sheetTitle, { textAlign: rtl.textAlignCenter }]}>
