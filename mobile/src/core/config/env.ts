@@ -9,6 +9,11 @@ const extra = Constants.expoConfig?.extra as
     }
   | undefined;
 
+const isProductionJsBundle = process.env.NODE_ENV === 'production';
+const allowInternalTestFlags =
+  !isProductionJsBundle ||
+  (typeof __DEV__ !== 'undefined' && __DEV__);
+
 /**
  * Dev-only flags — never true in release builds regardless of env vars.
  * @see validateProductionConfig()
@@ -21,13 +26,13 @@ export const env = {
   apiUrl:
     process.env.EXPO_PUBLIC_API_URL ?? extra?.apiUrl ?? 'https://tarteb-production.up.railway.app',
   /**
-   * OTP bypass for internal/preview testing. Controlled purely by env var —
-   * production EAS profile must not set EXPO_PUBLIC_SKIP_OTP_VERIFICATION.
+   * OTP bypass for internal/preview testing. Never active in release bundles,
+   * even if a production environment is misconfigured.
    */
   skipOtpVerification:
-    process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
+    allowInternalTestFlags && process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
   showDevOtpBanner:
-    process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
+    allowInternalTestFlags && process.env.EXPO_PUBLIC_SKIP_OTP_VERIFICATION === 'true',
   analyticsEnabled: process.env.EXPO_PUBLIC_ANALYTICS_ENABLED === 'true',
   crashReportingDsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
   /** Sentry runs in release builds when DSN is set (disabled in __DEV__). */

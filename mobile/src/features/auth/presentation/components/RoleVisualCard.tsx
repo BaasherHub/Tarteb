@@ -90,6 +90,8 @@ export function RoleVisualCard({
 const styles = StyleSheet.create({
   pressable: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
   },
   pressed: { opacity: 0.94 },
   disabled: { opacity: 0.6 },

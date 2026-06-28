@@ -8,6 +8,8 @@ const BRAND_SCAFFOLD = '#F5F7FB';
 const projectRoot = __dirname;
 const googleServicesJson = path.join(projectRoot, 'google-services.json');
 const fcmConfigured = fs.existsSync(googleServicesJson);
+const isDevelopmentBuild = process.env.EAS_BUILD_PROFILE === 'development' ||
+  process.env.EAS_BUILD_PROFILE === 'development-simulator';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -62,6 +64,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'POST_NOTIFICATIONS',
       'VIBRATE',
     ],
+    blockedPermissions: [
+      'android.permission.RECORD_AUDIO',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
+    ],
   },
   locales: {
     en: './locales/en.json',
@@ -69,7 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     '@sentry/react-native',
-    'expo-dev-client',
+    ...(isDevelopmentBuild ? ['expo-dev-client'] : []),
     'expo-font',
     'expo-image',
     [

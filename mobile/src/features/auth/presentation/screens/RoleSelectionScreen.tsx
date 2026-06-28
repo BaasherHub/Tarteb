@@ -220,16 +220,17 @@ export function RoleSelectionScreen({ navigation }: Props) {
           </ScrollView>
 
           <ScreenFooter>
-            {!selected ? (
-              <Text
-                style={[
-                  styles.pickHint,
-                  { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
-                ]}
-              >
-                {copy.pickHint}
-              </Text>
-            ) : null}
+            <Text
+              style={[
+                styles.pickHint,
+                selected && styles.pickHintHidden,
+                { textAlign: rtl.textAlignCenter, writingDirection: rtl.writingDirection },
+              ]}
+              accessibilityElementsHidden={Boolean(selected)}
+              importantForAccessibility={selected ? 'no-hide-descendants' : 'auto'}
+            >
+              {copy.pickHint}
+            </Text>
             <PrimaryButton
               label={selected ? t.roleConfirmAction(roleLabel) : copy.pickPrompt}
               onPress={() => {
@@ -284,6 +285,8 @@ const styles = StyleSheet.create({
   },
   bannerWrap: { marginBottom: spacing.md },
   cards: {
+    width: '100%',
+    alignSelf: 'stretch',
     gap: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -293,5 +296,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.sm,
     lineHeight: 18,
+  },
+  pickHintHidden: {
+    opacity: 0,
   },
 });
