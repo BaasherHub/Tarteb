@@ -29,6 +29,9 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> &
     error?: string;
     hint?: string;
     emptyHint?: string;
+    dropdownMaxHeight?: number;
+    dropdownPlacement?: 'above' | 'below';
+    selectOnly?: boolean;
   };
 
 export function AutocompleteField({
@@ -40,6 +43,9 @@ export function AutocompleteField({
   error,
   hint,
   emptyHint,
+  dropdownMaxHeight,
+  dropdownPlacement = 'below',
+  selectOnly,
   required,
   optional,
   placeholder,
@@ -86,7 +92,124 @@ export function AutocompleteField({
     keepListFocus();
   };
 
+  const selectOption = (item: string) => {
+    onSelect(item);
+    listInteracting.current = false;
+    clearBlurTimer();
+    setFocused(false);
+  };
+
   const flags = { required, optional };
+
+  const input = (
+    <TextInput
+        {...inputProps}
+        nativeID={inputId}
+        value={value}
+        onChangeText={(next) => {
+          if (selectOnly) return;
+          clearBlurTimer();
+          setFocused(true);
+          onChangeText(next);
+        }}
+        placeholder={placeholder}
+        placeholderTextColor={colors.placeholder}
+        editable={selectOnly ? false : inputProps.editable}
+        showSoftInputOnFocus={selectOnly ? false : inputProps.showSoftInputOnFocus}
+        caretHidden={selectOnly ? true : inputProps.caretHidden}
+        onPressIn={(event) => {
+          inputProps.onPressIn?.(event);
+          clearBlurTimer();
+          setFocused(true);
+        }}
+        onFocus={(event) => {
+          inputProps.onFocus?.(event);
+          clearBlurTimer();
+          setFocused(true);
+        }}
+        onBlur={(event) => {
+          inputProps.onBlur?.(event);
+          scheduleBlur();
+        }}
+        style={[
+          styles.input,
+          error ? styles.inputError : null,
+          { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
+        ]}
+        accessibilityLabel={fieldA11yLabel(
+          label,
+          error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
+          hint,
+          flags,
+          t,
+        )}
+        accessibilityHint={hint}
+      />
+  );
+
+  const dropdown = (
+    <View
+      style={[
+        styles.dropdown,
+        dropdownPlacement === 'above' ? styles.dropdownAbove : null,
+        dropdownMaxHeight ? { maxHeight: dropdownMaxHeight } : null,
+      ]}
+      accessibilityRole="list"
+      accessibilityLabel={label}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onTouchStart={keepListFocus}
+      onTouchEnd={releaseListFocus}
+      {...(Platform.OS === 'web'
+        ? ({ onMouseDown: preventWebInputBlur } as object)
+        : {})}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="always"
+        nestedScrollEnabled
+        style={styles.list}
+        showsVerticalScrollIndicator
+        onScrollBeginDrag={keepListFocus}
+        onScrollEndDrag={releaseListFocus}
+        onMomentumScrollEnd={releaseListFocus}
+      >
+        {list.map((item) => (
+          <Pressable
+            key={item}
+            onPressIn={() => {
+              keepListFocus();
+              if (Platform.OS === 'web') {
+                selectOption(item);
+              }
+            }}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                selectOption(item);
+              }
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={item}
+            accessibilityHint={t.a11yChipToggle}
+            android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
+            style={({ pressed }) => [
+              styles.option,
+              pressed && styles.optionPressed,
+            ]}
+          >
+            <Text
+              style={styles.optionText}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
+              {item}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
 
   return (
     <View style={styles.wrap} accessibilityRole="none">
@@ -105,86 +228,15 @@ export function AutocompleteField({
           {hint}
         </Text>
       ) : null}
-      <TextInput
-        {...inputProps}
-        nativeID={inputId}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
-        onFocus={() => {
-          clearBlurTimer();
-          setFocused(true);
-        }}
-        onBlur={scheduleBlur}
-        style={[
-          styles.input,
-          error ? styles.inputError : null,
-          { textAlign: rtl.textAlign, writingDirection: rtl.writingDirection },
-        ]}
-        accessibilityLabel={fieldA11yLabel(
-          label,
-          error ? `${t.a11yFieldInvalid}. ${error}` : undefined,
-          hint,
-          flags,
-          t,
-        )}
-        accessibilityHint={hint}
-      />
-      {showList ? (
-        <View
-          style={styles.dropdown}
-          accessibilityRole="list"
-          accessibilityLabel={label}
-          onStartShouldSetResponder={() => true}
-          onMoveShouldSetResponder={() => true}
-          onTouchStart={keepListFocus}
-          onTouchEnd={releaseListFocus}
-          {...(Platform.OS === 'web'
-            ? ({ onMouseDown: preventWebInputBlur } as object)
-            : {})}
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="always"
-            nestedScrollEnabled
-            style={styles.list}
-            showsVerticalScrollIndicator
-            onScrollBeginDrag={keepListFocus}
-            onScrollEndDrag={releaseListFocus}
-            onMomentumScrollEnd={releaseListFocus}
-          >
-            {list.map((item) => (
-              <Pressable
-                key={item}
-                onPress={() => {
-                  onSelect(item);
-                  listInteracting.current = false;
-                  clearBlurTimer();
-                  setFocused(false);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={item}
-                accessibilityHint={t.a11yChipToggle}
-                android_ripple={{ color: 'rgba(19,88,206,0.15)', borderless: false }}
-                style={({ pressed }) => [
-                  styles.option,
-                  pressed && styles.optionPressed,
-                ]}
-              >
-                <Text
-                  style={styles.optionText}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                  importantForAccessibility="no-hide-descendants"
-                  accessibilityElementsHidden
-                >
-                  {item}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
+      {dropdownPlacement === 'above' ? (
+        <View style={styles.inputShell}>
+          {input}
+          {showList ? dropdown : null}
         </View>
-      ) : focused && value.trim() && list.length === 0 && emptyHint ? (
+      ) : (
+        input
+      )}
+      {dropdownPlacement !== 'above' && showList ? dropdown : focused && value.trim() && list.length === 0 && emptyHint ? (
         <Text
           style={[styles.emptyHint, { textAlign: rtl.textAlign }]}
           accessibilityRole="text"
@@ -199,7 +251,7 @@ export function AutocompleteField({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: spacing.fieldGap, zIndex: 2 },
+  wrap: { marginBottom: spacing.fieldGap, zIndex: 30 },
   hint: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.sm },
   input: {
     borderWidth: 1,
@@ -213,7 +265,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   inputError: { borderColor: colors.error },
+  inputShell: { position: 'relative', zIndex: 30 },
   dropdown: {
+    zIndex: 40,
     marginTop: spacing.xs,
     borderWidth: 1,
     borderColor: colors.divider,
@@ -221,11 +275,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     maxHeight: 220,
     overflow: 'hidden',
-    elevation: 4,
+    elevation: 12,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
+  },
+  dropdownAbove: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 56,
   },
   list: { flexGrow: 0 },
   option: {

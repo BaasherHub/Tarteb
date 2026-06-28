@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '@/core/i18n/LocaleContext';
 import { useRtlStyles } from '@/core/hooks/useRtlStyles';
@@ -14,9 +14,6 @@ import {
   resolveArea,
 } from '@/shared/constants/uaeLocations';
 import { AutocompleteField } from '@/shared/widgets/AutocompleteField';
-import { FieldError } from '@/shared/widgets/FieldError';
-import { FieldLabel } from '@/shared/widgets/FieldLabel';
-import { SelectableChip } from '@/shared/widgets/SelectableChip';
 
 type Props = {
   value: string;
@@ -43,14 +40,25 @@ export function LocationPicker({
       : 'Dubai') as UaeEmirate,
   );
   const [areaQuery, setAreaQuery] = useState(parsed.area ?? '');
+  const keepTypedAreaQuery = useRef(false);
 
   useEffect(() => {
     const p = parseLocation(value);
-    if (UAE_EMIRATES.includes(p.emirate as UaeEmirate)) {
-      setEmirate(p.emirate as UaeEmirate);
+    const nextEmirate = UAE_EMIRATES.includes(p.emirate as UaeEmirate)
+      ? (p.emirate as UaeEmirate)
+      : undefined;
+
+    if (nextEmirate) {
+      setEmirate(nextEmirate);
     }
+
+    if (keepTypedAreaQuery.current && !p.area && (!nextEmirate || nextEmirate === emirate)) {
+      keepTypedAreaQuery.current = false;
+      return;
+    }
+
     setAreaQuery(p.area ?? '');
-  }, [value]);
+  }, [emirate, value]);
 
   const areaOptions = useMemo(
     () => filterAreas(emirate, areaQuery, 12),
@@ -61,19 +69,26 @@ export function LocationPicker({
     setAreaQuery(q);
     const resolved = resolveArea(emirate, q);
     if (resolved) {
+      keepTypedAreaQuery.current = false;
       onChange(formatLocation(emirate, resolved));
     } else if (!q.trim()) {
+      keepTypedAreaQuery.current = false;
+      onChange(emirate);
+    } else {
+      keepTypedAreaQuery.current = true;
       onChange(emirate);
     }
   };
 
   const selectEmirate = (next: UaeEmirate) => {
+    keepTypedAreaQuery.current = false;
     setEmirate(next);
     setAreaQuery('');
     onChange(next);
   };
 
   const selectArea = (area: string) => {
+    keepTypedAreaQuery.current = false;
     setAreaQuery(area);
     onChange(formatLocation(emirate, area));
   };
@@ -88,18 +103,18 @@ export function LocationPicker({
 
   return (
     <View style={styles.wrap}>
-      <FieldLabel label={t.locationEmirate} required />
-      <FieldError message={error && !value ? error : undefined} />
-      <View style={[styles.chips, rtl.row]}>
-        {UAE_EMIRATES.map((e) => (
-          <SelectableChip
-            key={e}
-            label={e}
-            selected={parseLocation(value).emirate === e && !parseLocation(value).area}
-            onPress={() => selectEmirate(e)}
-          />
-        ))}
-      </View>
+      <AutocompleteField
+        label={t.locationEmirate}
+        required
+        value={emirate}
+        onChangeText={() => undefined}
+        onSelect={(next) => selectEmirate(next as UaeEmirate)}
+        options={[...UAE_EMIRATES]}
+        error={error && !value ? error : undefined}
+        selectOnly
+        dropdownMaxHeight={104}
+        dropdownPlacement="above"
+      />
       <AutocompleteField
         label={t.locationArea}
         required={areaRequired}
@@ -111,6 +126,8 @@ export function LocationPicker({
         options={areaOptions}
         emptyHint={t.locationNoMatch}
         onBlur={handleAreaBlur}
+        dropdownMaxHeight={104}
+        dropdownPlacement="above"
       />
       {value ? (
         <Text
@@ -126,7 +143,6 @@ export function LocationPicker({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: spacing.sm, marginBottom: spacing.xs, gap: spacing.sm },
-  chips: { flexWrap: 'wrap', gap: spacing.sm },
+  wrap: { marginTop: spacing.sm, marginBottom: spacing.xs, gap: spacing.sm, zIndex: 50 },
   selected: { ...typography.caption, color: colors.primary, fontWeight: '600' },
 });
